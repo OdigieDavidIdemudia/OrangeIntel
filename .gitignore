@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+dist/
+dist_electron/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/

@@ -1,0 +1,96 @@
+{
+    "orange_intel_api_integration": {
+        "auth": {
+            "misp": null,
+            "taxii": "REPLACE_WITH_ENV_VAR",
+            "nvd": "REPLACE_WITH_ENV_VAR",
+            "virus_total": "5b977a085f8e210c896c93810e5793b9ebea64c5a737ffbb5c72cf5c58eb46bd",
+            "alienvault": "53e5dce85ba240c61bd55b779d6a104b69a34a4697c4babbacbbdec360cb09b5",
+            "abuseipdb": "4334aa45ab8dccdfc6f23e62e7be92c715bd79b6683d1597c9811f149c7baa83527b802ebbc50336"
+        },
+        "feeds": {
+            "misp": {
+                "url": "https://misp.example.com/events/restSearch"
+            },
+            "taxii": {
+                "url": "http://taxii.local/collections/1"
+            },
+            "nvd_cve": {
+                "url": "https://services.nvd.nist.gov/rest/json/cves/2.0"
+            },
+            "cisa_kev": {
+                "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+            },
+            "virus_total": {
+                "url": "https://www.virustotal.com/api/v3"
+            }
+        },
+        "virus_total_integration": {
+            "enabled": true,
+            "usage_mode": "on_demand_enrichment",
+            "supported_indicator_types": [
+                "ip",
+                "domain",
+                "url",
+                "file_hash_md5",
+                "file_hash_sha1",
+                "file_hash_sha256"
+            ],
+            "query_rules": {
+                "only_if": [
+                    "score < 50",
+                    "not_previously_enriched",
+                    "last_enriched > 24h"
+                ],
+                "never_query_if": [
+                    "type == 'cve'",
+                    "source == 'trusted_internal'"
+                ]
+            },
+            "rate_limiting": {
+                "requests_per_minute": 4,
+                "burst_limit": 1,
+                "sleep_between_requests_ms": 15000
+            },
+            "scoring_logic": {
+                "if_malicious_gt_5": {
+                    "score": 85,
+                    "severity": "high"
+                },
+                "if_malicious_between_1_and_5": {
+                    "score": 60,
+                    "severity": "medium"
+                },
+                "if_zero_detections": {
+                    "score": 20,
+                    "severity": "low"
+                }
+            }
+        },
+        "normalization": {
+            "steps": [
+                "deduplication",
+                "standardization"
+            ]
+        },
+        "enrichment": {
+            "sources": [
+                "virus_total"
+            ]
+        },
+        "classification": {
+            "logic": "standard"
+        },
+        "scoring": {
+            "weights": {
+                "misp": 1.0,
+                "taxii": 0.8
+            },
+            "risk_bands": {
+                "high": 80,
+                "medium": 50,
+                "low": 20
+            }
+        }
+    }
+}

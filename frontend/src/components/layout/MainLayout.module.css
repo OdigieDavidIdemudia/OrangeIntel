@@ -1,0 +1,21 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.mainContent {
+    flex: 1;
+    margin-left: 260px;
+    /* Sidebar width */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-app);
+}
+
+.pageContent {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}

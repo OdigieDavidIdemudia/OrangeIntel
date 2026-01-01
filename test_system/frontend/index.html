@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Management Test System</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+
+        .item-card.old {
+            border-left: 5px solid #dc3545;
+        }
+
+        /* Red for old items */
+        .item-card.new {
+            border-left: 5px solid #28a745;
+        }
+
+        /* Green for new items */
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .badge {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .badge-saved {
+            background: #28a745;
+        }
+
+        .badge-unsaved {
+            background: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Test System: Ephemeral vs Saved Data</h1>
+
+    <div class="controls">
+        <button onclick="ingestData()">1. Generate Mock Data (5 New + 5 Old)</button>
+        <button onclick="runCleanup()" class="danger">2. Run 6h Cleanup</button>
+        <button onclick="refreshAll()" class="secondary">Refresh Views</button>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard View -->
+        <div class="panel">
+            <h2>Dashboard (Recent 10)</h2>
+            <p>Shows the most recent 10 items. "Old" items (>6h) are marked red.</p>
+            <div id="dashboard-list" class="item-list"></div>
+        </div>
+
+        <!-- Saved Reports View -->
+        <div class="panel">
+            <h2>Saved Reports</h2>
+            <p>Shows ALL items marked as saved. These should persist after cleanup.</p>
+            <div id="saved-list" class="item-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8090/api';
+
+        async function ingestData() {
+            await fetch(`${API_URL}/ingest`, { method: 'POST' });
+            refreshAll();
+        }
+
+        async function runCleanup() {
+            const res = await fetch(`${API_URL}/cleanup`, { method: 'POST' });
+            const data = await res.json();
+            alert(`Cleanup Complete! Released ${data.deleted} items.`);
+            refreshAll();
+        }
+
+        async function toggleSave(id) {
+            await fetch(`${API_URL}/save`, {
+                method: 'POST',
+                body: JSON.stringify({ id }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            refreshAll();
+        }
+
+        async function fetchDashboard() {
+            const res = await fetch(`${API_URL}/dashboard`);
+            const data = await res.json();
+            renderList('dashboard-list', data);
+        }
+
+        async function fetchSaved() {
+            const res = await fetch(`${API_URL}/saved`);
+            const data = await res.json();
+            renderList('saved-list', data, true);
+        }
+
+        function renderList(elementId, items, isSavedView = false) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const date = new Date(item.fetched_at.replace(" ", "T") + "Z"); // naive parse assuming UTC db
+                const now = new Date();
+                const diffHours = (now - date) / 1000 / 60 / 60;
+                const isOld = diffHours > 6;
+
+                const div = document.createElement('div');
+                div.className = `item-card ${isOld ? 'old' : 'new'}`;
+                div.innerHTML = `
+                    <div class="item-header">
+                        <strong>${item.source}</strong>
+                        <span class="badge ${item.is_saved ? 'badge-saved' : 'badge-unsaved'}">
+                            ${item.is_saved ? 'SAVED' : 'Ephemeral'}
+                        </span>
+                    </div>
+                    <div>${item.content}</div>
+                    <small>Fetched: ${item.fetched_at} (${diffHours.toFixed(1)}h ago)</small>
+                    <div style="margin-top: 5px;">
+                        <button onclick="toggleSave(${item.id})" style="padding: 2px 8px; font-size: 0.8em;">
+                            ${item.is_saved ? 'Unsave' : 'Save Report'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            if (items.length === 0) container.innerHTML = '<div>No items found.</div>';
+        }
+
+        function refreshAll() {
+            fetchDashboard();
+            fetchSaved();
+        }
+
+        // Initial Load
+        refreshAll();
+    </script>
+</body>
+
+</html>

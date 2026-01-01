@@ -1,0 +1,56 @@
+{
+    "OrangeIntel_API_Integration": {
+        "auth": {},
+        "feeds": {
+            "misp": {
+                "enabled": false,
+                "url": "https://misp.example.com/events/restSearch"
+            },
+            "taxii": {
+                "enabled": false,
+                "url": "http://taxii.local/collections/1"
+            },
+            "nvd_cve": {
+                "enabled": false,
+                "url": "https://services.nvd.nist.gov/rest/json/cves/2.0"
+            },
+            "cisa_kev": {
+                "enabled": true,
+                "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+            },
+            "virus_total": {
+                "enabled": true,
+                "url": "https://www.virustotal.com/api/v3"
+            }
+        },
+        "normalization_pipeline": {
+            "steps": [
+                "deduplication",
+                "standardization"
+            ]
+        },
+        "enrichment_pipeline": {
+            "ioc_enrichment": {}
+        },
+        "threat_classification_engine": {
+            "logic": [
+                "standard"
+            ]
+        },
+        "scoring_engine": {
+            "weights": {
+                "cve": 0.9,
+                "kev": 1.0
+            },
+            "risk_bands": {
+                "high": "80",
+                "medium": "50",
+                "low": "20"
+            }
+        },
+        "virus_total_integration": {
+            "enabled": true,
+            "api_key": "5b977a085f8e210c896c93810e5793b9ebea64c5a737ffbb5c72cf5c58eb46bd"
+        }
+    }
+}

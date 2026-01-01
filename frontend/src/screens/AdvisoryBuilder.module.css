@@ -1,0 +1,190 @@
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.breadcrumbs {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.progressContainer {
+    margin-bottom: 1.5rem;
+    background-color: var(--bg-panel);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.progressLabel {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.percentage {
+    color: var(--color-brand);
+    font-weight: 700;
+}
+
+.progressBarBg {
+    height: 6px;
+    background-color: var(--bg-app);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    background-color: var(--color-brand);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.pageTitle {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.saveButton {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.approveButton {
+    background-color: var(--color-brand);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.row {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.input,
+.textarea,
+.select {
+    padding: 0.75rem;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.875rem;
+    width: 100%;
+}
+
+.textarea:focus,
+.input:focus,
+.select:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+.arrayItem {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.removeButton {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    padding: 0 0.5rem;
+}
+
+.removeButton:hover {
+    color: var(--color-danger);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-radius: 4px;
+}
+
+.addButton {
+    align-self: flex-start;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    color: var(--color-brand);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
+}
+
+.addButton:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--color-brand);
+    transform: translateY(-1px);
+}
+
+/* Force dark options for select in dark mode if supported by browser */
+.select option {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+}
+
+.loading {
+    padding: 4rem;
+    text-align: center;
+    color: var(--text-secondary);
+}

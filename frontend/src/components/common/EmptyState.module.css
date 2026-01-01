@@ -1,0 +1,40 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--bg-panel);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    color: var(--text-muted);
+    height: 100%;
+    min-height: 400px;
+}
+
+.iconWrapper {
+    margin-bottom: 1.5rem;
+    color: var(--color-success);
+    background-color: rgba(16, 185, 129, 0.1);
+    padding: 1rem;
+    border-radius: 50%;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.message {
+    font-size: 1rem;
+    max-width: 400px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.action {
+    margin-top: 2rem;
+}
