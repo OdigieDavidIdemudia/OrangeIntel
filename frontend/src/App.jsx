@@ -1,63 +1,88 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
-import TopicsView from './screens/TopicsView';
+import LoginScreen from './screens/LoginScreen';
+import ThreatsView from './screens/ThreatsView';
 
 import AdvisoryBuilder from './screens/AdvisoryBuilder';
 
 import AssessmentBuilder from './screens/AssessmentBuilder';
 import ReportBuilder from './screens/ReportBuilder';
 
-import AdminDashboard from './screens/AdminDashboard';
+import SettingsScreen from './screens/SettingsScreen';
+
+const RequireAuth = ({ children }) => {
+  const { token, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div>Loading...</div>; // Replace with a proper spinner if available
+  }
+
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
 
 function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/topics" replace />} />
+    <AuthProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginScreen />} />
 
-            <Route path="topics" element={<TopicsView />} />
-            <Route path="advisories" element={<Navigate to="/advisories/new" />} />
-            <Route path="advisories/:id" element={<AdvisoryBuilder />} />
+            <Route path="/" element={
+              <RequireAuth>
+                <MainLayout />
+              </RequireAuth>
+            }>
+              <Route index element={<Navigate to="/threats" replace />} />
 
-            <Route path="assessments" element={<AssessmentBuilder />} />
-            <Route path="assessments/:id" element={<AssessmentBuilder />} />
+              <Route path="threats" element={<ThreatsView />} />
+              <Route path="advisories" element={<Navigate to="/advisories/new" />} />
+              <Route path="advisories/:id" element={<AdvisoryBuilder />} />
 
-            <Route path="reports" element={<ReportBuilder />} />
+              <Route path="assessments" element={<AssessmentBuilder />} />
+              <Route path="assessments/:id" element={<AssessmentBuilder />} />
 
-            <Route path="admin" element={<AdminDashboard />} />
+              <Route path="reports" element={<ReportBuilder />} />
 
-            <Route path="*" element={<div>404 Not Found</div>} />
-          </Route>
-        </Routes>
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: 'var(--bg-panel)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
-            },
-            success: {
-              iconTheme: {
-                primary: 'var(--color-success)',
-                secondary: 'var(--bg-panel)',
+              <Route path="settings" element={<SettingsScreen />} />
+
+              <Route path="*" element={<div>404 Not Found</div>} />
+            </Route>
+          </Routes>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'var(--bg-panel)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: 'var(--color-danger)',
-                secondary: 'var(--bg-panel)',
+              success: {
+                iconTheme: {
+                  primary: 'var(--color-success)',
+                  secondary: 'var(--bg-panel)',
+                },
               },
-            },
-          }}
-        />
-      </BrowserRouter>
-    </ThemeProvider>
+              error: {
+                iconTheme: {
+                  primary: 'var(--color-danger)',
+                  secondary: 'var(--bg-panel)',
+                },
+              },
+            }}
+          />
+        </BrowserRouter>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

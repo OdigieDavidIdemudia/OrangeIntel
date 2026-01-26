@@ -1,0 +1,13 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  OrangeIntel.Domain -> C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\bin\Debug\net9.0\OrangeIntel.Domain.dll
+  OrangeIntel.Application -> C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Application\bin\Debug\net9.0\OrangeIntel.Application.dll
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\Reporting\DocxReportGenerator.cs(120,154): error CS1736: Default parameter value for 'align' must be a compile-time constant [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\OrangeIntel.Infrastructure.csproj]
+
+Build FAILED.
+
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\Reporting\DocxReportGenerator.cs(120,154): error CS1736: Default parameter value for 'align' must be a compile-time constant [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\OrangeIntel.Infrastructure.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.87

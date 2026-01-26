@@ -59,7 +59,7 @@ const Select = ({ value, onChange, options, placeholder = "Select...", className
                     userSelect: 'none'
                 }}
             >
-                <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <span style={{ wordBreak: 'break-word', lineHeight: '1.4' }}>
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
                 <ChevronDown size={16} color="var(--text-secondary)" />
@@ -104,7 +104,7 @@ const Select = ({ value, onChange, options, placeholder = "Select...", className
                                 if (opt.value !== value) e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                         >
-                            <span>{opt.label}</span>
+                            <span style={{ wordBreak: 'break-word', lineHeight: '1.4', paddingRight: '0.5rem' }}>{opt.label}</span>
                             {opt.value === value && <Check size={14} color="var(--color-brand)" />}
                         </div>
                     ))}

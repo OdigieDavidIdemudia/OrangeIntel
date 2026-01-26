@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FileDown, FileText, Search, Filter } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import Select from '../components/common/Select';
 import styles from './ReportBuilder.module.css';
 
 const ReportBuilder = () => {
+    const { token } = useAuth();
     const [sources, setSources] = useState([]);
     const [reports, setReports] = useState([]);
     const [selectedSource, setSelectedSource] = useState('');
@@ -16,63 +19,83 @@ const ReportBuilder = () => {
     const [generating, setGenerating] = useState(false);
 
     useEffect(() => {
-        // Fetch available sources (Advisories + Assessments)
-        // and Existing Reports
-        fetchData();
-    }, []);
+        if (token) {
+            fetchData();
+        }
+    }, [token]);
 
     const fetchData = async () => {
         try {
-            const [advRes, asmRes, repRes] = await Promise.all([
-                fetch('/api/advisories'),
-                fetch('/api/assessments'),
-                fetch('/api/reports')
-            ]);
+            const headers = { 'Authorization': `Bearer ${token}` };
 
-            const advisories = await advRes.json();
-            const assessments = await asmRes.json();
-            const reportsData = await repRes.json();
+            // Fetch individually to prevent one failure crashing all
+            let advisories = [];
+            try {
+                const res = await fetch('/api/advisories', { headers });
+                if (res.ok) advisories = await res.json();
+            } catch (e) {
+                console.error("Failed to fetch advisories", e);
+            }
+
+            let assessments = [];
+            try {
+                // Assessment APIs might not be ready
+                const res = await fetch('/api/assessments', { headers });
+                if (res.ok) assessments = await res.json();
+            } catch (e) {
+                console.warn("Assessments API not available or failed");
+            }
+
+            let reportsData = [];
+            try {
+                const res = await fetch('/api/reports', { headers });
+                if (res.ok) reportsData = await res.json();
+            } catch (e) {
+                console.error("Failed to fetch reports", e);
+            }
 
             // Combine into selectable sources
-            const advOptions = (advisories || []).map(a => ({
+            const advOptions = Array.isArray(advisories) ? advisories.map(a => ({
                 id: a.id,
                 title: a.title,
                 type: 'Advisory'
-            }));
+            })) : [];
 
-            const asmOptions = (assessments || []).map(a => ({
+            const asmOptions = Array.isArray(assessments) ? assessments.map(a => ({
                 id: a.id,
                 title: a.id + ' (Strategic Assessment)',
                 type: 'Assessment'
-            }));
+            })) : [];
 
             setSources([...advOptions, ...asmOptions]);
-            setReports(reportsData || []);
+            setReports(Array.isArray(reportsData) ? reportsData : []);
         } catch (err) {
-            console.error(err);
+            console.error("Error in report builder fetch", err);
         }
     };
 
     const generateReport = async () => {
-        if (!selectedSource) return alert('Please select a source');
+        if (!selectedSource) return toast.error('Please select a source');
         setGenerating(true);
         try {
-            // POST /api/reports/create
             const response = await fetch('/api/reports/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     artifact_id: selectedSource,
                     type: sources.find(s => s.id === selectedSource)?.type || 'Advisory',
-                    // other config params would be handled by backend logic or passed in
+                    format: config.format
                 })
             });
             if (!response.ok) throw new Error('Generation failed');
             const data = await response.json();
-            alert('Report generated successfully: ' + data.id);
+            toast.success('Report generated successfully: ' + data.id);
             fetchData(); // Refresh list
         } catch (err) {
-            alert('Failed to generate report');
+            toast.error('Failed to generate report');
         } finally {
             setGenerating(false);
         }
@@ -134,23 +157,27 @@ const ReportBuilder = () => {
                             ]}
                         />
                     </div>
-
-                    <div className={styles.field}>
-                        <label>Output Format</label>
-                        <div className={styles.formatToggle}>
-                            <button className={config.format === 'PDF' ? styles.active : ''} onClick={() => setConfig({ ...config, format: 'PDF' })}>PDF</button>
-                            <button className={config.format === 'DOCX' ? styles.active : ''} onClick={() => setConfig({ ...config, format: 'DOCX' })}>DOCX</button>
-                        </div>
-                    </div>
                 </div>
 
                 <div className={styles.generateAction}>
+                    <button
+                        className={styles.previewButton}
+                        onClick={() => {
+                            if (!selectedSource) return toast.error('Please select a source');
+                            const type = sources.find(s => s.id === selectedSource)?.type || 'Advisory';
+                            window.open(`/api/reports/preview?artifactId=${selectedSource}&type=${type}`, '_blank');
+                        }}
+                        disabled={generating}
+                        style={{ marginRight: '1rem', backgroundColor: '#6c757d' }}
+                    >
+                        Preview Report
+                    </button>
                     <button
                         className={styles.generateButton}
                         onClick={generateReport}
                         disabled={generating}
                     >
-                        {generating ? 'Generating...' : 'Generate Report'}
+                        {generating ? 'Generating...' : 'Generate & Save Report'}
                     </button>
                 </div>
             </section>
@@ -168,30 +195,31 @@ const ReportBuilder = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>Report ID</th>
+                            <th style={{ width: '50px' }}>#</th>
+                            <th>Topic</th>
                             <th>Type</th>
                             <th>Classification</th>
-                            <th>Generated By</th>
                             <th>Generated At</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {reports.map(r => (
+                        {reports.map((r, index) => (
                             <tr key={r.id}>
-                                <td className={styles.idCell}>{r.id}</td>
-                                <td>{r.type}</td>
+                                <td>{index + 1}</td>
+                                <td className={styles.topicCell}>{r.title || 'Untitled Report'}</td>
+                                <td>{r.reportType}</td>
                                 <td>
-                                    <span className={`${styles.badge} ${styles[r.classification.replace(':', '')]}`}>
+                                    <span className={`${styles.badge} ${styles[(r.classification || 'TLP:AMBER').replace(':', '')]}`}>
                                         {r.classification || 'TLP:AMBER'}
                                     </span>
                                 </td>
-                                <td>{r.analyst}</td>
-                                <td>{new Date(r.generated_at).toLocaleString()}</td>
+                                <td>{r.generatedAt ? new Date(r.generatedAt).toLocaleString() : 'N/A'}</td>
                                 <td>
                                     <button
                                         className={styles.downloadButton}
                                         onClick={() => handleDownload(r.id)}
+                                        title="Download Report"
                                     >
                                         <FileDown size={18} />
                                     </button>

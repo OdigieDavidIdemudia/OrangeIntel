@@ -1,0 +1,18 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  OrangeIntel.Domain -> c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\bin\Debug\net9.0\OrangeIntel.Domain.dll
+  OrangeIntel.Application -> c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Application\bin\Debug\net9.0\OrangeIntel.Application.dll
+  OrangeIntel.Infrastructure -> C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\bin\Debug\net9.0\OrangeIntel.Infrastructure.dll
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\UsersController.cs(165,41): error CS1061: 'UpdateUserRoleDto' does not contain a definition for 'Role' and no accessible extension method 'Role' accepting a first argument of type 'UpdateUserRoleDto' could be found (are you missing a using directive or an assembly reference?) [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\AssessmentsController.cs(140,89): warning CS8602: Dereference of a possibly null reference. [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\ReportsController.cs(72,19): warning CS8618: Non-nullable property 'Type' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+
+Build FAILED.
+
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\AssessmentsController.cs(140,89): warning CS8602: Dereference of a possibly null reference. [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\ReportsController.cs(72,19): warning CS8618: Non-nullable property 'Type' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\UsersController.cs(165,41): error CS1061: 'UpdateUserRoleDto' does not contain a definition for 'Role' and no accessible extension method 'Role' accepting a first argument of type 'UpdateUserRoleDto' could be found (are you missing a using directive or an assembly reference?) [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+    2 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:02.37

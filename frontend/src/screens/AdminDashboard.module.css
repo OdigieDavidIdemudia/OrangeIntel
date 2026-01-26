@@ -133,3 +133,130 @@
     color: #EF4444;
     font-weight: bold;
 }
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+.modalTitle {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroup label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.input,
+.select {
+    padding: 0.75rem;
+    background-color: var(--bg-app);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.input:focus,
+.select:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 2px rgba(255, 126, 33, 0.1);
+    /* Assuming Orange */
+}
+
+/* Fix for native select dropdown in dark mode */
+.select option {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    padding: 10px;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.cancelButton {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.cancelButton:hover {
+    background-color: var(--bg-app);
+}
+
+.submitButton {
+    background-color: var(--color-brand);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.submitButton:hover {
+    background-color: var(--color-brand-hover);
+}
+
+.submitButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

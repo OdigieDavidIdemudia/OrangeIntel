@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Shield, Activity, Plus, Filter } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import styles from './AdminDashboard.module.css';
 
 const AdminDashboard = () => {
@@ -8,9 +10,12 @@ const AdminDashboard = () => {
     const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Mock Auth for now until Auth Provider is integrated
-    // In real flow, we'd check `useAuth().isAdmin`
-    const [currentUser] = useState({ role: 'Admin' });
+    // Create User Modal State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newUser, setNewUser] = useState({ email: '', password: '', role: 'analyst' });
+    const [createLoading, setCreateLoading] = useState(false);
+
+    const { token, user: currentUser } = useAuth(); // Use real auth context
 
     useEffect(() => {
         fetchData();
@@ -21,12 +26,12 @@ const AdminDashboard = () => {
         try {
             if (activeTab === 'users') {
                 const res = await fetch('/api/admin/users', {
-                    headers: { 'Authorization': 'Bearer placeholder-token' }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) setUsers(await res.json());
             } else {
                 const res = await fetch('/api/admin/audit-logs', {
-                    headers: { 'Authorization': 'Bearer placeholder-token' }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) setAuditLogs(await res.json());
             }
@@ -37,32 +42,43 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleCreateUser = async () => {
-        const username = prompt("Enter username:");
-        const password = prompt("Enter password:");
-        if (!username || !password) return;
-
+    const handleCreateSubmit = async (e) => {
+        e.preventDefault();
+        setCreateLoading(true);
         try {
             const res = await fetch('/api/admin/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer placeholder-token'
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ username, password, role: 'SOCTI_Analyst' })
+                body: JSON.stringify(newUser)
             });
+
             if (res.ok) {
-                alert('User created!');
+                toast.success('User created successfully!');
+                setShowCreateModal(false);
+                setNewUser({ email: '', password: '', role: 'analyst' });
                 fetchData();
             } else {
-                alert('Failed to create user');
+                const data = await res.json();
+                const errorMsg = data.length > 0 ? data[0].description : 'Failed to create user';
+                toast.error(errorMsg);
             }
         } catch (err) {
-            alert('Error creating user');
+            toast.error('Error creating user');
+        } finally {
+            setCreateLoading(false);
         }
     };
 
-    if (currentUser.role !== 'Admin' && currentUser.role !== 'SuperAdmin') {
+    // Check if user has required roles (Admin or SuperAdmin)
+    // backend sends roles as lowercase or snake_case usually
+    const hasAdminAccess = currentUser?.roles?.some(r =>
+        ['Admin', 'SuperAdmin', 'Super Admin', 'admin', 'super_admin'].includes(r)
+    ) || currentUser?.role === 'Admin';
+
+    if (!hasAdminAccess) {
         return <div className={styles.unauthorized}>Access Denied. Admin privileges required.</div>;
     }
 
@@ -74,7 +90,7 @@ const AdminDashboard = () => {
                     <p className={styles.subtitle}>Live overview of active threat intelligence and analyst workload</p>
                 </div>
                 {activeTab === 'users' && (
-                    <button className={styles.createButton} onClick={handleCreateUser}>
+                    <button className={styles.createButton} onClick={() => setShowCreateModal(true)}>
                         <Plus size={18} />
                         New User
                     </button>
@@ -106,22 +122,30 @@ const AdminDashboard = () => {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Username</th>
+                                <th>Email</th>
                                 <th>Role</th>
                                 <th>MFA Status</th>
                                 <th>Created At</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map(u => (
+                            {users.map((u, index) => (
                                 <tr key={u.id}>
-                                    <td className={styles.mono}>{u.id}</td>
-                                    <td>{u.username}</td>
+                                    <td className={styles.mono} title={u.id}>{index + 1}</td>
+                                    <td>{u.email}</td>
                                     <td>
-                                        <span className={styles.roleBadge}>{u.role}</span>
+                                        {u.roles && u.roles.length > 0 ? (
+                                            u.roles.map(r => (
+                                                <span key={r} className={styles.roleBadge} style={{ marginRight: '4px', textTransform: 'capitalize' }}>
+                                                    {r.replace(/_/g, ' ')}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className={styles.roleBadge}>Analyst</span>
+                                        )}
                                     </td>
-                                    <td>{u.mfa_enabled ? 'Enabled' : 'Disabled'}</td>
-                                    <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                                    <td>{u.mfaEnabled ? 'Enabled' : 'Disabled'}</td>
+                                    <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
                                 </tr>
                             ))}
                             {users.length === 0 && <tr><td colSpan={5} className={styles.empty}>No users found.</td></tr>}
@@ -157,6 +181,65 @@ const AdminDashboard = () => {
                     </table>
                 )}
             </main>
+
+            {/* Create User Modal */}
+            {showCreateModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <h2 className={styles.modalTitle}>Create New User</h2>
+                        <form onSubmit={handleCreateSubmit} className={styles.form}>
+                            <div className={styles.formGroup}>
+                                <label>Email</label>
+                                <input
+                                    type="email"
+                                    value={newUser.email}
+                                    onChange={e => setNewUser({ ...newUser, email: e.target.value })}
+                                    required
+                                    className={styles.input}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Password</label>
+                                <input
+                                    type="password"
+                                    value={newUser.password}
+                                    onChange={e => setNewUser({ ...newUser, password: e.target.value })}
+                                    required
+                                    className={styles.input}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Role</label>
+                                <select
+                                    value={newUser.role}
+                                    onChange={e => setNewUser({ ...newUser, role: e.target.value })}
+                                    className={styles.select}
+                                >
+                                    <option value="analyst">Analyst</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="super_admin">Super Admin</option>
+                                </select>
+                            </div>
+                            <div className={styles.modalActions}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className={styles.cancelButton}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={createLoading}
+                                    className={styles.submitButton}
+                                >
+                                    {createLoading ? 'Creating...' : 'Create User'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

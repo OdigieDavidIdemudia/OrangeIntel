@@ -26,9 +26,15 @@
 }
 
 .appName {
-    font-weight: 700;
+    font-weight: 800;
+    /* Extra Bold */
     font-size: 1.125rem;
     color: var(--text-primary);
+}
+
+.brandOrange {
+    color: #F97316;
+    /* Brand Orange */
 }
 
 .nav {
@@ -72,20 +78,25 @@
 
 .footer {
     border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
+    padding: 12px 16px;
     margin-top: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .userInfo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
 }
 
 .avatar {
-    width: 36px;
-    height: 36px;
-    background-color: var(--color-brand);
+    width: 40px;
+    height: 40px;
+    background-color: #F97316;
     color: white;
     border-radius: 50%;
     display: flex;
@@ -93,6 +104,7 @@
     justify-content: center;
     font-weight: 600;
     font-size: 0.875rem;
+    flex-shrink: 0;
 }
 
 .userDetails {
@@ -102,11 +114,35 @@
 
 .userName {
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 14px;
     color: var(--text-primary);
 }
 
 .userRole {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 400;
+    color: #6B7280;
+    margin-top: 2px;
+}
+
+.logoutButton {
+    background: transparent;
+    border: none;
+    color: #9CA3AF;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.logoutButton:hover {
+    background-color: #F3F4F6;
+    color: #111827;
 }

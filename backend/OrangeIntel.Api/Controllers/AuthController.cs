@@ -1,0 +1,182 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using OrangeIntel.Api.Dtos;
+using OrangeIntel.Application.Interfaces;
+using OrangeIntel.Domain.Entities;
+using OrangeIntel.Infrastructure.Services;
+using Microsoft.Extensions.Logging;
+
+namespace OrangeIntel.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AuthController : ControllerBase
+{
+    private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<AppUser> _signInManager;
+    private readonly ITokenService _tokenService;
+    private readonly IOneTimePasswordService _otpService;
+    private readonly EncryptionService _encryptionService;
+    private readonly ILogger<AuthController> _logger;
+
+    public AuthController(
+        UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
+        ITokenService tokenService,
+        IOneTimePasswordService otpService,
+        EncryptionService encryptionService,
+        ILogger<AuthController> logger)
+    {
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _tokenService = tokenService;
+        _otpService = otpService;
+        _encryptionService = encryptionService;
+        _logger = logger;
+    }
+
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto model)
+    {
+        _logger.LogInformation("Login attempt for email: {Email}", model.Email);
+        
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null) 
+        {
+            _logger.LogWarning("Login failed: User {Email} not found.", model.Email);
+            return Unauthorized("Invalid credentials (User not found)");
+        }
+
+        var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+        if (!result.Succeeded) 
+        {
+            _logger.LogWarning("Login failed: Invalid password for user {Email}. IsLockedOut: {Locked}, IsNotAllowed: {NotAllowed}", 
+                model.Email, result.IsLockedOut, result.IsNotAllowed);
+            return Unauthorized("Invalid credentials (Password/Account issue)");
+        }
+
+        // MFA Check
+        if (!string.IsNullOrEmpty(user.MfaSecret))
+        {
+            if (string.IsNullOrEmpty(model.MfaCode))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { Message = "MFA required", RequiresMfa = true });
+            }
+
+            var decryptedSecret = _encryptionService.Decrypt(user.MfaSecret);
+            if (!_otpService.VerifyCode(decryptedSecret, model.MfaCode))
+            {
+                return Unauthorized("Invalid MFA code");
+            }
+        }
+
+        return await GenerateTokenResponse(user);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult<TokenDto>> Refresh([FromBody] RefreshTokenDto model)
+    {
+        var principal = _tokenService.GetPrincipalFromExpiredToken(model.AccessToken);
+        if (principal == null) return BadRequest("Invalid access token/refresh token");
+        
+        var username = principal.Identity?.Name; // Identity name is mapped to Email or username depending on claim
+        // Actually, let's look for ClaimTypes.NameIdentifier or similar if needed, 
+        // but User.Identity.Name is populated by "sub" or "name" usually.
+        // Let's rely on finding user by a claim we put in.
+        
+        var emailClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email) ?? principal.Claims.FirstOrDefault(c => c.Type == "email");
+        if (emailClaim == null) return BadRequest("Invalid token claims");
+
+        var user = await _userManager.FindByEmailAsync(emailClaim.Value);
+        if (user == null || user.RefreshToken != model.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        {
+            return BadRequest("Invalid or expired refresh token");
+        }
+
+        return await GenerateTokenResponse(user);
+    }
+    
+    [Authorize]
+    [HttpPost("mfa/setup")]
+    public async Task<ActionResult<MfaSetupDto>> SetupMfa()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        var secret = _otpService.GenerateSecret();
+        var uri = _otpService.GenerateQrCodeUri(user.Email!, secret);
+
+        return new MfaSetupDto
+        {
+            Secret = secret,
+            QrCodeUri = uri
+        };
+    }
+
+    [Authorize]
+    [HttpPost("mfa/verify")]
+    public async Task<ActionResult> VerifyMfaSetup([FromBody] MfaVerifyDto model)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        if (string.IsNullOrEmpty(model.Secret)) return BadRequest("Secret required for setup verification");
+
+        if (_otpService.VerifyCode(model.Secret, model.Code))
+        {
+            user.MfaSecret = _encryptionService.Encrypt(model.Secret);
+            await _userManager.UpdateAsync(user);
+            return Ok("MFA enabled successfully");
+        }
+
+        return BadRequest("Invalid MFA code");
+    }
+
+    [Authorize]
+    [HttpPost("mfa/disable")]
+    public async Task<ActionResult> DisableMfa()
+    {
+         var user = await _userManager.GetUserAsync(User);
+         if (user == null) return Unauthorized();
+         
+         // In production, we should ask for password again here for high security
+         user.MfaSecret = null;
+         await _userManager.UpdateAsync(user);
+         
+         return Ok("MFA disabled");
+    }
+
+    private async Task<TokenDto> GenerateTokenResponse(AppUser user)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(ClaimTypes.Email, user.Email!),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim("id", user.Id)
+        };
+        
+        foreach(var r in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, r));
+        }
+
+        var accessToken = _tokenService.GenerateAccessToken(claims);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        await _userManager.UpdateAsync(user);
+
+        return new TokenDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+    }
+}

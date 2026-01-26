@@ -1,0 +1,6 @@
+@OrangeIntel.Api_HostAddress = http://localhost:5068
+
+GET {{OrangeIntel.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

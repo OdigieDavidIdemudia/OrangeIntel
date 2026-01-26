@@ -1,0 +1,397 @@
+/* Global Reset for this screen */
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-app, #F9FAFB);
+    /* Subtle Grid Pattern */
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text-primary, #111827);
+    overflow-x: hidden;
+}
+
+/* --- Navigation Header --- */
+.topNav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 3rem;
+    background-color: var(--bg-panel, #FFFFFF);
+    border-bottom: 1px solid var(--border-color, #E5E7EB);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 800;
+    /* Extra Bold */
+    font-size: 1.5rem;
+    /* Larger */
+    color: var(--text-primary, #111827);
+    /* Revert to dark/theme color */
+    letter-spacing: -0.025em;
+}
+
+.brandOrange {
+    color: #F97316;
+    /* Orange Brand Color */
+}
+
+.brandLogo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.navActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.navButton {
+    background: transparent;
+    border: 1px solid var(--border-color, #E5E7EB);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary, #4B5563);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.navButton:hover {
+    background-color: var(--bg-hover, #F3F4F6);
+    color: var(--text-primary, #111827);
+}
+
+.primaryNavButton {
+    /* Structure */
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    /* Theme */
+    background-color: #F97316;
+    /* Brand Orange */
+    color: white;
+    border: 1px solid #F97316;
+}
+
+.primaryNavButton:hover {
+    background-color: #EA580C;
+    /* Darker Orange */
+    transform: translateY(-1px);
+}
+
+.themeToggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    color: var(--text-secondary, #6B7280);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.themeToggle:hover {
+    background-color: var(--bg-hover, #F3F4F6);
+    color: var(--text-primary, #111827);
+}
+
+/* --- Main Content Area --- */
+.main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.loginCard {
+    background-color: var(--bg-panel, #FFFFFF);
+    padding: 3rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color, #E5E7EB);
+    text-align: center;
+}
+
+/* Card Header */
+.cardLogo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    margin: 0 auto 1.5rem auto;
+    display: block;
+}
+
+.cardIconWrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary, #111827);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.025em;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    color: var(--text-secondary, #6B7280);
+    margin-bottom: 2.5rem;
+}
+
+/* Form Styles */
+.form {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.labelRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary, #374151);
+}
+
+.forgotLink {
+    font-size: 0.85rem;
+    color: #F97316;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.forgotLink:hover {
+    text-decoration: underline;
+}
+
+.inputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color, #D1D5DB);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-primary, #111827);
+    background-color: var(--bg-app, #FFFFFF);
+    transition: all 0.2s;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #F97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.passwordToggle {
+    position: absolute;
+    right: 0.75rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, #9CA3AF);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.passwordToggle:hover {
+    color: var(--text-primary, #4B5563);
+}
+
+/* MFA Section */
+.mfaBox {
+    background-color: var(--bg-app, #F9FAFB);
+    border: 1px solid var(--border-color, #E5E7EB);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.mfaLabel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-secondary, #4B5563);
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+}
+
+.mfaInput {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+    padding: 0.75rem;
+    font-weight: 700;
+    width: 100%;
+    border: 1px solid var(--border-color, #D1D5DB);
+    border-radius: 8px;
+}
+
+.mfaInput:focus {
+    outline: none;
+    border-color: #F97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Actions */
+.submitButton {
+    width: 100%;
+    padding: 0.875rem;
+    background-color: #F97316;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.25);
+}
+
+.submitButton:hover {
+    background-color: #EA580C;
+    /* Orange-600 */
+    transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+    opacity: 0.7;
+    cursor: wait;
+    transform: none;
+}
+
+.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger, #EF4444);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Footer Section */
+.footerDetails {
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-muted, #9CA3AF);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.line {
+    width: 40px;
+    height: 1px;
+    background-color: var(--border-color, #E5E7EB);
+}
+
+.pageFooter {
+    background-color: var(--bg-panel, #FFFFFF);
+    border-top: 1px solid var(--border-color, #E5E7EB);
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #6B7280);
+}
+
+.badges {
+    display: flex;
+    gap: 2rem;
+}
+
+.badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.footerLink {
+    text-decoration: none;
+    color: var(--text-secondary, #6B7280);
+    transition: color 0.1s;
+}
+
+.footerLink:hover {
+    color: var(--text-primary, #111827);
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .topNav {
+        padding: 1rem;
+    }
+
+    .navActions,
+    .pageFooter {
+        display: none;
+    }
+
+    /* Simplify for mobile */
+    .loginCard {
+        padding: 2rem 1.5rem;
+    }
+}

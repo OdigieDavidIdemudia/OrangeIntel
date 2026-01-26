@@ -11,48 +11,65 @@ const AdvisoryBuilder = () => {
     const [advisory, setAdvisory] = useState({
         title: '',
         overview: '',
-        threat_description: '',
-        affected_assets: [],
-        attack_vector: '',
+        technicalDetails: '',
+        affectedAssets: [],
+        attackVector: '',
+        deliveryMechanism: '',
+        initialAccess: '',
+        persistence: '',
+        defenseEvasion: '',
+        commandAndControl: '',
+        exfiltration: '',
         severity: 'Medium',
         recommendations: [],
         references: [],
-        ioc_list: [],
-        confidence_statement: '',
+        iocs: [],
+        confidenceStatement: '',
         status: 'draft'
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        // If we have an ID, fetch the advisory (or the topic if promoting)
-        // The previous view navigates to /advisories/:id.
-        // If it's a new promotion, the backend already created a Draft Advisory with this ID.
-        // So we just fetch by ID.
         fetchAdvisory();
     }, [id]);
 
     const fetchAdvisory = async () => {
+        if (id === 'new') {
+            setLoading(false);
+            return;
+        }
         try {
-            // Need an endpoint to get single advisory. The list endpoint returns all.
-            // Assuming /api/advisories/:id or filter.
-            // For now, let's filter from the list or add single-get endpoint later.
-            // For MVP, filter from list is safer if backend doesn't support get-by-id yet.
-            const response = await fetch('/api/advisories');
+            const response = await fetch(`/api/advisories/${id}`);
+            if (!response.ok) throw new Error('Advisory not found');
             const data = await response.json();
-            const found = data.find(a => a.id === id);
-            if (found) {
-                setAdvisory({
-                    ...found,
-                    recommendations: found.recommendations || [], // Ensure array
-                    affected_assets: found.affected_assets || [],
-                    references: found.references || [],
-                    ioc_list: found.ioc_list || [],
-                    confidence_statement: found.confidence_statement || ''
-                });
-            }
+
+            // Map camelCase backend response to local state if needed, 
+            // or better, just use the data as is if we update state keys.
+            // For now, let's map manualy to preserve existing UI binding
+            setAdvisory({
+                id: data.id,
+                title: data.title || '',
+                overview: data.executiveSummary || '',
+                technicalDetails: data.technicalDetails || '',
+                affectedAssets: data.affectedAssets || [],
+                attackVector: data.attackVector || '',
+                deliveryMechanism: data.deliveryMechanism || '',
+                initialAccess: data.initialAccess || '',
+                persistence: data.persistence || '',
+                defenseEvasion: data.defenseEvasion || '',
+                commandAndControl: data.commandAndControl || '',
+                exfiltration: data.exfiltration || '',
+                severity: data.severity === 0 ? 'Low' : data.severity === 1 ? 'Medium' : data.severity === 2 ? 'High' : 'Critical',
+                recommendations: data.recommendations || [],
+                references: data.references || [],
+                iocs: data.iocs || [],
+                confidenceStatement: data.confidenceStatement || '',
+                status: data.status === 1 ? 'approved' : 'draft'
+            });
         } catch (err) {
             console.error("Failed to load advisory", err);
+            toast.error('Failed to load advisory details');
         } finally {
             setLoading(false);
         }
@@ -81,15 +98,49 @@ const AdvisoryBuilder = () => {
         setSaving(true);
         try {
             // Identify update endpoint
-            await fetch('/api/advisories/update', {
+            const response = await fetch('/api/advisories/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(advisory)
+                body: JSON.stringify({
+                    ...advisory,
+                    // Specific Mappings for Backend Entity
+                    Title: advisory.title,
+                    ExecutiveSummary: advisory.overview,
+                    TechnicalDetails: advisory.technicalDetails,
+                    AttackVector: advisory.attackVector,
+                    DeliveryMechanism: advisory.deliveryMechanism,
+                    InitialAccess: advisory.initialAccess,
+                    Persistence: advisory.persistence,
+                    DefenseEvasion: advisory.defenseEvasion,
+                    CommandAndControl: advisory.commandAndControl,
+                    Exfiltration: advisory.exfiltration,
+
+                    AffectedAssets: advisory.affectedAssets,
+                    ImpactedSectors: advisory.affectedAssets, // Keep legacy populate
+
+                    Recommendations: advisory.recommendations,
+                    RecommendedActions: advisory.recommendations.join('; '), // Legacy fallback
+
+                    References: advisory.references,
+                    IOCs: advisory.iocs,
+                    ConfidenceStatement: advisory.confidenceStatement,
+
+                    // Map Severity Enum
+                    Severity: advisory.severity === 'Low' ? 0 : advisory.severity === 'Medium' ? 1 : advisory.severity === 'High' ? 2 : 3,
+                    Status: advisory.status === 'approved' ? 1 : 0
+                })
             });
-            // Feedback?
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Save failed:', response.status, errorText);
+                throw new Error(`Server returned ${response.status}: ${errorText}`);
+            }
+
             toast.success('Advisory draft saved');
         } catch (err) {
-            toast.error('Failed to save draft');
+            console.error("Save error:", err);
+            toast.error(err.message || 'Failed to save draft');
         } finally {
             setSaving(false);
         }
@@ -117,18 +168,99 @@ const AdvisoryBuilder = () => {
         ), { duration: 5000 });
     };
 
-    const processApproval = async () => {
+    const handleSave = async (isDraft = false) => {
         setSaving(true);
         try {
-            await fetch('/api/advisories/update', {
+            const endpoint = isDraft ? '/api/advisories/draft' : '/api/advisories/update';
+            // Determine payload based on draft vs full update
+            // For now sending full object, backend handles draft specific mapping if needed
+            // Advisory endpoints expects different structures? 
+            // AdvisoryController.SaveDraft expects AdvisoryDraft.
+            // We need to construct AdvisoryDraft object on client or update controller to accept DTO.
+            // Let's assume controller update to accept similar DTO or we start simple.
+            // Actually, for Draft, we usually send the Form Data.
+            // I'll update the payload construction.
+
+            // NOTE: The backend SaveDraft expects AdvisoryDraft entity which is not ideal for frontend direct send.
+            // It expects ContentJson.
+            // I should update frontend to match backend expectation OR update backend.
+            // For speed, let's wrap it here.
+
+            let payload;
+            if (isDraft) {
+                payload = {
+                    id: id === 'new' ? null : id, // Backend handles GUID generation if null/empty
+                    contentJson: JSON.stringify(advisory), // Saving entire state
+                    authorId: 'current-user-placeholder'
+                };
+            } else {
+                payload = advisory;
+            }
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...advisory, status: 'approved' })
+                body: JSON.stringify(payload)
             });
-            toast.success('Advisory Approved');
-            navigate('/advisories');
-        } catch (err) {
-            toast.error('Failed to approve');
+
+            if (!response.ok) throw new Error('Failed to save');
+
+            const data = await response.json();
+            toast.success(isDraft ? 'Draft saved' : 'Advisory saved');
+
+            if (isDraft && id === 'new' && data.id) {
+                navigate(`/advisories/${data.id}`, { replace: true });
+            }
+        } catch (e) {
+            toast.error(e.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handlePreview = async () => {
+        try {
+            const payload = {
+                ...advisory,
+                // Specific Mappings for Backend Entity
+                Title: advisory.title,
+                ExecutiveSummary: advisory.overview,
+                TechnicalDetails: advisory.technicalDetails,
+                AttackVector: advisory.attackVector,
+                DeliveryMechanism: advisory.deliveryMechanism,
+                InitialAccess: advisory.initialAccess,
+                Persistence: advisory.persistence,
+                DefenseEvasion: advisory.defenseEvasion,
+                CommandAndControl: advisory.commandAndControl,
+                Exfiltration: advisory.exfiltration,
+
+                AffectedAssets: advisory.affectedAssets,
+                ImpactedSectors: advisory.affectedAssets, // Legacy
+
+                Recommendations: advisory.recommendations,
+                RecommendedActions: advisory.recommendations.join('; '), // Legacy
+
+                References: advisory.references,
+                IOCs: advisory.iocs,
+                ConfidenceStatement: advisory.confidenceStatement,
+
+                // Map Severity Enum
+                Severity: advisory.severity === 'Low' ? 0 : advisory.severity === 'Medium' ? 1 : advisory.severity === 'High' ? 2 : 3,
+                Status: advisory.status === 'approved' ? 1 : 0
+            };
+
+            const response = await fetch('/api/advisories/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error('Preview generation failed');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (e) {
+            toast.error(e.message);
         }
     };
 
@@ -143,13 +275,16 @@ const AdvisoryBuilder = () => {
                     <p className={styles.subtitle} style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Analyst-curated intelligence requiring attention</p>
                 </div>
                 <div className={styles.actions}>
-                    <button className={styles.saveButton} onClick={saveDraft} disabled={saving}>
+                    <button className={styles.secondaryButton} onClick={handlePreview}>
+                        Preview
+                    </button>
+                    <button className={styles.saveButton} onClick={() => handleSave(true)} disabled={saving}>
                         <Save size={18} />
                         {saving ? 'Saving...' : 'Save Draft'}
                     </button>
-                    <button className={styles.approveButton} onClick={approveAdvisory}>
+                    <button className={styles.finalizeButton} onClick={() => handleSave(false)}>
                         <CheckCircle size={18} />
-                        Approve Advisory
+                        Publish Advisory
                     </button>
                 </div>
             </header>
@@ -162,9 +297,9 @@ const AdvisoryBuilder = () => {
                         {Math.round((
                             (advisory.title ? 1 : 0) +
                             (advisory.overview ? 1 : 0) +
-                            (advisory.threat_description ? 1 : 0) +
-                            (advisory.attack_vector ? 1 : 0) +
-                            (advisory.affected_assets.length > 0 ? 1 : 0) +
+                            (advisory.technicalDetails ? 1 : 0) +
+                            (advisory.attackVector ? 1 : 0) +
+                            (advisory.affectedAssets.length > 0 ? 1 : 0) +
                             (advisory.recommendations.length > 0 ? 1 : 0)
                         ) / 6 * 100)}%
                     </span>
@@ -176,9 +311,9 @@ const AdvisoryBuilder = () => {
                             width: `${(
                                 (advisory.title ? 1 : 0) +
                                 (advisory.overview ? 1 : 0) +
-                                (advisory.threat_description ? 1 : 0) +
-                                (advisory.attack_vector ? 1 : 0) +
-                                (advisory.affected_assets.length > 0 ? 1 : 0) +
+                                (advisory.technicalDetails ? 1 : 0) +
+                                (advisory.attackVector ? 1 : 0) +
+                                (advisory.affectedAssets.length > 0 ? 1 : 0) +
                                 (advisory.recommendations.length > 0 ? 1 : 0)
                             ) / 6 * 100}%`
                         }}
@@ -198,7 +333,7 @@ const AdvisoryBuilder = () => {
                 </div>
 
                 <div className={styles.section}>
-                    <label className={styles.label}>Overview</label>
+                    <label className={styles.label}>Executive Summary</label>
                     <textarea
                         className={styles.textarea}
                         rows={3}
@@ -209,12 +344,12 @@ const AdvisoryBuilder = () => {
                 </div>
 
                 <div className={styles.section}>
-                    <label className={styles.label}>Threat Description *</label>
+                    <label className={styles.label}>Technical Analysis *</label>
                     <textarea
                         className={styles.textarea}
                         rows={6}
-                        value={advisory.threat_description}
-                        onChange={e => handleChange('threat_description', e.target.value)}
+                        value={advisory.technicalDetails}
+                        onChange={e => handleChange('technicalDetails', e.target.value)}
                         placeholder="Detailed technical analysis..."
                     />
                     <div className={styles.hint}>Markdown Supported</div>
@@ -234,27 +369,62 @@ const AdvisoryBuilder = () => {
                         <label className={styles.label}>Attack Vector</label>
                         <input
                             className={styles.input}
-                            value={advisory.attack_vector}
-                            onChange={e => handleChange('attack_vector', e.target.value)}
+                            value={advisory.attackVector}
+                            onChange={e => handleChange('attackVector', e.target.value)}
                             placeholder="e.g. Phishing, Exploit"
                         />
+                    </div>
+                </div>
+
+                <div className={styles.section}>
+                    <h3 style={{ marginTop: '1.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Detailed Threat Chain</h3>
+                    {/* Granular Fields */}
+                    <div className={styles.grid2} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                        <div>
+                            <label className={styles.label}>Delivery Mechanism</label>
+                            <input className={styles.input} value={advisory.deliveryMechanism} onChange={e => handleChange('deliveryMechanism', e.target.value)} placeholder="e.g. Email Attachment" />
+                        </div>
+                        <div>
+                            <label className={styles.label}>Initial Access</label>
+                            <input className={styles.input} value={advisory.initialAccess} onChange={e => handleChange('initialAccess', e.target.value)} placeholder="e.g. Valid Accounts" />
+                        </div>
+                    </div>
+                    <div className={styles.grid2} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                        <div>
+                            <label className={styles.label}>Persistence</label>
+                            <input className={styles.input} value={advisory.persistence} onChange={e => handleChange('persistence', e.target.value)} placeholder="e.g. Scheduled Task" />
+                        </div>
+                        <div>
+                            <label className={styles.label}>Defense Evasion</label>
+                            <input className={styles.input} value={advisory.defenseEvasion} onChange={e => handleChange('defenseEvasion', e.target.value)} placeholder="e.g. Masquerading" />
+                        </div>
+                    </div>
+                    <div className={styles.grid2} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                        <div>
+                            <label className={styles.label}>Command & Control</label>
+                            <input className={styles.input} value={advisory.commandAndControl} onChange={e => handleChange('commandAndControl', e.target.value)} placeholder="e.g. Web Service" />
+                        </div>
+                        <div>
+                            <label className={styles.label}>Exfiltration</label>
+                            <input className={styles.input} value={advisory.exfiltration} onChange={e => handleChange('exfiltration', e.target.value)} placeholder="e.g. Exfiltration Over C2 Channel" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Dynamic Arrays: Affected Assets */}
                 <div className={styles.section}>
                     <label className={styles.label}>Affected Assets</label>
-                    {advisory.affected_assets.map((asset, i) => (
+                    {advisory.affectedAssets.map((asset, i) => (
                         <div key={i} className={styles.arrayItem}>
                             <input
                                 className={styles.input}
                                 value={asset}
-                                onChange={e => handleArrayChange('affected_assets', i, e.target.value)}
+                                onChange={e => handleArrayChange('affectedAssets', i, e.target.value)}
                             />
-                            <button className={styles.removeButton} onClick={() => removeArrayItem('affected_assets', i)}>×</button>
+                            <button className={styles.removeButton} onClick={() => removeArrayItem('affectedAssets', i)}>×</button>
                         </div>
                     ))}
-                    <button className={styles.addButton} onClick={() => addArrayItem('affected_assets')}>+ Add Asset</button>
+                    <button className={styles.addButton} onClick={() => addArrayItem('affectedAssets')}>+ Add Asset</button>
                 </div>
 
                 {/* Dynamic Arrays: Recommendations */}
@@ -293,18 +463,18 @@ const AdvisoryBuilder = () => {
                 {/* Dynamic Arrays: IOC List */}
                 <div className={styles.section}>
                     <label className={styles.label}>Indicators of Compromise (IOCs)</label>
-                    {advisory.ioc_list.length > 0 ? advisory.ioc_list.map((ioc, i) => (
+                    {advisory.iocs.length > 0 ? advisory.iocs.map((ioc, i) => (
                         <div key={i} className={styles.arrayItem}>
                             <input
                                 className={styles.input}
                                 value={ioc}
-                                onChange={e => handleArrayChange('ioc_list', i, e.target.value)}
+                                onChange={e => handleArrayChange('iocs', i, e.target.value)}
                                 placeholder="IP, Hash, Domain..."
                             />
-                            <button className={styles.removeButton} onClick={() => removeArrayItem('ioc_list', i)}>×</button>
+                            <button className={styles.removeButton} onClick={() => removeArrayItem('iocs', i)}>×</button>
                         </div>
                     )) : null}
-                    <button className={styles.addButton} onClick={() => addArrayItem('ioc_list')}>+ Add IOC</button>
+                    <button className={styles.addButton} onClick={() => addArrayItem('iocs')}>+ Add IOC</button>
                 </div>
 
                 <div className={styles.section}>
@@ -312,8 +482,8 @@ const AdvisoryBuilder = () => {
                     <textarea
                         className={styles.textarea}
                         rows={3}
-                        value={advisory.confidence_statement}
-                        onChange={e => handleChange('confidence_statement', e.target.value)}
+                        value={advisory.confidenceStatement}
+                        onChange={e => handleChange('confidenceStatement', e.target.value)}
                         placeholder="Statement of analytical confidence..."
                     />
                 </div>

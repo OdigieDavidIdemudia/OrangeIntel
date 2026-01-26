@@ -1,0 +1,20 @@
+# Change Explanation: UI Fixes & Threat Logic
+
+## 1. COMPLETED: User Profile UI Fixes
+**Status**: Applied and verified.
+
+## 2. COMPLETED: Threat Logic Implementation
+**Status**: Implemented. New "Amber/Monitoring" badges active.
+
+## 3. COMPLETED: Login Page Redesign (Final Polish)
+**Status**: Applied.
+- Grid Layout, Centered Card.
+- "OrangeIntel" with dual-color extra-bold brand text.
+- "Contact Sales" button updated to Brand Orange.
+- Removed surrounding box from Logo.
+- Replaced Shield with Logo in card logic.
+
+## 4. COMPLETED: Fixed "Preview Generation Failed"
+**Issue**: The "Preview" endpoint was a placeholder stub.
+**Fix**: Implemented the PDF generation logic connecting the Assessment Builder data to the PDF Report Generator.
+**Status**: Backend restarted. You can now use the "Preview" button in the Assessment Builder.

@@ -13,6 +13,22 @@ dist_electron/
 *.so
 *.dylib
 
+# Backend build artifacts
+backend/**/bin/
+backend/**/obj/
+backend/**/*.log
+backend/msbuild.log
+
+# Tools and large binaries
+tools/
+
+# Large files
+*.jar
+*.gz
+*.tar.gz
+*.zip
+*.rar
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

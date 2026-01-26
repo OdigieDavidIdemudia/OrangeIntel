@@ -1,0 +1,13 @@
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\bin\Debug\net9.0\OrangeIntel.Domain.deps.json
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\bin\Debug\net9.0\OrangeIntel.Domain.dll
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\bin\Debug\net9.0\OrangeIntel.Domain.pdb
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.csproj.AssemblyReference.cache
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.AssemblyInfoInputs.cache
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.AssemblyInfo.cs
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.csproj.CoreCompileInputs.cache
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.sourcelink.json
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.dll
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\refint\OrangeIntel.Domain.dll
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\OrangeIntel.Domain.pdb
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\obj\Debug\net9.0\ref\OrangeIntel.Domain.dll

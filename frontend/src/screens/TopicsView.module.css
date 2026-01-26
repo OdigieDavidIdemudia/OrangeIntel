@@ -1,48 +1,297 @@
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 1.5rem;
+    /* Buffer against sidebar */
 }
 
+/* Main Layout - 2-row stacked approach */
 .header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
     margin-bottom: 2rem;
+    width: 100%;
+}
+
+.topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    /* Align top in case of subtitle wrapping */
+    width: 100%;
+    gap: 1rem;
+}
+
+.leftContext {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1 1 0%;
+    /* Greedily take space but shrink to 0 */
+    min-width: 0;
+    /* Critical for truncation */
+    overflow: hidden;
 }
 
 .title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    /* Reduced from 1.5rem */
+    font-weight: 700;
     color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
 }
 
-.meta {
+.subtitle {
+    font-size: 0.8rem;
+    /* Reduced from 0.9rem */
+    color: var(--text-secondary);
+    margin: 0;
+    white-space: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Unified Filter Bar (Command Bar) */
+.filterBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Split Filters (Start) and Actions (End) */
+    gap: 1rem;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    /* Slightly more horizontal padding */
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.filterGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.segmentButton {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.segmentButton:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.activeFilter {
+    color: #22d3ee;
+    /* Muted Cyan */
+    background-color: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.5);
+    /* Cyan Outline */
+    box-shadow: 0 0 5px rgba(34, 211, 238, 0.1);
+}
+
+.divider {
+    width: 1px;
+    height: 16px;
+    background-color: var(--border-color);
+    margin: 0 0.5rem;
+    opacity: 0.5;
+}
+
+/* Category Dropdown - Styled to match image */
+.inlineToggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    /* Visible Border */
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-muted);
-    font-size: 0.875rem;
+    color-scheme: light dark;
+    /* Adapt to system theme */
 }
 
+/* Explicit option styling using variables */
+.inlineToggle option {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+}
 
+.rightActions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+    /* Rigid width */
+    justify-content: flex-end;
+}
+
+.timestamp {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    /* Darker than muted for better light mode contrast */
+    font-size: 0.75rem;
+    opacity: 0.8;
+    /* Increased visibility per request */
+    margin-right: 1rem;
+    white-space: nowrap;
+}
+
+/* Primary Action: Muted Amber for reduced alert fatigue */
+.primaryButton {
+    background: #d97706;
+    /* Muted Amber */
+    border: none;
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.primaryButton:hover {
+    background-color: #b45309;
+    /* Darker Amber */
+    transform: translateY(-1px);
+}
+
+/* Secondary Action: Icon only */
+.secondaryButton {
+    background: transparent;
+    border: 1px solid transparent;
+    /* Ghost by default */
+    color: var(--text-muted);
+    padding: 0.4rem;
+    /* Square-ish */
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.secondaryButton:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+    background-color: var(--bg-hover, rgba(0, 0, 0, 0.05));
+    /* Theme safe hover */
+}
+
+.secondaryButton:active {
+    transform: translateY(1px);
+}
+
+.secondaryButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 
 .refreshButton {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
     color: var(--text-primary);
+    border: 1px solid var(--border-color);
     padding: 0.5rem 1rem;
-    border-radius: 4px;
-    margin-left: 1rem;
-    font-size: 0.875rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .refreshButton:hover {
-    border-color: var(--color-brand);
-    color: var(--color-brand);
     background-color: var(--bg-hover);
+    border-color: var(--text-secondary);
 }
+
+.backToTop {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: var(--color-brand);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 50;
+    opacity: 0.9;
+}
+
+.backToTop:hover {
+    transform: translateY(-4px);
+    background-color: var(--color-brand-hover);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+}
+
+
+/* removed old selectors */
+
+/* .filterControls replaced by .centerControls logic */
+
+.filterSelect {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.filterSelect:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.filterSelect:focus {
+    border-color: var(--color-brand);
+}
+
+.filterSelect:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.filterSelect:focus {
+    border-color: var(--color-brand);
+}
+
+.filterSelect:focus {
+    border-color: var(--color-brand);
+}
+
 
 /* Layout */
 .list {
@@ -176,6 +425,10 @@
     flex-direction: column;
     gap: 0.75rem;
     min-width: 160px;
+    align-self: flex-start;
+    /* Ensure it starts at the top to align source tag with header */
+    padding-top: 0.25rem;
+    /* Optical adjustment to match header text baseline */
 }
 
 .acceptButton {
@@ -226,6 +479,85 @@
 }
 
 .discardButton:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.createButton {
+    background-color: var(--color-brand);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.createButton:hover {
+    background-color: var(--color-brand-hover);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animateSpin {
+    animation: spin 1s linear infinite;
+}
+
+.sourceTag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    /* Slightly tighter vertical padding for header alignment */
+    border: 1px solid currentColor;
+    /* Matches the dynamic text color */
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: default;
+    margin-left: 0;
+    align-self: flex-end;
+    /* Align to right of action column */
+    margin-bottom: 2.5rem;
+    /* Space before button (30% lower request) */
+
+    /* Typography */
+    font-family: 'Roboto Mono', 'Consolas', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.linkButton {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.linkButton:hover {
     background-color: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
     border-color: var(--text-secondary);

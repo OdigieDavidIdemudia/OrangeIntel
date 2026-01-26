@@ -1,0 +1,77 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
+using OrangeIntel.Application.Services;
+using OrangeIntel.Domain.Entities;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
+namespace OrangeIntel.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class ReportsController : ControllerBase
+{
+    private readonly IReportService _service;
+
+    public ReportsController(IReportService service)
+    {
+        _service = service;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+    {
+        return Ok(await _service.GetReportsAsync());
+    }
+
+    [HttpPost("create")]
+    public async Task<ActionResult<Report>> CreateReport([FromBody] CreateReportRequest request)
+    {
+        // Get current user ID
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
+        
+        // Enforce DOCX
+        var report = await _service.GenerateReportAsync(request.ArtifactId, request.Type, "DOCX", userId);
+        if (report == null) return BadRequest("Failed to generate report");
+        
+        return Ok(report);
+    }
+    
+    [HttpGet("preview")]
+    public async Task<IActionResult> PreviewReport([FromQuery] Guid artifactId, [FromQuery] string type)
+    {
+         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
+         var fileBytes = await _service.GeneratePreviewAsync(artifactId, type, userId);
+         
+         if (fileBytes == null) return NotFound("Could not generate preview. Artifact might not exist.");
+
+         return File(fileBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    }
+
+    [HttpGet("download")]
+    public async Task<IActionResult> DownloadReport(Guid id)
+    {
+        var report = await _service.GetReportByIdAsync(id);
+        if (report == null) return NotFound();
+
+        var fileBytes = await _service.GetReportFileAsync(id);
+        if (fileBytes == null) return StatusCode(500, "Error generating file.");
+
+        var mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        return File(fileBytes, mimeType, $"{report.Title}.docx");
+    }
+}
+
+public class CreateReportRequest
+{
+    [JsonPropertyName("artifact_id")]
+    public Guid ArtifactId { get; set; }
+    
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+    
+    // Format removed effectively, kept for back-compat if needed but ignored
+    [JsonPropertyName("format")]
+    public string? Format { get; set; }
+}

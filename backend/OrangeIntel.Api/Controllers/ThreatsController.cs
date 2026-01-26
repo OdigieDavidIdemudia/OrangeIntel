@@ -1,0 +1,63 @@
+using Microsoft.AspNetCore.Mvc;
+using OrangeIntel.Application.DTOs;
+using OrangeIntel.Application.Services;
+using OrangeIntel.Domain.Entities;
+
+namespace OrangeIntel.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ThreatsController : ControllerBase
+{
+    private readonly IThreatService _service;
+    private readonly OrangeIntel.Infrastructure.Services.ThreatIngestionService _ingestionService;
+
+    public ThreatsController(IThreatService service, OrangeIntel.Infrastructure.Services.ThreatIngestionService ingestionService)
+    {
+        _service = service;
+        _ingestionService = ingestionService;
+    }
+
+    [HttpPost("ingest")]
+    public async Task<ActionResult> IngestThreats()
+    {
+        var (count, message) = await _ingestionService.IngestLatestCvesAsync();
+        
+        if (count == -1)
+        {
+            return StatusCode(500, new { message = $"Ingestion failed: {message}" });
+        }
+        
+        return Ok(new { message = $"Ingested {count} new threats", count });
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ThreatItem>>> GetThreats()
+    {
+        var threats = await _service.GetThreatsAsync();
+        return Ok(threats);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ThreatItem>> GetThreat(Guid id)
+    {
+        var threat = await _service.GetThreatByIdAsync(id);
+        if (threat == null)
+        {
+            return NotFound();
+        }
+        return Ok(threat);
+    }
+
+    [HttpPost("promote")]
+    public async Task<ActionResult> PromoteThreat([FromBody] PromoteThreatRequest request)
+    {
+        var advisory = await _service.PromoteThreatAsync(request.ThreatId); // Maps to TopicId/ThreatId in request
+        if (advisory == null)
+        {
+            return NotFound("Threat not found");
+        }
+        
+        return Ok(new { advisory_id = advisory.Id });
+    }
+}

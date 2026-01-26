@@ -50,14 +50,19 @@ const SECTIONS = [
     {
         id: 'impact_assessment', title: '6. Impact Assessment', hint: 'Business Consequence.', type: 'object', fields: [
             { key: 'business_impact', label: 'Business Impact Type', type: 'select', options: ['Operational', 'Financial', 'Reputational'] },
-            { key: 'potential_impact_description', label: 'Impact Description', type: 'textarea' },
-            { key: 'overall_risk_rating', label: 'Overall Risk', type: 'select', options: ['Low', 'Medium', 'High', 'Critical'] }
+            { key: 'potential_impact_description', label: 'Impact Description (Summary)', type: 'textarea' },
+            { key: 'overall_risk_rating', label: 'Overall Risk Rating', type: 'select', options: ['Low', 'Medium', 'High', 'Critical'] },
+            { key: 'impacted_services', label: 'Impacted Services', type: 'array' },
+            { key: 'systems', label: 'Systems', type: 'array' },
+            { key: 'applications', label: 'Applications', type: 'array' },
+            { key: 'data_types', label: 'Data Types', type: 'array' }
         ]
     },
     {
         id: 'recommended_actions', title: '7. Recommended Actions', hint: 'Playbook.', type: 'object', fields: [
             { key: 'immediate_actions', label: 'Immediate Actions', type: 'array' },
-            { key: 'short_term_actions', label: 'Short Term Actions', type: 'array' }
+            { key: 'short_term_actions', label: 'Short Term Actions', type: 'array' },
+            { key: 'long_term_actions', label: 'Long Term Actions', type: 'array' }
         ]
     },
     {
@@ -110,15 +115,61 @@ const AssessmentBuilder = () => {
         }));
     };
 
-    const handleSave = async () => {
+    const handleSave = async (isDraft = false) => {
         setSaving(true);
         try {
-            // Simulate API
-            await new Promise(r => setTimeout(r, 800));
-            // In real implementation: POST /api/assessments
-            toast.success('Draft saved successfully');
+            const endpoint = isDraft ? '/api/assessments/draft' : '/api/assessments/update';
+
+            const payload = {
+                id: id === 'new' ? null : id,
+                status: isDraft ? 'draft' : 'approved', // or whatever status logic
+                sections: assessment.sections
+            };
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('Failed to save assessment');
+
+            const data = await response.json();
+            toast.success(isDraft ? 'Draft saved successfully' : 'Assessment saved');
+
+            if (isDraft && id === 'new' && data.id) {
+                navigate(`/assessments/${data.id}`, { replace: true });
+            }
+            if (!isDraft) {
+                navigate('/reports'); // or wherever
+            }
+
+        } catch (e) {
+            toast.error(e.message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handlePreview = async () => {
+        try {
+            const payload = {
+                id: id === 'new' ? null : id,
+                status: 'draft',
+                sections: assessment.sections
+            };
+            const response = await fetch('/api/assessments/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error('Preview generation failed');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (e) {
+            toast.error(e.message);
         }
     };
 
@@ -270,11 +321,14 @@ const AssessmentBuilder = () => {
                 </div>
                 {/* Actions saved for next block */}
                 <div className={styles.actions}>
-                    <button className={styles.saveButton} onClick={handleSave} disabled={saving}>
+                    <button className={styles.secondaryButton} onClick={handlePreview}>
+                        Preview
+                    </button>
+                    <button className={styles.saveButton} onClick={() => handleSave(true)} disabled={saving}>
                         <Save size={18} />
                         {saving ? 'Saving...' : 'Save Draft'}
                     </button>
-                    <button className={styles.finalizeButton} onClick={handleFinalize}>
+                    <button className={styles.finalizeButton} onClick={() => handleSave(false)}>
                         <CheckCircle size={18} />
                         Finalize Assessment
                     </button>

@@ -1,0 +1,26 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  OrangeIntel.Domain -> c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Domain\bin\Debug\net9.0\OrangeIntel.Domain.dll
+  OrangeIntel.Application -> c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Application\bin\Debug\net9.0\OrangeIntel.Application.dll
+  OrangeIntel.Infrastructure -> C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\bin\Debug\net9.0\OrangeIntel.Infrastructure.dll
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(53,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'CreateUserDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(5,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'UserProfileDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(32,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'UpdateProfileDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(38,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'UpdateNotificationSettingsDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(43,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'ChangePasswordDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\UsersController.cs(18,22): error CS0246: The type or namespace name 'ApplicationDbContext' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\UsersController.cs(20,90): error CS0246: The type or namespace name 'ApplicationDbContext' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+
+Build FAILED.
+
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(53,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'CreateUserDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(5,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'UserProfileDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(32,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'UpdateProfileDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(38,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'UpdateNotificationSettingsDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Dtos\UserDtos.cs(43,14): error CS0101: The namespace 'OrangeIntel.Api.Dtos' already contains a definition for 'ChangePasswordDto' [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\UsersController.cs(18,22): error CS0246: The type or namespace name 'ApplicationDbContext' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\Controllers\UsersController.cs(20,90): error CS0246: The type or namespace name 'ApplicationDbContext' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Api\OrangeIntel.Api.csproj]
+    0 Warning(s)
+    7 Error(s)
+
+Time Elapsed 00:00:02.16
