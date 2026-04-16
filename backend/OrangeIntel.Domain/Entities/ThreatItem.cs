@@ -14,7 +14,8 @@ public class ThreatItem
     public string ThreatType { get; set; } = string.Empty; // e.g. CVE, Malware
     public string AttackVector { get; set; } = string.Empty;
     public string DeliveryMechanism { get; set; } = string.Empty;
-    public string AffectedSector { get; set; } = string.Empty; // e.g. Banking
+    public string EnvironmentRelevance { get; set; } = string.Empty; // e.g. Banking
+    public string AssignedTeam { get; set; } = string.Empty;
     public int Severity { get; set; } // 1-10
     public int Confidence { get; set; } // 1-100
     public string Summary { get; set; } = string.Empty;
@@ -26,6 +27,7 @@ public class ThreatItem
     public DateTime? LastSeen { get; set; }
     public string HashDedup { get; set; } = string.Empty;
     public DateTime IngestedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? AcceptedAt { get; set; }
     
     // Navigation
     public List<Indicator> Indicators { get; set; } = new();

@@ -92,5 +92,11 @@
                 "low": 20
             }
         }
+    },
+    "monitoring": {
+        "auto_refresh_interval_ms": 60000,
+        "critical_threat_max_count": 5,
+        "critical_threat_rotation_interval_ms": 8000,
+        "enable_auto_refresh": true
     }
 }

@@ -64,6 +64,10 @@ builder.Services.AddControllers(options =>
                      .RequireAuthenticatedUser()
                      .Build();
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter(policy));
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -114,7 +118,13 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred seeding the DB.");
+        System.IO.File.WriteAllText("startup_db_error.txt", ex.ToString());
     }
 }
 
-app.Run();
+try {
+    app.Run();
+} catch (Exception ex) {
+    System.IO.File.WriteAllText("startup_fatal_error.txt", ex.ToString());
+    throw;
+}

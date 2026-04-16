@@ -60,4 +60,16 @@ public class ThreatsController : ControllerBase
         
         return Ok(new { advisory_id = advisory.Id });
     }
+
+    [HttpPost("discard")]
+    public async Task<ActionResult> DiscardThreat([FromBody] PromoteThreatRequest request)
+    {
+        var result = await _service.DiscardThreatAsync(request.ThreatId);
+        if (!result)
+        {
+            return NotFound("Threat not found");
+        }
+        
+        return Ok(new { message = "Threat discarded" });
+    }
 }

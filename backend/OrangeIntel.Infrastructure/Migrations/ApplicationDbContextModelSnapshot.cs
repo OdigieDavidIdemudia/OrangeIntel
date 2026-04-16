@@ -596,7 +596,10 @@ namespace OrangeIntel.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AffectedSector")
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AssignedTeam")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -608,6 +611,10 @@ namespace OrangeIntel.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("DeliveryMechanism")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EnvironmentRelevance")
                         .IsRequired()
                         .HasColumnType("text");
 

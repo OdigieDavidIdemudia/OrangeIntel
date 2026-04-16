@@ -11,8 +11,10 @@ import AdvisoryBuilder from './screens/AdvisoryBuilder';
 
 import AssessmentBuilder from './screens/AssessmentBuilder';
 import ReportBuilder from './screens/ReportBuilder';
-
 import SettingsScreen from './screens/SettingsScreen';
+import MonitoringScreen from './screens/MonitoringScreen';
+import ThreatDashboard from './screens/ThreatDashboard';
+import AdminDashboard from './screens/AdminDashboard';
 
 const RequireAuth = ({ children }) => {
   const { token, loading } = useAuth();
@@ -29,6 +31,20 @@ const RequireAuth = ({ children }) => {
   return children;
 };
 
+const RequireAdmin = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return <div>Loading...</div>;
+  
+  const isSuperAdmin = user?.roles?.includes('SuperAdmin');
+  
+  if (!isSuperAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -42,7 +58,8 @@ function App() {
                 <MainLayout />
               </RequireAuth>
             }>
-              <Route index element={<Navigate to="/threats" replace />} />
+              <Route index element={<ThreatDashboard />} />
+              <Route path="dashboard" element={<ThreatDashboard />} />
 
               <Route path="threats" element={<ThreatsView />} />
               <Route path="advisories" element={<Navigate to="/advisories/new" />} />
@@ -55,8 +72,20 @@ function App() {
 
               <Route path="settings" element={<SettingsScreen />} />
 
+              <Route path="admin" element={
+                <RequireAdmin>
+                  <AdminDashboard />
+                </RequireAdmin>
+              } />
+
               <Route path="*" element={<div>404 Not Found</div>} />
             </Route>
+
+            <Route path="/monitor" element={
+              <RequireAuth>
+                <MonitoringScreen />
+              </RequireAuth>
+            } />
           </Routes>
           <Toaster
             position="bottom-right"

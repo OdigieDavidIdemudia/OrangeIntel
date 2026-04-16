@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, AlertTriangle, FileText, FileBarChart, Settings, Shield, LogOut } from 'lucide-react';
+import { LayoutDashboard, AlertTriangle, FileText, FileBarChart, Settings, Shield, LogOut, Monitor, Activity } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
 
@@ -31,9 +31,14 @@ const Sidebar = () => {
       <nav className={styles.nav}>
         <div className={styles.sectionTitle}>Intelligence</div>
 
-        <NavLink to="/threats" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
+        <NavLink to="/dashboard" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
           <LayoutDashboard size={20} />
-          <span>Threats</span>
+          <span>Dashboard</span>
+        </NavLink>
+
+        <NavLink to="/threats" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
+          <Activity size={20} />
+          <span>Threat Queue</span>
         </NavLink>
 
         <NavLink to="/advisories" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
@@ -51,12 +56,36 @@ const Sidebar = () => {
           <span>Reports</span>
         </NavLink>
 
+        <a
+          href="/monitor"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.navItem}
+          onClick={(e) => {
+            e.preventDefault();
+            window.open('/monitor', '_blank', 'noopener,noreferrer');
+          }}
+        >
+          <Monitor size={20} />
+          <span>SOC Wallboard</span>
+        </a>
+
         <div className={styles.sectionTitle} style={{ marginTop: '2rem' }}>System</div>
 
         <NavLink to="/settings" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
           <Settings size={20} />
           <span>Settings</span>
         </NavLink>
+
+        {user?.roles?.includes('SuperAdmin') && (
+          <>
+            <div className={styles.sectionTitle} style={{ marginTop: '2rem' }}>Administration</div>
+            <NavLink to="/admin" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
+              <Shield size={20} />
+              <span>Admin Dashboard</span>
+            </NavLink>
+          </>
+        )}
       </nav>
 
       <div className={styles.footer}>

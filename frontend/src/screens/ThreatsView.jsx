@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { ArrowRight, Trash2, Clock, AlertCircle, RotateCw, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -47,9 +48,9 @@ const ThreatsView = () => {
         try {
             // Add timestamp to prevent caching
             const url = isManualRefresh ? `/api/threats?t=${Date.now()}` : '/api/threats';
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch threats');
-            const data = await response.json();
+
+            const response = await axios.get(url);
+            const data = response.data;
             setThreats(Array.isArray(data) ? data : []);
             setLastUpdated(new Date());
             if (isManualRefresh) toast.success('List refreshed');
@@ -81,13 +82,8 @@ const ThreatsView = () => {
 
     const handlePromote = async (threatId) => {
         try {
-            const response = await fetch('/api/threats/promote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ThreatId: threatId }),
-            });
-            if (!response.ok) throw new Error('Failed to promote threat');
-            const data = await response.json();
+            const response = await axios.post('/api/threats/promote', { ThreatId: threatId });
+            const data = response.data;
             // Navigate to the newly created advisory
             navigate(`/advisories/${data.advisory_id}`);
             toast.success('Threat promoted to Advisory', {
@@ -108,16 +104,18 @@ const ThreatsView = () => {
     };
 
     const handleDiscard = async (threatId) => {
-        // TODO: Implement discard API
-        toast('Discarded threat', {
-            icon: '🗑️',
-            style: {
-                background: '#333',
-                color: '#fff',
-            },
-        });
-        // filter out locally for now
-        setThreats(prev => prev.filter(t => t.id !== threatId));
+        const toastId = toast.loading('Discarding threat...');
+        try {
+            await axios.post('/api/threats/discard', { ThreatId: threatId });
+            
+            toast.success('Threat discarded', { id: toastId });
+            
+            // Filter out locally
+            setThreats(prev => prev.filter(t => t.id !== threatId));
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to discard threat', { id: toastId });
+        }
     };
 
     if (loading) return <div className={styles.loading}>Loading intelligence...</div>;
@@ -126,8 +124,8 @@ const ThreatsView = () => {
     const handleIngest = async () => {
         const toastId = toast.loading('Ingesting live threat data...');
         try {
-            const res = await fetch('/api/threats/ingest', { method: 'POST' });
-            const data = await res.json();
+            const res = await axios.post('/api/threats/ingest');
+            const data = res.data;
             toast.success(data.message || 'Ingestion complete', { id: toastId });
             fetchThreats();
         } catch (err) {

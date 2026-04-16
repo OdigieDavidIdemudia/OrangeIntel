@@ -2230,11 +2230,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\DELL\\.gemini\\antigravity\\scratch\\OrangeIntel\\backend\\OrangeIntel.Infrastructure\\OrangeIntel.Infrastructure.csproj",
+      "projectUniqueName": "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\OrangeIntel\\backend\\OrangeIntel.Infrastructure\\OrangeIntel.Infrastructure.csproj",
       "projectName": "OrangeIntel.Infrastructure",
-      "projectPath": "c:\\Users\\DELL\\.gemini\\antigravity\\scratch\\OrangeIntel\\backend\\OrangeIntel.Infrastructure\\OrangeIntel.Infrastructure.csproj",
+      "projectPath": "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\OrangeIntel\\backend\\OrangeIntel.Infrastructure\\OrangeIntel.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\DELL\\.gemini\\antigravity\\scratch\\OrangeIntel\\backend\\OrangeIntel.Infrastructure\\obj\\",
+      "outputPath": "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\OrangeIntel\\backend\\OrangeIntel.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -65,8 +65,10 @@ public class DocxReportGenerator : IReportGenerator
             textPlaceholders["{{ExecutiveSummary}}"] = data.ExecutiveSummary.AdvisorySummary;
             textPlaceholders["{{RiskStatement}}"] = data.ExecutiveSummary.HighLevelRiskStatement;
 
+            listPlaceholders["{{#ImmediateActions}}"] = data.Recommendations.ImmediateActions;
+            listPlaceholders["{{#ShortTermActions}}"] = data.Recommendations.ShortTermActions;
+            listPlaceholders["{{#LongTermActions}}"] = data.Recommendations.LongTermActions;
             listPlaceholders["{{#Impacts}}"] = data.ImpactAssessment.PotentialImpact;
-            listPlaceholders["{{#Recommendations}}"] = data.Recommendations.ImmediateActions; // Just immediate for now
         }
 
         var fullPath = Path.Combine(_templatePath, templateFile);
