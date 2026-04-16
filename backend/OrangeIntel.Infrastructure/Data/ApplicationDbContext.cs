@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 using OrangeIntel.Domain.Entities;
 using System;
@@ -62,36 +63,46 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .HasIndex(t => t.HashDedup)
             .IsUnique();
 
+        var listComparer = new ValueComparer<List<string>>(
+            (c1, c2) => c1 != null && c2 != null ? c1.SequenceEqual(c2) : c1 == c2,
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
         // Advisory Config
         builder.Entity<Advisory>()
             .Property(t => t.ImpactedSectors)
             .HasConversion(
                 v => string.Join(';', v),
-                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList())
+            .Metadata.SetValueComparer(listComparer);
 
         builder.Entity<Advisory>()
             .Property(t => t.AffectedAssets)
             .HasConversion(
                 v => string.Join(';', v),
-                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList())
+            .Metadata.SetValueComparer(listComparer);
 
         builder.Entity<Advisory>()
             .Property(t => t.Recommendations)
             .HasConversion(
                 v => string.Join(';', v),
-                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList())
+            .Metadata.SetValueComparer(listComparer);
 
         builder.Entity<Advisory>()
             .Property(t => t.IOCs)
             .HasConversion(
                 v => string.Join(';', v),
-                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList())
+            .Metadata.SetValueComparer(listComparer);
         
         builder.Entity<Advisory>()
             .Property(t => t.References)
             .HasConversion(
                 v => string.Join(';', v),
-                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList())
+            .Metadata.SetValueComparer(listComparer);
 
         // System Settings Config
         builder.Entity<SystemSetting>()

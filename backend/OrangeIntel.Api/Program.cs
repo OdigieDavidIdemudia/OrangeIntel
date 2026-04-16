@@ -7,7 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                    ?? builder.Configuration["DATABASE_URL"]; // Support Render/Railway defaults
+
+if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("localhost"))
+{
+    // Check if we have a direct DATABASE_URL env var if the above failed
+    var envUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (!string.IsNullOrEmpty(envUrl)) connectionString = envUrl;
+}
+
 if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://"))
 {
     var databaseUri = new Uri(connectionString);
@@ -19,8 +28,9 @@ if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("post
     var password = userInfo.Length > 1 ? userInfo[1] : "";
     
     // Add SSL common for cloud providers like Render/Railway
-    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Include Error Detail=true;";
 }
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
