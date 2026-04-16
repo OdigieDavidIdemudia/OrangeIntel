@@ -55,7 +55,9 @@ const LoginScreen = () => {
                 setRequiresMfa(true);
                 setError('');
             } else {
-                setError(err.response?.data?.message || 'Authentication failed. Please check credentials.');
+                const status = err.response?.status;
+                const message = err.response?.data?.message || err.message;
+                setError(`Authentication failed (${status || 'Network Error'}): ${message}`);
             }
         } finally {
             setLoading(false);
