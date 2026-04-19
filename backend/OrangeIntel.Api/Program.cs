@@ -6,14 +6,14 @@ using OrangeIntel.Infrastructure.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                    ?? builder.Configuration["DATABASE_URL"]; // Support Render/Railway defaults
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+                    ?? builder.Configuration["DATABASE_URL"]
+                    ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("localhost"))
+if (string.IsNullOrEmpty(connectionString))
 {
-    // Check if we have a direct DATABASE_URL env var if the above failed
-    var envUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-    if (!string.IsNullOrEmpty(envUrl)) connectionString = envUrl;
+    // Safety fallback for local development if everything else is missing
+    connectionString = "Host=localhost;Port=5432;Database=orangeintel;Username=postgres;Password=password;";
 }
 
 if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://"))
