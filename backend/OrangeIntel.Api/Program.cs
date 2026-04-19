@@ -6,7 +6,6 @@ using OrangeIntel.Infrastructure.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
                     ?? builder.Configuration["DATABASE_URL"]; // Support Render/Railway defaults
 
@@ -43,7 +42,6 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAdvisoryRepositor
 builder.Services.AddScoped<OrangeIntel.Application.Services.IThreatService, OrangeIntel.Application.Services.ThreatService>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IAdvisoryService, OrangeIntel.Application.Services.AdvisoryService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider, OrangeIntel.Infrastructure.Notifications.SignalNotificationProvider>();
-builder.Services.AddScoped<OrangeIntel.Application.Services.INotificationService, OrangeIntel.Application.Services.NotificationService>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.INotificationService, OrangeIntel.Application.Services.NotificationService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IReportRepository, OrangeIntel.Infrastructure.Repositories.ReportRepository>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IReportService, OrangeIntel.Application.Services.ReportService>();
@@ -115,9 +113,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
+// NOTE: Do NOT use UseHttpsRedirection() on Render/Railway.
+// Render terminates HTTPS at their proxy layer and forwards plain HTTP to the app.
+// Enabling this causes infinite redirect loops (500 errors on login/all endpoints).
 
 app.UseCors("FrontendPolicy");
 
@@ -139,14 +140,8 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred seeding the DB.");
-        System.IO.File.WriteAllText("startup_db_error.txt", ex.ToString());
+        logger.LogError(ex, "An error occurred while seeding the database.");
     }
 }
 
-try {
-    app.Run();
-} catch (Exception ex) {
-    System.IO.File.WriteAllText("startup_fatal_error.txt", ex.ToString());
-    throw;
-}
+app.Run();

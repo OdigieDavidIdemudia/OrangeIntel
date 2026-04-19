@@ -75,6 +75,11 @@ public static class DbInitializer
              // Real ingestion will be handled by ThreatIngestionService
         }
         */
+
+        // Run Sector Classification Migration
+        var threatService = serviceProvider.GetRequiredService<OrangeIntel.Application.Services.IThreatService>();
+        await threatService.MigrateExistingThreatsAsync();
+
         System.IO.File.AppendAllText("seed_log.txt", "DB Init Completed Successfully\n");
         } catch (Exception ex) {
             System.IO.File.AppendAllText("seed_log.txt", $"DB Init Failed: {ex}\n");

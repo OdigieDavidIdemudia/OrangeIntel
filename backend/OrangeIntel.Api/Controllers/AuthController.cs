@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OrangeIntel.Api.Dtos;
 using OrangeIntel.Application.Interfaces;
 using OrangeIntel.Domain.Entities;
@@ -148,6 +149,38 @@ public class AuthController : ControllerBase
          await _userManager.UpdateAsync(user);
          
          return Ok("MFA disabled");
+    }
+
+    [AllowAnonymous]
+    [HttpGet("diagnostics")]
+    public async Task<ActionResult> Diagnostics()
+    {
+        try
+        {
+            var userCount = await _userManager.Users.CountAsync();
+            var usersList = await _userManager.Users.ToListAsync();
+            var userDiagnostics = new List<object>();
+
+            foreach (var user in usersList)
+            {
+                var userRoles = await _userManager.GetRolesAsync(user);
+                userDiagnostics.Add(new
+                {
+                    Email = user.Email,
+                    Roles = string.Join(",", userRoles)
+                });
+            }
+
+            return Ok(new { 
+                status = "DB_OK", 
+                userCount, 
+                users = userDiagnostics
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { status = "DB_ERROR", error = ex.Message, inner = ex.InnerException?.Message });
+        }
     }
 
     private async Task<TokenDto> GenerateTokenResponse(AppUser user)

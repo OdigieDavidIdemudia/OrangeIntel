@@ -206,7 +206,7 @@ public class ThreatService : IThreatService
             else if (isMedium) mediumCurrent++;
             else lowCurrent++;
 
-            if (t.IngestedAt < oneHourAgo)
+            if (t.IngestedAt.ToUniversalTime() < oneHourAgo)
             {
                 if (isHigh) high1h++;
                 else if (isMedium) medium1h++;
@@ -294,6 +294,45 @@ public class ThreatService : IThreatService
         };
     }
 
+    public async Task<IEnumerable<ThreatItem>> GetFilteredIntelligenceAsync(string? priority, int? days, string? sector, DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var all = await _repository.GetAllAsync();
+        var query = all.AsQueryable();
+
+        // 1. Priority Filter
+        if (!string.IsNullOrEmpty(priority) && priority != "All")
+        {
+            query = priority.ToLower() switch
+            {
+                "high" => query.Where(t => t.Confidence >= 70),
+                "medium" => query.Where(t => t.Confidence >= 40 && t.Confidence < 70),
+                "low" => query.Where(t => t.Confidence < 40),
+                _ => query
+            };
+        }
+
+        // 2. Time Filter
+        var now = DateTime.UtcNow;
+        if (startDate.HasValue || endDate.HasValue)
+        {
+            if (startDate.HasValue) query = query.Where(t => t.IngestedAt >= startDate.Value);
+            if (endDate.HasValue) query = query.Where(t => t.IngestedAt <= endDate.Value);
+        }
+        else if (days.HasValue && days.Value > 0)
+        {
+            var cutoff = now.AddDays(-days.Value);
+            query = query.Where(t => t.IngestedAt >= cutoff);
+        }
+
+        // 3. Sector Filter
+        if (!string.IsNullOrEmpty(sector) && sector != "All" && sector != "General")
+        {
+            query = query.Where(t => t.EnvironmentRelevance == sector);
+        }
+
+        return query.OrderByDescending(t => t.IngestedAt).ToList();
+    }
+
     public async Task<bool> DiscardThreatAsync(Guid threatId)
     {
         var threat = await _repository.GetByIdAsync(threatId);
@@ -302,6 +341,36 @@ public class ThreatService : IThreatService
         threat.Status = ThreatStatus.Archived;
         await _repository.UpdateAsync(threat);
         return true;
+    }
+
+    public async Task<int> MigrateExistingThreatsAsync()
+    {
+        var all = await _repository.GetAllAsync();
+        int updated = 0;
+        foreach (var t in all)
+        {
+            var classification = ClassifyThreat(t);
+            bool changed = false;
+            
+            if (string.IsNullOrEmpty(t.EnvironmentRelevance) || t.EnvironmentRelevance == "General")
+            {
+                t.EnvironmentRelevance = classification.Environment;
+                changed = true;
+            }
+
+            if (string.IsNullOrEmpty(t.AssignedTeam))
+            {
+                t.AssignedTeam = classification.Team;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                await _repository.UpdateAsync(t);
+                updated++;
+            }
+        }
+        return updated;
     }
 
     private (string SeverityLabel, string Environment, string Team) ClassifyThreat(ThreatItem threat)
@@ -316,11 +385,16 @@ public class ThreatService : IThreatService
         string environment = "General";
         string content = (threat.Title + " " + threat.Summary + " " + threat.ThreatType).ToLowerInvariant();
 
-        if (new[] { "banking malware", "payment fraud", "financial phishing", "atm malware" }.Any(k => content.Contains(k))) environment = "Financial";
-        else if (new[] { "pos malware", "credential harvesting", "customer data breach" }.Any(k => content.Contains(k))) environment = "Hospitality";
-        else if (new[] { "ransomware", "medical device vulnerabilities" }.Any(k => content.Contains(k))) environment = "Healthcare";
-        else if (new[] { "sim swap", "network infrastructure exploits" }.Any(k => content.Contains(k))) environment = "Telecom";
-        else if (content.Contains("cloud") || content.Contains("software") || content.Contains("api")) environment = "Technology";
+        if (new[] { "banking", "payment", "fraud", "finance", "atm", "swift", "fintech" }.Any(k => content.Contains(k))) environment = "Financial";
+        else if (new[] { "pos ", "hospitality", "hotel", "restaurant", "travel", "tourism" }.Any(k => content.Contains(k))) environment = "Hospitality";
+        else if (new[] { "ransomware", "medical", "hospital", "health", "healthcare", "pharma", "clinical" }.Any(k => content.Contains(k))) environment = "Healthcare";
+        else if (new[] { "sim swap", "telecom", "isp", "5g", "voip", "cellular", "carrier" }.Any(k => content.Contains(k))) environment = "Telecom";
+        else if (new[] { "cloud", "software", "api", "devops", "saas", "tech", "it ", "developer", "server" }.Any(k => content.Contains(k))) environment = "Technology";
+        else if (new[] { "gov", "federal", "ministry", "agency", "election", "public sector", "military", "defense" }.Any(k => content.Contains(k))) environment = "Government";
+        else if (new[] { "energy", "utility", "power", "grid", "oil", "gas", "electricity", "water", "infrastructure" }.Any(k => content.Contains(k))) environment = "Energy";
+        else if (new[] { "agric", "farm", "crop", "livestock", "food supply", "fishery", "harvest" }.Any(k => content.Contains(k))) environment = "Agriculture";
+        else if (new[] { "school", "university", "education", "student", "college", "academic" }.Any(k => content.Contains(k))) environment = "Education";
+        else if (new[] { "logistics", "supply chain", "shipping", "cargo", "delivery", "transport", "warehouse" }.Any(k => content.Contains(k))) environment = "Logistics";
 
         // 3. Team Routing
         string team = "IT Security";

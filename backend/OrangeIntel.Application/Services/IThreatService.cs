@@ -14,4 +14,6 @@ public interface IThreatService
     Task<ThreatVelocityDto> GetThreatVelocityAsync();
     Task<DashboardMetricsDto> GetDashboardMetricsAsync();
     Task<bool> DiscardThreatAsync(Guid threatId);
+    Task<int> MigrateExistingThreatsAsync();
+    Task<IEnumerable<ThreatItem>> GetFilteredIntelligenceAsync(string? priority, int? days, string? sector, DateTime? startDate = null, DateTime? endDate = null);
 }

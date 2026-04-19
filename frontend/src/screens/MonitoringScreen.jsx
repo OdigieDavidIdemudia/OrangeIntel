@@ -23,6 +23,13 @@ const MonitoringScreen = () => {
     const THREATS_PER_PAGE = 5;
     const ROTATION_INTERVAL = 10000; // 10 seconds
 
+    // Force re-render every second for live timers
+    const [, setTick] = useState(0);
+    useEffect(() => {
+        const timer = setInterval(() => setTick(t => t + 1), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
 
     const refreshData = async (isManual = false) => {
         if (isRefreshing) return; // Prevent concurrent refreshes
@@ -237,12 +244,6 @@ const MonitoringScreen = () => {
         ? topCriticalThreats[spotlightIndex % topCriticalThreats.length]
         : null;
 
-    // Force re-render every second for live timers
-    const [, setTick] = useState(0);
-    useEffect(() => {
-        const timer = setInterval(() => setTick(t => t + 1), 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     return (
         <div style={{

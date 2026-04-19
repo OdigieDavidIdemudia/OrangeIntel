@@ -14,18 +14,18 @@ const ThreatDashboard = () => {
     const [metrics, setMetrics] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchMetrics = async () => {
-            try {
-                const response = await axios.get('/api/metrics/dashboard');
-                setMetrics(response.data);
-            } catch (error) {
-                console.error("Error fetching dashboard metrics:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchMetrics = async () => {
+        try {
+            const response = await axios.get('/api/metrics/dashboard');
+            setMetrics(response.data);
+        } catch (error) {
+            console.error("Error fetching dashboard metrics:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchMetrics();
         const interval = setInterval(fetchMetrics, 60000);
         return () => clearInterval(interval);

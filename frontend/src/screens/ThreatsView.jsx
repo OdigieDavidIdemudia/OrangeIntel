@@ -4,6 +4,7 @@ import { ArrowRight, Trash2, Clock, AlertCircle, RotateCw, ArrowUp } from 'lucid
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import EmptyState from '../components/common/EmptyState';
+import IntelligenceFilterBar from '../components/intelligence/IntelligenceFilterBar';
 import styles from './TopicsView.module.css';
 
 const SOURCE_THEMES = {
@@ -26,8 +27,14 @@ const ThreatsView = () => {
     const [lastUpdated, setLastUpdated] = useState(new Date());
     const [error, setError] = useState(null);
     const [sortOrder, setSortOrder] = useState('newest'); // newest, oldest, highest_score, lowest_score
-    const [filterCategory, setFilterCategory] = useState('all');
     const [scopeFilter, setScopeFilter] = useState('ALL'); // Default scope
+    const [filters, setFilters] = useState({
+        priority: 'All',
+        days: '7',
+        sector: 'All',
+        startDate: null,
+        endDate: null
+    });
     const [showBackToTop, setShowBackToTop] = useState(false);
     const navigate = useNavigate();
 
@@ -46,17 +53,29 @@ const ThreatsView = () => {
     const fetchThreats = async (isManualRefresh = false) => {
         if (isManualRefresh) setRefreshing(true);
         try {
-            // Add timestamp to prevent caching
-            const url = isManualRefresh ? `/api/threats?t=${Date.now()}` : '/api/threats';
+            const params = {
+                priority: filters.priority,
+                sector: filters.sector
+            };
 
-            const response = await axios.get(url);
+            if (filters.days === 'custom') {
+                if (filters.startDate) params.startDate = filters.startDate;
+                if (filters.endDate) params.endDate = filters.endDate;
+            } else {
+                params.days = filters.days;
+            }
+
+            // Also add timestamp to prevent caching if manual
+            if (isManualRefresh) params.t = Date.now();
+
+            const response = await axios.get('/api/intelligence', { params });
             const data = response.data;
             setThreats(Array.isArray(data) ? data : []);
             setLastUpdated(new Date());
-            if (isManualRefresh) toast.success('List refreshed');
+            if (isManualRefresh) toast.success('Queue refreshed');
         } catch (err) {
             setError(err.message);
-            if (isManualRefresh) toast.error('Failed to refresh list');
+            if (isManualRefresh) toast.error('Failed to refresh queue');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -65,7 +84,7 @@ const ThreatsView = () => {
 
     useEffect(() => {
         fetchThreats();
-    }, []);
+    }, [filters]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -143,23 +162,12 @@ const ThreatsView = () => {
         try {
             let processed = [...safeThreats];
 
-            // 1. Scope Filter (Mock Logic)
-            if (scopeFilter === 'UNTRIAGED') {
-                // In a real app, check status. Here, maybe just exclude hidden?
-                // For now, pass through to verify UI.
-            }
-
-            // 2. Category Filter
-            if (filterCategory !== 'all') {
-                processed = processed.filter(t => (t?.threatType || 'Unknown') === filterCategory);
-            }
-
-            // 3. Sort
+            // Client-side Sort (Backend returns newest by default, but we support others)
             processed.sort((a, b) => {
                 if (!a || !b) return 0;
-                // ... same sort logic ...
+                
                 const getDate = (item) => {
-                    const d = new Date(item.firstSeen || item.ingestedAt || 0);
+                    const d = new Date(item.ingestedAt || 0);
                     return isNaN(d.getTime()) ? 0 : d.getTime();
                 };
 
@@ -223,6 +231,10 @@ const ThreatsView = () => {
                             <option value="highest_score">HIGHEST SCORE</option>
                             <option value="lowest_score">LOWEST SCORE</option>
                         </select>
+
+                        <div className={styles.divider} style={{ height: '24px' }}></div>
+
+                        <IntelligenceFilterBar filters={filters} setFilters={setFilters} compact={true} />
                     </div>
 
                     {/* Right: Actions (Moved from Top Row) */}
@@ -253,7 +265,7 @@ const ThreatsView = () => {
                     title="No topics found"
                     message="Try adjusting your filters or ingesting new data."
                     action={
-                        <button className={styles.refreshButton} onClick={() => { setFilterCategory('all'); setSortOrder('newest'); }}>Reset Filters</button>
+                        <button className={styles.refreshButton} onClick={() => { setFilters({ priority: 'All', days: '7', sector: 'All', startDate: null, endDate: null }); setSortOrder('newest'); }}>Reset Filters</button>
                     }
                 />
             ) : (
