@@ -214,6 +214,28 @@ public class AuthController : ControllerBase
         return result["status"].ToString() == "DB_ERROR" ? StatusCode(500, result) : Ok(result);
     }
 
+    [AllowAnonymous]
+    [HttpGet("test-admin-login")]
+    public async Task<ActionResult> TestAdmin()
+    {
+         var adminEmail = "admin@orangeintel.local";
+         var user = await _userManager.FindByEmailAsync(adminEmail);
+         if (user == null) return NotFound("Admin user not found in DB");
+
+         var result = await _signInManager.CheckPasswordSignInAsync(user, "Admin123!", false);
+         
+         return Ok(new {
+             Email = user.Email,
+             PasswordTest = result.Succeeded ? "SUCCESS" : "FAILED",
+             IsLockedOut = result.IsLockedOut,
+             IsNotAllowed = result.IsNotAllowed,
+             RequiresTwoFactor = result.RequiresTwoFactor,
+             EmailConfirmed = user.EmailConfirmed,
+             MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
+             Id = user.Id
+         });
+    }
+
     private async Task<TokenDto> GenerateTokenResponse(AppUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);
