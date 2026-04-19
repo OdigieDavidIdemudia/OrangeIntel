@@ -164,6 +164,14 @@ public class AuthController : ControllerBase
         try 
         {
             result["availableEnvVars"] = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
+            var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "NOT_SET";
+            var sanitizedUrl = rawUrl;
+            if (rawUrl.Contains(":") && rawUrl.Contains("@")) {
+                // Basic sanitization for postgres://user:pass@host
+                sanitizedUrl = System.Text.RegularExpressions.Regex.Replace(rawUrl, ":[^/][^:]+@", ":****@");
+            }
+            result["rawDatabaseUrl"] = sanitizedUrl;
+            
             var connString = _context.Database.GetDbConnection().ConnectionString;
             var sanitizedConn = connString;
             if (connString.Contains("Password=")) {
