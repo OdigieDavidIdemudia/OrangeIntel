@@ -18,23 +18,18 @@ if (string.IsNullOrEmpty(connectionString))
 
 if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
 {
-    try
+    // Robust Regex to parse postgres://user:pass@host:port/db
+    var match = System.Text.RegularExpressions.Regex.Match(connectionString, @"(postgresql?://)([^:]+):([^@]+)@([^:/]+)(?::(\d+))?/(.+)");
+    
+    if (match.Succeeded)
     {
-        var databaseUri = new Uri(connectionString);
-        var userInfo = databaseUri.UserInfo.Split(':', 2);
-        var host = databaseUri.Host;
-        var port = databaseUri.Port <= 0 ? 5432 : databaseUri.Port; // Default to 5432 if port is missing
-        var database = databaseUri.LocalPath.TrimStart('/');
-        var username = userInfo[0];
-        var password = userInfo.Length > 1 ? userInfo[1] : "";
-        
-        // Add SSL settings which are mandatory for Render/Railway
+        var username = match.Groups[2].Value;
+        var password = match.Groups[3].Value;
+        var host = match.Groups[4].Value;
+        var port = string.IsNullOrEmpty(match.Groups[5].Value) ? "5432" : match.Groups[5].Value;
+        var database = match.Groups[6].Value;
+
         connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Include Error Detail=true;";
-    }
-    catch (UriFormatException)
-    {
-        // If URI parsing fails, fall back to the original connection string and hope Npgsql can handle it
-        // or let it fail downstream with a better error message.
     }
 }
 
