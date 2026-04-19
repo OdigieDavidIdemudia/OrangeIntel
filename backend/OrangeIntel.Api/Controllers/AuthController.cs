@@ -155,6 +155,14 @@ public class AuthController : ControllerBase
     [HttpGet("diagnostics")]
     public async Task<ActionResult> Diagnostics()
     {
+        var envKeys = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
+        var connString = _userManager.Users.Context.Database.GetDbConnection().ConnectionString;
+        var sanitizedConn = connString;
+        if (connString.Contains("Password=")) {
+            var parts = connString.Split(';');
+            sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
+        }
+
         try
         {
             var userCount = await _userManager.Users.CountAsync();
@@ -171,23 +179,23 @@ public class AuthController : ControllerBase
                 });
             }
 
-            var connString = _userManager.Users.Context.Database.GetDbConnection().ConnectionString;
-            var sanitizedConn = connString;
-            if (connString.Contains("Password=")) {
-                var parts = connString.Split(';');
-                sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
-            }
-
             return Ok(new { 
                 status = "DB_OK_DIAG", 
                 userCount, 
                 users = userDiagnostics,
-                connectionInfo = sanitizedConn
+                connectionInfo = sanitizedConn,
+                availableEnvVars = envKeys
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { status = "DB_ERROR", error = ex.Message, inner = ex.InnerException?.Message });
+            return StatusCode(500, new { 
+                status = "DB_ERROR", 
+                error = ex.Message, 
+                inner = ex.InnerException?.Message,
+                connectionInfo = sanitizedConn,
+                availableEnvVars = envKeys
+            });
         }
     }
 
