@@ -158,16 +158,16 @@ public class AuthController : ControllerBase
     [HttpGet("diagnostics")]
     public async Task<ActionResult> Diagnostics()
     {
-        var envKeys = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
-        var connString = _context.Database.GetDbConnection().ConnectionString;
-        var sanitizedConn = connString;
-        if (connString.Contains("Password=")) {
-            var parts = connString.Split(';');
-            sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
-        }
-
         try
         {
+            var envKeys = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
+            var connString = _context.Database.GetDbConnection().ConnectionString;
+            var sanitizedConn = connString;
+            if (connString.Contains("Password=")) {
+                var parts = connString.Split(';');
+                sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
+            }
+
             var userCount = await _userManager.Users.CountAsync();
             var usersList = await _userManager.Users.ToListAsync();
             var userDiagnostics = new List<object>();
