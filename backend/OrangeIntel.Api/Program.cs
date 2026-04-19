@@ -12,9 +12,10 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    // Safety fallback for local development if everything else is missing
     connectionString = "Host=localhost;Port=5432;Database=orangeintel;Username=postgres;Password=password;";
 }
+
+connectionString = connectionString.Trim().Trim('\"').Trim('\'');
 
 if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
 {
