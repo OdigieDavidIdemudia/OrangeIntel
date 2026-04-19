@@ -18,16 +18,24 @@ if (string.IsNullOrEmpty(connectionString))
 
 if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
 {
-    var databaseUri = new Uri(connectionString);
-    var userInfo = databaseUri.UserInfo.Split(':', 2);
-    var host = databaseUri.Host;
-    var port = databaseUri.Port;
-    var database = databaseUri.LocalPath.TrimStart('/');
-    var username = userInfo[0];
-    var password = userInfo.Length > 1 ? userInfo[1] : "";
-    
-    // Add SSL common for cloud providers like Render/Railway
-    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Include Error Detail=true;";
+    try
+    {
+        var databaseUri = new Uri(connectionString);
+        var userInfo = databaseUri.UserInfo.Split(':', 2);
+        var host = databaseUri.Host;
+        var port = databaseUri.Port <= 0 ? 5432 : databaseUri.Port; // Default to 5432 if port is missing
+        var database = databaseUri.LocalPath.TrimStart('/');
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        
+        // Add SSL settings which are mandatory for Render/Railway
+        connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Include Error Detail=true;";
+    }
+    catch (UriFormatException)
+    {
+        // If URI parsing fails, fall back to the original connection string and hope Npgsql can handle it
+        // or let it fail downstream with a better error message.
+    }
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
