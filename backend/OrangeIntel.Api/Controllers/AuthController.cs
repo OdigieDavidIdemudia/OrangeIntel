@@ -158,17 +158,29 @@ public class AuthController : ControllerBase
     [HttpGet("diagnostics")]
     public async Task<ActionResult> Diagnostics()
     {
-        try
+        var result = new Dictionary<string, object>();
+        
+        // Step 1: Environment Information
+        try 
         {
-            var envKeys = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
+            result["availableEnvVars"] = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
             var connString = _context.Database.GetDbConnection().ConnectionString;
             var sanitizedConn = connString;
             if (connString.Contains("Password=")) {
                 var parts = connString.Split(';');
                 sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
             }
+            result["connectionInfo"] = sanitizedConn;
+        }
+        catch (Exception ex)
+        {
+            result["envError"] = ex.Message;
+        }
 
-            var userCount = await _userManager.Users.CountAsync();
+        // Step 2: Database Connectivity
+        try
+        {
+            result["userCount"] = await _userManager.Users.CountAsync();
             var usersList = await _userManager.Users.ToListAsync();
             var userDiagnostics = new List<object>();
 
@@ -181,25 +193,17 @@ public class AuthController : ControllerBase
                     Roles = string.Join(",", userRoles)
                 });
             }
-
-            return Ok(new { 
-                status = "DB_OK_DIAG", 
-                userCount, 
-                users = userDiagnostics,
-                connectionInfo = sanitizedConn,
-                availableEnvVars = envKeys
-            });
+            result["users"] = userDiagnostics;
+            result["status"] = "DB_OK_DIAG";
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                status = "DB_ERROR", 
-                error = ex.Message, 
-                inner = ex.InnerException?.Message,
-                connectionInfo = sanitizedConn,
-                availableEnvVars = envKeys
-            });
+            result["status"] = "DB_ERROR";
+            result["dbError"] = ex.Message;
+            result["inner"] = ex.InnerException?.Message;
         }
+
+        return result["status"].ToString() == "DB_ERROR" ? StatusCode(500, result) : Ok(result);
     }
 
     private async Task<TokenDto> GenerateTokenResponse(AppUser user)
