@@ -21,6 +21,7 @@ public class AuthController : ControllerBase
     private readonly IOneTimePasswordService _otpService;
     private readonly EncryptionService _encryptionService;
     private readonly ILogger<AuthController> _logger;
+    private readonly OrangeIntel.Infrastructure.Data.ApplicationDbContext _context;
 
     public AuthController(
         UserManager<AppUser> userManager,
@@ -28,7 +29,8 @@ public class AuthController : ControllerBase
         ITokenService tokenService,
         IOneTimePasswordService otpService,
         EncryptionService encryptionService,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        OrangeIntel.Infrastructure.Data.ApplicationDbContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -36,6 +38,7 @@ public class AuthController : ControllerBase
         _otpService = otpService;
         _encryptionService = encryptionService;
         _logger = logger;
+        _context = context;
     }
 
     [AllowAnonymous]
@@ -156,7 +159,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult> Diagnostics()
     {
         var envKeys = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
-        var connString = _userManager.Users.Context.Database.GetDbConnection().ConnectionString;
+        var connString = _context.Database.GetDbConnection().ConnectionString;
         var sanitizedConn = connString;
         if (connString.Contains("Password=")) {
             var parts = connString.Split(';');
