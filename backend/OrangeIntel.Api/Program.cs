@@ -16,7 +16,7 @@ if (string.IsNullOrEmpty(connectionString))
     connectionString = "Host=localhost;Port=5432;Database=orangeintel;Username=postgres;Password=password;";
 }
 
-if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://"))
+if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
 {
     var databaseUri = new Uri(connectionString);
     var userInfo = databaseUri.UserInfo.Split(':', 2);

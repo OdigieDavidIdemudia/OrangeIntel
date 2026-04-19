@@ -171,10 +171,18 @@ public class AuthController : ControllerBase
                 });
             }
 
+            var connString = _userManager.Users.Context.Database.GetDbConnection().ConnectionString;
+            var sanitizedConn = connString;
+            if (connString.Contains("Password=")) {
+                var parts = connString.Split(';');
+                sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
+            }
+
             return Ok(new { 
-                status = "DB_OK", 
+                status = "DB_OK_DIAG", 
                 userCount, 
-                users = userDiagnostics
+                users = userDiagnostics,
+                connectionInfo = sanitizedConn
             });
         }
         catch (Exception ex)
