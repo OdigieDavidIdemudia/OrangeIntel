@@ -18,18 +18,22 @@ if (string.IsNullOrEmpty(connectionString))
 
 if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
 {
-    // Robust Regex to parse postgres://user:pass@host:port/db
-    var match = System.Text.RegularExpressions.Regex.Match(connectionString, @"(postgresql?://)([^:]+):([^@]+)@([^:/]+)(?::(\d+))?/(.+)");
-    
-    if (match.Succeeded)
+    try
     {
-        var username = match.Groups[2].Value;
-        var password = match.Groups[3].Value;
-        var host = match.Groups[4].Value;
-        var port = string.IsNullOrEmpty(match.Groups[5].Value) ? "5432" : match.Groups[5].Value;
-        var database = match.Groups[6].Value;
+        var uri = new Uri(connectionString);
+        var host = uri.Host;
+        var port = uri.Port <= 0 ? 5432 : uri.Port;
+        var database = uri.AbsolutePath.TrimStart('/');
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
 
+        // Reconstruct as a standard Npgsql connection string
         connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Include Error Detail=true;";
+    }
+    catch
+    {
+        // Fallback to original string if Uri parsing fails
     }
 }
 
