@@ -192,6 +192,16 @@ public class AuthController : ControllerBase
                 });
             }
             result["users"] = userDiagnostics;
+            
+            if (System.IO.File.Exists("seed_log.txt"))
+            {
+                result["seedLog"] = await System.IO.File.ReadAllTextAsync("seed_log.txt");
+            }
+            else
+            {
+                result["seedLog"] = "seed_log.txt not found";
+            }
+            
             result["status"] = "OK";
         }
         catch (Exception ex)
