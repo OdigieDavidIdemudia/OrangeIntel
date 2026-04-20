@@ -160,14 +160,12 @@ public class AuthController : ControllerBase
     {
         var result = new Dictionary<string, object>();
         
-        // Step 1: Environment Information
         try 
         {
             result["availableEnvVars"] = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
             var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "NOT_SET";
             var sanitizedUrl = rawUrl;
             if (rawUrl.Contains(":") && rawUrl.Contains("@")) {
-                // Basic sanitization for postgres://user:pass@host
                 sanitizedUrl = System.Text.RegularExpressions.Regex.Replace(rawUrl, ":[^/][^:]+@", ":****@");
             }
             result["rawDatabaseUrl"] = sanitizedUrl;
@@ -179,15 +177,7 @@ public class AuthController : ControllerBase
                 sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
             }
             result["connectionInfo"] = sanitizedConn;
-        }
-        catch (Exception ex)
-        {
-            result["envError"] = ex.Message;
-        }
 
-        // Step 2: Database Connectivity
-        try
-        {
             result["userCount"] = await _userManager.Users.CountAsync();
             var usersList = await _userManager.Users.ToListAsync();
             var userDiagnostics = new List<object>();
@@ -202,38 +192,47 @@ public class AuthController : ControllerBase
                 });
             }
             result["users"] = userDiagnostics;
-            result["status"] = "DB_OK_DIAG";
+            result["status"] = "OK";
         }
         catch (Exception ex)
         {
-            result["status"] = "DB_ERROR";
-            result["dbError"] = ex.Message;
+            result["status"] = "ERROR";
+            result["error"] = ex.Message;
             result["inner"] = ex.InnerException?.Message;
+            result["stack"] = ex.StackTrace;
         }
 
-        return result["status"].ToString() == "DB_ERROR" ? StatusCode(500, result) : Ok(result);
+        return Ok(result);
     }
 
     [AllowAnonymous]
     [HttpGet("test-admin-login")]
     public async Task<ActionResult> TestAdmin()
     {
-         var adminEmail = "admin@orangeintel.local";
-         var user = await _userManager.FindByEmailAsync(adminEmail);
-         if (user == null) return NotFound("Admin user not found in DB");
+         try
+         {
+             var adminEmail = "admin@orangeintel.local";
+             var user = await _userManager.FindByEmailAsync(adminEmail);
+             if (user == null) return Ok(new { status = "NOT_FOUND", message = "Admin user not found in DB" });
 
-         var result = await _signInManager.CheckPasswordSignInAsync(user, "Admin123!", false);
-         
-         return Ok(new {
-             Email = user.Email,
-             PasswordTest = result.Succeeded ? "SUCCESS" : "FAILED",
-             IsLockedOut = result.IsLockedOut,
-             IsNotAllowed = result.IsNotAllowed,
-             RequiresTwoFactor = result.RequiresTwoFactor,
-             EmailConfirmed = user.EmailConfirmed,
-             MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
-             Id = user.Id
-         });
+             var result = await _signInManager.CheckPasswordSignInAsync(user, "Admin123!", false);
+             
+             return Ok(new {
+                 status = "OK",
+                 Email = user.Email,
+                 PasswordTest = result.Succeeded ? "SUCCESS" : "FAILED",
+                 IsLockedOut = result.IsLockedOut,
+                 IsNotAllowed = result.IsNotAllowed,
+                 RequiresTwoFactor = result.RequiresTwoFactor,
+                 EmailConfirmed = user.EmailConfirmed,
+                 MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
+                 Id = user.Id
+             });
+         }
+         catch (Exception ex)
+         {
+             return Ok(new { status = "ERROR", error = ex.Message, inner = ex.InnerException?.Message });
+         }
     }
 
     private async Task<TokenDto> GenerateTokenResponse(AppUser user)
