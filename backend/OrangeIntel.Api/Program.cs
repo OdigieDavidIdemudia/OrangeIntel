@@ -17,14 +17,17 @@ if (string.IsNullOrEmpty(connectionString))
 
 connectionString = connectionString.Trim().Trim('\"').Trim('\'');
 
-if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://")))
+if (!string.IsNullOrEmpty(connectionString) && 
+    (connectionString.StartsWith("postgres", StringComparison.OrdinalIgnoreCase)))
 {
     try
     {
-        var uri = new Uri(connectionString);
+        // Remove query parameters which Npgsql ConnectionStringBuilder doesn't like
+        var cleanUrl = connectionString.Split('?')[0];
+        var uri = new Uri(cleanUrl);
         var host = uri.Host;
         var port = uri.Port > 0 ? uri.Port : 5432;
-        var database = uri.AbsolutePath.TrimStart('/').Split('?')[0];
+        var database = uri.AbsolutePath.TrimStart('/');
         var userInfo = uri.UserInfo.Split(':');
         var username = userInfo[0];
         var password = userInfo.Length > 1 ? userInfo[1] : "";
@@ -44,7 +47,25 @@ if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("pos
     }
     catch
     {
-        // Fallback to original string if Uri parsing fails
+        // Manual fallback if Uri parsing fails (handles special chars in userinfo better sometimes)
+        try {
+            var withoutScheme = connectionString.Contains("://") ? connectionString.Split(new[] { "://" }, StringSplitOptions.None)[1] : connectionString;
+            var parts = withoutScheme.Split('@');
+            var userParts = parts[0].Split(':');
+            var hostParts = parts[1].Split('/');
+            var hostAndPort = hostParts[0].Split(':');
+            
+            var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder {
+                Host = hostAndPort[0],
+                Port = hostAndPort.Length > 1 ? int.Parse(hostAndPort[1]) : 5432,
+                Database = hostParts[1].Split('?')[0],
+                Username = userParts[0],
+                Password = userParts[1],
+                SslMode = Npgsql.SslMode.Require,
+                TrustServerCertificate = true
+            };
+            connectionString = npgsqlBuilder.ConnectionString;
+        } catch { /* Final fallback to original */ }
     }
 }
 
