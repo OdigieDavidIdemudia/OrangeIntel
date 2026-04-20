@@ -164,15 +164,16 @@ public class AuthController : ControllerBase
         {
             result["availableEnvVars"] = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToList();
             var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "NOT_SET";
-            var sanitizedUrl = rawUrl;
-            if (rawUrl.Contains(":") && rawUrl.Contains("@")) {
-                sanitizedUrl = System.Text.RegularExpressions.Regex.Replace(rawUrl, ":[^/][^:]+@", ":****@");
-            }
-            result["rawDatabaseUrl"] = sanitizedUrl;
+            result["rawDatabaseUrlLength"] = rawUrl.Length;
+            result["rawDatabaseUrlStart"] = rawUrl.Length > 20 ? rawUrl.Substring(0, 20) : rawUrl;
             
-            var connString = _context.Database.GetDbConnection().ConnectionString;
+            var conn = _context.Database.GetDbConnection();
+            var connString = conn.ConnectionString;
+            result["efConnectionStringLength"] = connString?.Length ?? 0;
+            result["efConnectionStringStart"] = (connString?.Length > 30) ? connString.Substring(0, 30) : connString;
+            
             var sanitizedConn = connString;
-            if (connString.Contains("Password=")) {
+            if (connString != null && connString.Contains("Password=")) {
                 var parts = connString.Split(';');
                 sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
             }
