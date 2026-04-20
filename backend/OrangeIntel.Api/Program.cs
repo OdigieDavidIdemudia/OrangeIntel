@@ -44,7 +44,7 @@ if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("pos
     }
     catch
     {
-        // If Uri fails, keep original or fallback
+        // Fallback to original string if Uri parsing fails
     }
 }
 

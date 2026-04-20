@@ -65,7 +65,10 @@ public static class DbInitializer
         else
         {
              var logger = serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ApplicationDbContext>>();
-             logger.LogInformation("SuperAdmin user already exists.");
+             logger.LogInformation("SuperAdmin user already exists. Forcing password reset for production safety.");
+             var admin = await userManager.FindByEmailAsync(adminEmail);
+             await userManager.RemovePasswordAsync(admin);
+             await userManager.AddPasswordAsync(admin, "Admin123!");
         }
 
         /*
