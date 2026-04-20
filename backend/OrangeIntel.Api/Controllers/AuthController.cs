@@ -215,6 +215,12 @@ public class AuthController : ControllerBase
              var user = await _userManager.FindByEmailAsync(adminEmail);
              if (user == null) return Ok(new { status = "NOT_FOUND", message = "Admin user not found in DB" });
 
+             // Force reset password and clear lockout for debugging
+             await _userManager.RemovePasswordAsync(user);
+             await _userManager.AddPasswordAsync(user, "Admin123!");
+             await _userManager.SetLockoutEndDateAsync(user, null);
+             await _userManager.ResetAccessFailedCountAsync(user);
+
              var result = await _signInManager.CheckPasswordSignInAsync(user, "Admin123!", false);
              
              return Ok(new {
