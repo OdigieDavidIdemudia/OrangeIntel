@@ -29,28 +29,22 @@ if (!string.IsNullOrEmpty(connectionString) && (connectionString.StartsWith("pos
         var username = userInfo[0];
         var password = userInfo.Length > 1 ? userInfo[1] : "";
 
-        // Reconstruct as a standard Npgsql connection string
-        connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Include Error Detail=true;";
+        var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Port = port,
+            Database = database,
+            Username = username,
+            Password = password,
+            SslMode = Npgsql.SslMode.Require,
+            TrustServerCertificate = true,
+            IncludeErrorDetail = true
+        };
+        connectionString = npgsqlBuilder.ConnectionString;
     }
     catch
     {
-        // If Uri fails, try manual split as last resort
-        try {
-            var parts = connectionString.Split("://")[1].Split('@');
-            var userParts = parts[0].Split(':');
-            var hostParts = parts[1].Split('/');
-            var hostAndPort = hostParts[0].Split(':');
-            
-            var username = userParts[0];
-            var password = userParts[1];
-            var host = hostAndPort[0];
-            var port = hostAndPort.Length > 1 ? hostAndPort[1] : "5432";
-            var database = hostParts[1].Split('?')[0];
-            
-            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
-        } catch {
-            // Keep original if everything fails
-        }
+        // If Uri fails, keep original or fallback
     }
 }
 
