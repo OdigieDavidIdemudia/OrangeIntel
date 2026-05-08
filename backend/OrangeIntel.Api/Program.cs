@@ -24,29 +24,44 @@ if (string.IsNullOrEmpty(connectionString))
 
 connectionString = connectionString.Trim().Trim('\"').Trim('\'');
 
-if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://"))
+if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
 {
     try
     {
+        // Handle potential double slashes or other URI quirks
         var databaseUri = new Uri(connectionString);
         var userInfo = databaseUri.UserInfo.Split(':');
+        var username = Uri.UnescapeDataString(userInfo[0]);
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+        var host = databaseUri.Host;
+        var port = databaseUri.Port > 0 ? databaseUri.Port : 5432;
+        var database = Uri.UnescapeDataString(databaseUri.LocalPath.TrimStart('/'));
 
         var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
         {
-            Host = databaseUri.Host,
-            Port = databaseUri.Port > 0 ? databaseUri.Port : 5432,
-            Database = databaseUri.LocalPath.TrimStart('/'),
-            Username = userInfo[0],
-            Password = userInfo.Length > 1 ? userInfo[1] : "",
+            Host = host,
+            Port = port,
+            Database = database,
+            Username = username,
+            Password = password,
             SslMode = Npgsql.SslMode.Require,
             TrustServerCertificate = true,
-            IncludeErrorDetail = true
+            IncludeErrorDetail = true,
+            Pooling = true,
+            MinPoolSize = 0,
+            MaxPoolSize = 100,
+            ConnectionIdleLifetime = 300
         };
         connectionString = npgsqlBuilder.ConnectionString;
     }
     catch (Exception ex)
     {
         Console.WriteLine($"[CRITICAL] Connection string parsing failed: {ex.Message}");
+        // If it still starts with postgres://, we must NOT use it as a connection string
+        if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+        {
+             connectionString = "INVALID_CONNECTION_STRING_PARSE_FAILED";
+        }
     }
 }
 

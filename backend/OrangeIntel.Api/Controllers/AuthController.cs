@@ -178,6 +178,7 @@ public class AuthController : ControllerBase
             var connString = conn.ConnectionString;
             result["efConnectionStringLength"] = connString?.Length ?? 0;
             result["efConnectionStringStart"] = (connString?.Length > 30) ? connString.Substring(0, 30) : connString;
+            result["efConnectionStringType"] = connString?.StartsWith("postgres://") == true ? "URL (INVALID)" : "Standard";
             
             var sanitizedConn = connString;
             if (connString != null && connString.Contains("Password=")) {
@@ -185,6 +186,7 @@ public class AuthController : ControllerBase
                 sanitizedConn = string.Join(";", parts.Where(p => !p.StartsWith("Password=")));
             }
             result["connectionInfo"] = sanitizedConn;
+            result["env_ASPNETCORE_ENVIRONMENT"] = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             result["userCount"] = await _userManager.Users.CountAsync();
             var usersList = await _userManager.Users.ToListAsync();
