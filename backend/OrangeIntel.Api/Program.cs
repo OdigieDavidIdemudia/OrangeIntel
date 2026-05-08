@@ -24,7 +24,9 @@ if (string.IsNullOrEmpty(connectionString))
 
 connectionString = connectionString.Trim().Trim('\"').Trim('\'');
 
-if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+if (!string.IsNullOrEmpty(connectionString) && 
+    (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) || 
+     connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)))
 {
     try
     {
@@ -57,8 +59,9 @@ if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("post
     catch (Exception ex)
     {
         Console.WriteLine($"[CRITICAL] Connection string parsing failed: {ex.Message}");
-        // If it still starts with postgres://, we must NOT use it as a connection string
-        if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+        // If it still starts with postgres:// or postgresql://, we must NOT use it as a connection string
+        if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+            connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
         {
              connectionString = "INVALID_CONNECTION_STRING_PARSE_FAILED";
         }
