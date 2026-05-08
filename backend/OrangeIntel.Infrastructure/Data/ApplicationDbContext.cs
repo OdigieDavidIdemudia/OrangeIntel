@@ -18,11 +18,9 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<ThreatItem> ThreatItems { get; set; }
     public DbSet<Indicator> Indicators { get; set; }
     public DbSet<Advisory> Advisories { get; set; }
-    public DbSet<Assessment> Assessments { get; set; }
     public DbSet<Report> Reports { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<AdvisoryDraft> AdvisoryDrafts { get; set; }
-    public DbSet<AssessmentDraft> AssessmentDrafts { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -36,11 +34,8 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         builder.Entity<ThreatItem>().ToTable("threat_items");
         builder.Entity<Indicator>().ToTable("indicators");
         builder.Entity<Advisory>().ToTable("advisories");
-        builder.Entity<Assessment>().ToTable("assessments");
         builder.Entity<Report>().ToTable("reports");
         builder.Entity<AdvisoryDraft>().ToTable("advisory_drafts");
-        builder.Entity<AdvisoryDraft>().ToTable("advisory_drafts");
-        builder.Entity<AssessmentDraft>().ToTable("assessment_drafts");
         builder.Entity<SystemSetting>().ToTable("system_settings");
 
         // ThreatItem Config

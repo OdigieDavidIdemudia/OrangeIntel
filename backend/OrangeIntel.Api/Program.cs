@@ -2,10 +2,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OrangeIntel.Domain.Entities;
 using OrangeIntel.Infrastructure.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddRouting(options => 
+{
+    options.LowercaseUrls = true;
+    options.LowercaseQueryStrings = true;
+});
+
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
                     ?? builder.Configuration["DATABASE_URL"]
                     ?? builder.Configuration.GetConnectionString("DefaultConnection");
@@ -17,55 +24,29 @@ if (string.IsNullOrEmpty(connectionString))
 
 connectionString = connectionString.Trim().Trim('\"').Trim('\'');
 
-if (!string.IsNullOrEmpty(connectionString) && 
-    (connectionString.StartsWith("postgres", StringComparison.OrdinalIgnoreCase)))
+if (!string.IsNullOrEmpty(connectionString) && connectionString.StartsWith("postgres://"))
 {
     try
     {
-        // Remove query parameters which Npgsql ConnectionStringBuilder doesn't like
-        var cleanUrl = connectionString.Split('?')[0];
-        var uri = new Uri(cleanUrl);
-        var host = uri.Host;
-        var port = uri.Port > 0 ? uri.Port : 5432;
-        var database = uri.AbsolutePath.TrimStart('/');
-        var userInfo = uri.UserInfo.Split(':');
-        var username = userInfo[0];
-        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var databaseUri = new Uri(connectionString);
+        var userInfo = databaseUri.UserInfo.Split(':');
 
         var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
         {
-            Host = host,
-            Port = port,
-            Database = database,
-            Username = username,
-            Password = password,
+            Host = databaseUri.Host,
+            Port = databaseUri.Port > 0 ? databaseUri.Port : 5432,
+            Database = databaseUri.LocalPath.TrimStart('/'),
+            Username = userInfo[0],
+            Password = userInfo.Length > 1 ? userInfo[1] : "",
             SslMode = Npgsql.SslMode.Require,
             TrustServerCertificate = true,
             IncludeErrorDetail = true
         };
         connectionString = npgsqlBuilder.ConnectionString;
     }
-    catch
+    catch (Exception ex)
     {
-        // Manual fallback if Uri parsing fails (handles special chars in userinfo better sometimes)
-        try {
-            var withoutScheme = connectionString.Contains("://") ? connectionString.Split(new[] { "://" }, StringSplitOptions.None)[1] : connectionString;
-            var parts = withoutScheme.Split('@');
-            var userParts = parts[0].Split(':');
-            var hostParts = parts[1].Split('/');
-            var hostAndPort = hostParts[0].Split(':');
-            
-            var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder {
-                Host = hostAndPort[0],
-                Port = hostAndPort.Length > 1 ? int.Parse(hostAndPort[1]) : 5432,
-                Database = hostParts[1].Split('?')[0],
-                Username = userParts[0],
-                Password = userParts[1],
-                SslMode = Npgsql.SslMode.Require,
-                TrustServerCertificate = true
-            };
-            connectionString = npgsqlBuilder.ConnectionString;
-        } catch { /* Final fallback to original */ }
+        Console.WriteLine($"[CRITICAL] Connection string parsing failed: {ex.Message}");
     }
 }
 
@@ -81,11 +62,12 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAdvisoryRepositor
 builder.Services.AddScoped<OrangeIntel.Application.Services.IThreatService, OrangeIntel.Application.Services.ThreatService>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IAdvisoryService, OrangeIntel.Application.Services.AdvisoryService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider, OrangeIntel.Infrastructure.Notifications.SignalNotificationProvider>();
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider, OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.INotificationService, OrangeIntel.Application.Services.NotificationService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IReportRepository, OrangeIntel.Infrastructure.Repositories.ReportRepository>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IReportService, OrangeIntel.Application.Services.ReportService>();
-builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAssessmentRepository, OrangeIntel.Infrastructure.Repositories.AssessmentRepository>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IReportGenerator, OrangeIntel.Infrastructure.Reporting.DocxReportGenerator>();
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAdvisoryDocxService, OrangeIntel.Infrastructure.Reporting.AdvisoryDocxService>();
 
 // Security Services
 builder.Services.AddSingleton<OrangeIntel.Infrastructure.Services.EncryptionService>();
@@ -95,6 +77,7 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAuditService, Ora
 
 // Threat Ingestion
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Services.ThreatIngestionService>();
+builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_key_change_me_in_prod_12345!"; // Fallback for dev
@@ -145,6 +128,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Clearing these because on platforms like Render/Vercel, 
+    // the proxy IPs are dynamic and we trust the platform headers.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -155,11 +147,14 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-// NOTE: Do NOT use UseHttpsRedirection() on Render/Railway.
-// Render terminates HTTPS at their proxy layer and forwards plain HTTP to the app.
-// Enabling this causes infinite redirect loops (500 errors on login/all endpoints).
+// app.UseHttpsRedirection();
+
+app.UseForwardedHeaders();
+
+app.UseRouting();
 
 app.UseCors("FrontendPolicy");
+
 
 app.UseAuthentication();
 app.UseAuthorization();

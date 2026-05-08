@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Brain, Network, Shield, Settings as SettingsIcon } from 'lucide-react';
+import { User, Brain, Network, Shield, Settings as SettingsIcon, Monitor } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import styles from './SettingsScreen.module.css';
 import axios from 'axios';
@@ -13,6 +13,7 @@ const SettingsScreen = () => {
 
     const tabs = [
         { id: 'personal', label: 'Personal', icon: User, hidden: false },
+        { id: 'monitor', label: 'Monitor Config', icon: Monitor, hidden: false },
         { id: 'intelligence', label: 'Intelligence', icon: Brain, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
         { id: 'integration', label: 'Integration', icon: Network, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
         { id: 'security', label: 'Security & Access', icon: Shield, hidden: !user?.roles?.includes('super_admin') },
@@ -38,6 +39,7 @@ const SettingsScreen = () => {
             </div>
             <div className={styles.content}>
                 {activeTab === 'personal' && <PersonalSettings user={user} />}
+                {activeTab === 'monitor' && <MonitorSettings />}
                 {activeTab === 'intelligence' && <IntelligenceSettings />}
                 {activeTab === 'integration' && <IntegrationSettings />}
                 {activeTab === 'security' && <SecuritySettings />}
@@ -132,7 +134,7 @@ const PersonalSettings = ({ user }) => {
                 setMfaData(res.data);
                 setMfaStep('qr');
                 setIsMfaModalOpen(true);
-            } catch (err) {
+            } catch {
                 toast.error("Failed to start MFA setup");
             }
         } else {
@@ -142,7 +144,7 @@ const PersonalSettings = ({ user }) => {
                     await axios.post('/api/auth/mfa/disable');
                     setUserSettings(prev => ({ ...prev, mfaEnabled: false }));
                     toast.success("MFA Disabled");
-                } catch (err) {
+                } catch {
                     toast.error("Failed to disable MFA");
                 }
             }
@@ -160,7 +162,7 @@ const PersonalSettings = ({ user }) => {
             setMfaStep('init');
             setMfaCode('');
             toast.success("MFA Enabled Successfully");
-        } catch (err) {
+        } catch {
             toast.error("Invalid Code. Please try again.");
         }
     };
@@ -401,7 +403,7 @@ const SecuritySettings = () => {
         try {
             const res = await axios.get('/api/users');
             setUsers(res.data);
-        } catch (err) {
+        } catch {
             toast.error("Failed to fetch users");
         } finally {
             setLoading(false);
@@ -419,8 +421,8 @@ const SecuritySettings = () => {
             setIsCreateModalOpen(false);
             setNewUserStart({ email: '', password: '', role: 'analyst' });
             fetchUsers();
-        } catch (err) {
-            toast.error(err.response?.data || "Failed to create user");
+        } catch (error) {
+            toast.error(error.response?.data || "Failed to create user");
         }
     };
 
@@ -432,7 +434,7 @@ const SecuritySettings = () => {
             setIsEditModalOpen(false);
             setEditUser(null);
             fetchUsers();
-        } catch (err) {
+        } catch {
             toast.error("Failed to update user");
         }
     };
@@ -583,9 +585,9 @@ const SystemSettings = () => {
         try {
             await axios.post('/api/settings/reset');
             toast.success("Database Reset Successfully");
-        } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data || "Failed to reset database");
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data || "Failed to reset database");
         }
     };
 
@@ -623,6 +625,96 @@ const SystemSettings = () => {
                     These actions are destructive and cannot be undone.
                 </p>
                 <button className={styles.btnDanger} onClick={handleReset}>Reset Database</button>
+            </div>
+        </div>
+    );
+};
+
+const MonitorSettings = () => {
+    const [threatWindow, setThreatWindow] = useState(() => {
+        return localStorage.getItem('monitor_threat_window') || '7';
+    });
+    const [refreshInterval, setRefreshInterval] = useState(() => {
+        return localStorage.getItem('monitor_refresh_interval') || '60';
+    });
+
+    const windowOptions = [
+        { value: '0.04', label: 'Last 1 Hour' },
+        { value: '0.5', label: 'Last 12 Hours' },
+        { value: '1', label: 'Last 24 Hours' },
+        { value: '3', label: 'Last 3 Days' },
+        { value: '7', label: 'Last 7 Days' },
+        { value: '14', label: 'Last 14 Days' },
+        { value: '30', label: 'Last 30 Days' },
+        { value: '60', label: 'Last 60 Days' },
+        { value: '0', label: 'All Time (No Filter)' },
+    ];
+
+    const refreshOptions = [
+        { value: '30', label: '30 Seconds' },
+        { value: '60', label: '1 Minute' },
+        { value: '120', label: '2 Minutes' },
+        { value: '300', label: '5 Minutes' },
+        { value: '600', label: '10 Minutes' },
+    ];
+
+    const handleWindowChange = (value) => {
+        setThreatWindow(value);
+        localStorage.setItem('monitor_threat_window', value);
+        toast.success(`Threat display window set to ${windowOptions.find(o => o.value === value)?.label}`);
+    };
+
+    const handleRefreshChange = (value) => {
+        setRefreshInterval(value);
+        localStorage.setItem('monitor_refresh_interval', value);
+        toast.success(`Refresh interval set to ${refreshOptions.find(o => o.value === value)?.label}`);
+    };
+
+    return (
+        <div className={styles.section}>
+            <h3>Monitor Configuration</h3>
+
+            <div className={styles.card}>
+                <h4>Threat Display Window</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                    Controls how far back threats are shown on the Monitoring Screen. This affects the threat counts, intercept list, and critical spotlight.
+                </p>
+                <div className={styles.formGroup}>
+                    <label>Show threats from</label>
+                    <select
+                        className={styles.select}
+                        value={threatWindow}
+                        onChange={(e) => handleWindowChange(e.target.value)}
+                    >
+                        {windowOptions.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
+                <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(249, 115, 22, 0.08)', borderRadius: '8px', border: '1px solid rgba(249, 115, 22, 0.2)' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#F97316' }}>
+                        ⚡ Changes take effect on the next Monitoring Screen refresh.
+                    </span>
+                </div>
+            </div>
+
+            <div className={styles.card}>
+                <h4>Auto-Refresh Interval</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                    How often the Monitoring Screen automatically fetches new data.
+                </p>
+                <div className={styles.formGroup}>
+                    <label>Refresh every</label>
+                    <select
+                        className={styles.select}
+                        value={refreshInterval}
+                        onChange={(e) => handleRefreshChange(e.target.value)}
+                    >
+                        {refreshOptions.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
         </div>
     );

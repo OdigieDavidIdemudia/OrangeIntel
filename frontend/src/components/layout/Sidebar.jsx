@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, AlertTriangle, FileText, FileBarChart, Settings, Shield, LogOut, Monitor, Activity } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -44,11 +44,6 @@ const Sidebar = () => {
         <NavLink to="/advisories" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
           <AlertTriangle size={20} />
           <span>Threat Advisories</span>
-        </NavLink>
-
-        <NavLink to="/assessments" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
-          <Shield size={20} />
-          <span>Threat Assessments</span>
         </NavLink>
 
         <NavLink to="/reports" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>

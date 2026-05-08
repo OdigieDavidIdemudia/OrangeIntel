@@ -35,22 +35,6 @@ const ThreatDashboard = () => {
         return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--text-secondary)' }}>Initializing Intel Dashboard...</div>;
     }
 
-    const getStateColor = (state) => {
-        switch (state) {
-            case 'CRITICAL': return styles.stateCritical;
-            case 'ELEVATED': return styles.stateElevated;
-            default: return styles.stateCalm;
-        }
-    };
-
-    const getStateIcon = (state) => {
-        switch (state) {
-            case 'CRITICAL': return <AlertTriangle size={48} />;
-            case 'ELEVATED': return <Shield size={48} />;
-            default: return <Activity size={48} />;
-        }
-    };
-
     return (
         <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
             <header className={styles.dashboardHeader}>
@@ -64,21 +48,7 @@ const ThreatDashboard = () => {
                 </div>
             </header>
 
-            <section className={styles.heroSection}>
-                <div className={`${styles.overallStateCard} ${getStateColor(metrics.overallState)}`}>
-                    <div className={styles.glow} style={{ '--accent-color': metrics.overallState === 'CRITICAL' ? '#EF4444' : (metrics.overallState === 'ELEVATED' ? '#F59E0B' : '#10B981') }} />
-                    <div className={styles.stateIcon}>
-                        {getStateIcon(metrics.overallState)}
-                    </div>
-                    <span className={styles.stateLabel}>CURRENT THREAT POSTURE</span>
-                    <h2 className={`${styles.stateValue} ${getStateColor(metrics.overallState)}`}>
-                        {metrics.overallState || 'STANDBY'}
-                    </h2>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        System synchronized. Last update: {new Date().toLocaleTimeString()}
-                    </div>
-                </div>
-            </section>
+
 
             <div className={styles.grid}>
                 <div className={styles.mainGroup}>

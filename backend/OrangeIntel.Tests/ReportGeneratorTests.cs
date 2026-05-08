@@ -20,11 +20,11 @@ public class ReportGeneratorTests
             GeneratedAt = DateTime.UtcNow
         };
 
-        _dummyReport.ReportType = "ThreatAssessment";
+        _dummyReport.ReportType = "ThreatAdvisory";
 
-        var content = new OrangeIntel.Application.DTOs.Reporting.ThreatAssessmentReport();
-        content.ThreatIntelligenceAssessment.Metadata.ReportTitle = "Test Report";
-        content.ThreatIntelligenceAssessment.ExecutiveSummary.AdvisorySummary = "This is a summary.";
+        var content = new OrangeIntel.Application.DTOs.Reporting.ThreatAdvisoryReport();
+        content.Report.CoverPage.ReportTitle = "Test Report";
+        content.Report.ExecutiveSummary.Content = "This is a summary.";
         
         _dummyContent = JsonSerializer.Serialize(content);
     }
@@ -38,7 +38,7 @@ public class ReportGeneratorTests
         // Ensure templates directory exists for test
         var templatesPath = Path.Combine(mockEnv.ContentRootPath, "Templates", "Reports");
         Directory.CreateDirectory(templatesPath);
-        File.WriteAllText(Path.Combine(templatesPath, "ThreatAssessmentTemplate.docx"), "dummy content");
+        File.WriteAllText(Path.Combine(templatesPath, "ThreatAdvisoryTemplate.docx"), "dummy content");
 
         var generator = new DocxReportGenerator(mockEnv);
         var result = generator.Generate(_dummyReport, _dummyContent);

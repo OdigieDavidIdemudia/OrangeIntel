@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OrangeIntel.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/auth")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -39,6 +39,13 @@ public class AuthController : ControllerBase
         _encryptionService = encryptionService;
         _logger = logger;
         _context = context;
+    }
+
+    [AllowAnonymous]
+    [HttpGet("login")]
+    public IActionResult LoginStatus()
+    {
+        return Ok(new { status = "READY", method = "POST", message = "Auth endpoint is reachable." });
     }
 
     [AllowAnonymous]

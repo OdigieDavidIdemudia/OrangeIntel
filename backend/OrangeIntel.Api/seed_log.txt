@@ -233,3 +233,58 @@ Starting DB Init at 4/19/2026 8:14:28 PM
 DB Init Completed Successfully
 Starting DB Init at 4/19/2026 9:27:07 PM
 DB Init Completed Successfully
+Starting DB Init at 4/20/2026 9:45:36 AM
+DB Init Completed Successfully
+Starting DB Init at 4/20/2026 9:54:11 AM
+DB Init Completed Successfully
+Starting DB Init at 4/20/2026 11:10:42 AM
+DB Init Completed Successfully
+Starting DB Init at 4/22/2026 8:07:57 AM
+DB Init Completed Successfully
+Starting DB Init at 4/22/2026 1:33:59 PM
+DB Init Completed Successfully
+Starting DB Init at 4/22/2026 2:29:12 PM
+DB Init Completed Successfully
+Starting DB Init at 4/22/2026 2:42:27 PM
+DB Init Completed Successfully
+Starting DB Init at 4/23/2026 6:00:36 PM
+DB Init Completed Successfully
+Starting DB Init at 4/25/2026 2:16:05 PM
+DB Init Failed: System.InvalidOperationException: An error was generated for warning 'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The model for context 'ApplicationDbContext' has pending changes. Add a new migration before updating the database. This exception can be suppressed or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 'AddDbContext'.
+   at Microsoft.EntityFrameworkCore.Diagnostics.EventDefinition`1.Log[TLoggerCategory](IDiagnosticsLogger`1 logger, TParam arg)
+   at Microsoft.EntityFrameworkCore.Diagnostics.RelationalLoggerExtensions.PendingModelChangesWarning(IDiagnosticsLogger`1 diagnostics, Type contextType)
+   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.MigrateAsync(String targetMigration, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal.NpgsqlMigrator.MigrateAsync(String targetMigration, CancellationToken cancellationToken)
+   at OrangeIntel.Infrastructure.Data.DbInitializer.Initialize(IServiceProvider serviceProvider, Boolean resetDb) in C:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Infrastructure\Data\DbInitializer.cs:line 26
+Starting DB Init at 4/25/2026 11:20:39 PM
+DB Init Completed Successfully
+Starting DB Init at 4/25/2026 11:58:06 PM
+DB Init Completed Successfully
+Starting DB Init at 4/26/2026 12:39:18 AM
+DB Init Completed Successfully
+Starting DB Init at 4/27/2026 4:05:52 PM
+DB Init Completed Successfully
+Starting DB Init at 4/30/2026 5:20:42 PM
+DB Init Completed Successfully
+Starting DB Init at 4/30/2026 6:13:32 PM
+DB Init Completed Successfully
+Starting DB Init at 4/30/2026 10:52:07 PM
+DB Init Completed Successfully
+Starting DB Init at 4/30/2026 11:12:32 PM
+DB Init Completed Successfully
+Starting DB Init at 5/1/2026 11:40:06 AM
+DB Init Completed Successfully
+Starting DB Init at 5/1/2026 12:00:59 PM
+DB Init Completed Successfully
+Starting DB Init at 5/1/2026 12:15:40 PM
+DB Init Completed Successfully
+Starting DB Init at 5/1/2026 12:23:24 PM
+DB Init Completed Successfully
+Starting DB Init at 5/1/2026 12:23:33 PM
+DB Init Completed Successfully
+Starting DB Init at 5/1/2026 12:23:57 PM
+DB Init Completed Successfully
+Starting DB Init at 5/4/2026 9:26:13 AM
+DB Init Completed Successfully
+Starting DB Init at 5/7/2026 9:49:26 AM
+DB Init Completed Successfully

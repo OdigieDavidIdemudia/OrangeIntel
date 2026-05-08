@@ -53,22 +53,9 @@ public class DocxReportGenerator : IReportGenerator
             listPlaceholders["{{#References}}"] = data.References.Select(r => $"{r.Title}: {r.Url}").ToList();
 
         }
-        else // Assessment
+        else 
         {
-            templateFile = "ThreatAssessmentTemplate.docx";
-            var model = JsonSerializer.Deserialize<ThreatAssessmentReport>(contentJson);
-            var data = model?.ThreatIntelligenceAssessment ?? new ThreatAssessmentReport.AssessmentContent();
-
-            textPlaceholders["{{ReportTitle}}"] = data.Metadata.ReportTitle;
-            textPlaceholders["{{ReportIdentifier}}"] = data.Metadata.ReportId;
-            textPlaceholders["{{Date}}"] = data.Metadata.Date;
-            textPlaceholders["{{ExecutiveSummary}}"] = data.ExecutiveSummary.AdvisorySummary;
-            textPlaceholders["{{RiskStatement}}"] = data.ExecutiveSummary.HighLevelRiskStatement;
-
-            listPlaceholders["{{#ImmediateActions}}"] = data.Recommendations.ImmediateActions;
-            listPlaceholders["{{#ShortTermActions}}"] = data.Recommendations.ShortTermActions;
-            listPlaceholders["{{#LongTermActions}}"] = data.Recommendations.LongTermActions;
-            listPlaceholders["{{#Impacts}}"] = data.ImpactAssessment.PotentialImpact;
+            throw new NotSupportedException($"Report type {report.ReportType} is not supported.");
         }
 
         var fullPath = Path.Combine(_templatePath, templateFile);

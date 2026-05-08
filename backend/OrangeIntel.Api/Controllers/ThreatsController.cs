@@ -72,4 +72,11 @@ public class ThreatsController : ControllerBase
         
         return Ok(new { message = "Threat discarded" });
     }
+
+    [HttpPost("purge-irrelevant")]
+    public async Task<ActionResult> PurgeIrrelevantThreats()
+    {
+        var count = await _ingestionService.PurgeIrrelevantThreatsAsync();
+        return Ok(new { message = $"Purged {count} irrelevant threat items from the database.", count });
+    }
 }

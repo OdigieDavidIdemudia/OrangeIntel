@@ -17,7 +17,6 @@ public class ThreatIngestionService
     private readonly ApplicationDbContext _context;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ThreatIngestionService> _logger;
-
     private readonly IConfiguration _configuration;
 
     public ThreatIngestionService(ApplicationDbContext context, HttpClient httpClient, ILogger<ThreatIngestionService> logger, IConfiguration configuration)
@@ -49,10 +48,27 @@ public class ThreatIngestionService
         int totalIngested = 0;
         var messages = new List<string>();
 
-        // 0. Breaking News (Simulated for immediate threats like Palo Alto)
-        var (newsCount, newsMsg) = await IngestBreakingNewsAsync();
-        totalIngested += newsCount;
-        messages.Add($"Breaking: {newsMsg}");
+        // 0. Multiple RSS Feeds
+        var rssFeeds = new[]
+        {
+            ("https://feeds.feedburner.com/TheHackersNews", "The Hacker News", "THN-"),
+            ("https://www.bleepingcomputer.com/feed/", "BleepingComputer", "BC-"),
+            ("https://techpoint.africa/feed/", "Techpoint Africa", "TP-"),
+            ("https://www.itnewsafrica.com/feed/", "IT News Africa", "ITN-"),
+            ("https://cert.gov.ng/feed/", "CERT Nigeria", "NGC-"),
+            ("https://nigeriacommunicationsweek.com.ng/feed/", "Nigeria CommWeek", "NCW-"),
+            ("https://techcabal.com/feed/", "TechCabal Africa", "TC-"),
+            ("https://nitda.gov.ng/feed/", "NITDA Nigeria", "NIT-"),
+            ("https://www.itweb.co.za/static/rss/news.xml", "ITWeb Africa", "ITW-")
+        };
+
+        foreach (var (url, sourceName, prefix) in rssFeeds)
+        {
+            if (await DailyLimitReachedAsync()) break;
+            var (feedCount, feedMsg) = await IngestRssFeedAsync(url, sourceName, prefix);
+            totalIngested += feedCount;
+            messages.Add($"{sourceName}: {feedMsg}");
+        }
 
         // 1. CISA KEV
         var (cisaCount, cisaMsg) = await IngestCisaKevAsync();
@@ -146,25 +162,49 @@ public class ThreatIngestionService
     // Renamed existing method
     public async Task<(int Count, string Message)> IngestLatestCvesAsync() => await IngestAllAsync(); 
 
-    private async Task<(int, string)> IngestBreakingNewsAsync()
+    private async Task<(int, string)> IngestRssFeedAsync(string rssUrl, string sourceName, string dedupPrefix)
     {
-         // Real RSS Feed: The Hacker News
          try 
          {
-             var rssUrl = "https://feeds.feedburner.com/TheHackersNews";
              // Use a browser-like user agent to avoid 403s
              _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
              
              var rssContent = await _httpClient.GetStringAsync(rssUrl);
              var xdoc = System.Xml.Linq.XDocument.Parse(rssContent);
              
-             // Setup Namespace if needed (often RSS is default, but Atom exists. Assuming standard RSS 2.0 here)
              // Simple interaction: Descendants("item")
-             var items = xdoc.Descendants("item").Take(50); // Take top 50 breaking news
+             var items = xdoc.Descendants("item").Take(50);
 
-             var source = await GetOrCreateSourceAsync("The Hacker News", "News Feed");
+             var source = await GetOrCreateSourceAsync(sourceName, "News Feed");
              int count = 0;
 
+             // Strict cybersecurity-specific require-at-least-one keywords
+             var cyberKeywords = new[] {
+                 "cyber", "hack", "breach", "vulnerabilit", "ransomware", "malware", "phish",
+                 "exploit", "zero-day", "0-day", "data leak", "apt ", "cve-", "ddos",
+                 "botnet", "trojan", "spyware", "backdoor", "rootkit", "credential",
+                 "intrusion", "incident response", "threat actor", "threat intel",
+                 "security flaw", "security vulnerability", "remote code", "privilege escalation",
+                 "supply chain attack", "social engineering", "identity theft",
+                 "data exfiltration", "lateral movement", "command and control",
+                 "indicator of compromise", "ioc", "mitre", "attack vector",
+                 "endpoint detection", "siem", "soc ", "patch tuesday", "security patch",
+                 "critical infrastructure", "government agency", "financial system", "banking infrastructure"
+             };
+
+             // Off-topic blocklist — discard if ANY of these dominate the headline
+             var offTopicKeywords = new[] {
+                 "cryptocurrency", "bitcoin", "ethereum", "blockchain", "stablecoin", "defi",
+                 "usda payment", "usdc", "crypto payment", "nft", "web3", "token",
+                 "fintech", "mobile money", "digital currency", "central bank digital", "cbdc",
+                 "merger", "acquisition", "ipo", "stock", "share price", "dividend",
+                 "5g rollout", "telecom", "spectrum license", "election", "vote",
+                 "gdp", "inflation", "interest rate", "bond yield", "loan",
+                 "integrate usda", "usda payments", "stablecoin settlement",
+                 "payments system", "remittance", "forex", "foreign exchange"
+             };
+
+             // Use refined relevance logic
              foreach(var item in items)
              {
                  var title = item.Element("title")?.Value?.Trim() ?? "Unknown News";
@@ -173,10 +213,20 @@ public class ThreatIngestionService
                  var description = item.Element("description")?.Value;
                  
                  // Clean description (often contains HTML)
-                 var summary = System.Text.RegularExpressions.Regex.Replace(description ?? "", "<.*?>", String.Empty).Trim();
-                 if (summary.Length > 300) summary = summary.Substring(0, 297) + "...";
+                var originalSummary = System.Text.RegularExpressions.Regex.Replace(description ?? "", "<.*?>", String.Empty).Trim();
+                if (originalSummary.Length > 500) originalSummary = originalSummary.Substring(0, 497) + "...";
 
-                 var dedupKey = $"THN-{ComputeStableHash(link ?? title)}";
+                var combinedText = (title + " " + originalSummary).ToLowerInvariant();
+
+                 // Stage 1: Must be cyber-related and NOT off-topic
+                 if (!IsCyberRelated(combinedText) || IsOffTopic(combinedText))
+                     continue;
+
+                 // Stage 2: Language check (Reject if French keywords are dominant)
+                 if (IsFrench(combinedText))
+                     continue;
+
+                 var dedupKey = $"{dedupPrefix}{ComputeStableHash(link ?? title)}";
 
                  // Check Hash OR Title (Double safety for news)
                  if (await _context.ThreatItems.AnyAsync(t => t.HashDedup == dedupKey || t.Title == title)) continue;
@@ -184,19 +234,31 @@ public class ThreatIngestionService
                  DateTime pubDate = DateTime.UtcNow;
                  if (DateTime.TryParse(pubDateStr, out var parsedDate)) pubDate = parsedDate.ToUniversalTime();
 
+                 // Refined Priority/Confidence Logic
+                 var severity = 5; // Default to Medium for News
+                 var confidence = 60; // Default Confidence for News
+
+                 // Upgrade if high-severity keywords present
+                 if (HighSeverityKeywords.Any(k => combinedText.Contains(k)))
+                 {
+                     severity = 8;
+                     confidence = 85;
+                 }
+
                  var threat = new ThreatItem 
                  {
-                     Title = title,
-                     Summary = summary,
-                     ThreatType = "News",
-                     Severity = 7, // Default to High for Breaking News
-                     Confidence = 80, // News is reliable but not a confirmed technical exploit verification
-                     FirstSeen = pubDate,
-                     LastSeen = DateTime.UtcNow,
-                     Status = ThreatStatus.New,
-                     HashDedup = dedupKey,
-                     SourceId = source.Id,
-                     MetadataJson = JsonSerializer.Serialize(new { Link = link, RawDate = pubDateStr })
+                    Title = title,
+                    Summary = originalSummary,
+                    ThreatType = "News",
+                    Severity = severity,
+                    Confidence = confidence,
+                    FirstSeen = pubDate,
+                    LastSeen = DateTime.UtcNow,
+                    Status = ThreatStatus.New,
+                    HashDedup = dedupKey,
+                    SourceId = source.Id,
+                    MetadataJson = JsonSerializer.Serialize(new { Link = link, RawDate = pubDateStr }),
+                    Language = "en"
                  };
 
                  _context.ThreatItems.Add(threat);
@@ -291,6 +353,107 @@ public class ThreatIngestionService
             return (-1, ex.Message);
         }
     }
+    public async Task<int> PurgeIrrelevantThreatsAsync()
+    {
+        // Use the same refined logic for purging
+        var allThreats = await _context.ThreatItems.ToListAsync();
+
+        var toDelete = allThreats.Where(t =>
+        {
+            // 1. Language check (Aggressive French removal)
+            if (t.Language == "fr" || IsFrench(t.Title + " " + t.Summary)) return true;
+
+            // 2. Relevance check for news
+            if (t.ThreatType == "News")
+            {
+                var combined = ((t.Title ?? "") + " " + (t.Summary ?? "")).ToLowerInvariant();
+                return !IsCyberRelated(combined) || IsOffTopic(combined);
+            }
+
+            return false;
+        }).ToList();
+
+        if (toDelete.Count > 0)
+        {
+            _context.ThreatItems.RemoveRange(toDelete);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Purged {Count} irrelevant threat items.", toDelete.Count);
+        }
+
+        return toDelete.Count;
+    }
+
+    // --- RELEVANCE LOGIC HELPERS ---
+
+    private static readonly string[] CyberKeywords = new[] {
+        "cyber", "hack", "breach", "vulnerabilit", "ransomware", "malware", "phish",
+        "exploit", "zero-day", "0-day", "data leak", "cve-", "ddos",
+        "botnet", "trojan", "spyware", "backdoor", "rootkit", "credential",
+        "intrusion", "incident response", "threat actor", "threat intel",
+        "security flaw", "security vulnerability", "remote code", "privilege escalation",
+        "supply chain attack", "social engineering", "identity theft",
+        "data exfiltration", "lateral movement", "command and control",
+        "indicator of compromise", "ioc", "mitre", "attack vector",
+        "endpoint detection", "siem", "patch tuesday", "security patch",
+        "critical infrastructure", "government agency", "financial system", "banking infrastructure"
+    };
+
+    private static readonly string[] OffTopicKeywords = new[] {
+        "cryptocurrency", "bitcoin", "ethereum", "blockchain", "stablecoin", "defi",
+        "usda payment", "usdc", "crypto payment", "nft", "web3", "token",
+        "fintech", "mobile money", "digital currency", "central bank digital", "cbdc",
+        "merger", "acquisition", "ipo", "stock", "share price", "dividend",
+        "5g rollout", "telecom", "spectrum license", "election", "vote",
+        "gdp", "inflation", "interest rate", "bond yield", "loan",
+        "integrate usda", "usda payments", "stablecoin settlement",
+        "payments system", "remittance", "forex", "foreign exchange",
+        "ai video", "dubbing tool", "filmmaker", "nollywood", "church", "content creator",
+        "startup funding", "venture capital", "series a", "series b"
+    };
+
+    private static readonly string[] HighSeverityKeywords = new[] {
+        "critical breach", "ransomware attack", "zero-day", "massively exploited", 
+        "data of millions", "government hack", "banking system down", "supply chain breach"
+    };
+
+    private static readonly string[] FrenchIndicators = new[] {
+        " le ", " la ", " les ", " de ", " et ", " est ", " pour ", " dans ", " par ", " sur ",
+        "cybersécurité", "numérique", "vulnérabilité", "données", "sécurité"
+    };
+
+    private bool IsCyberRelated(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        text = text.ToLowerInvariant();
+        bool hasKeyword = CyberKeywords.Any(k => text.Contains(k));
+        
+        if (!hasKeyword)
+        {
+            var shortKeywords = new[] { "apt", "soc", "cve" };
+            foreach (var sk in shortKeywords)
+            {
+                if (System.Text.RegularExpressions.Regex.IsMatch(text, $@"\b{sk}\b")) return true;
+            }
+        }
+        return hasKeyword;
+    }
+
+    private bool IsOffTopic(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        text = text.ToLowerInvariant();
+        return OffTopicKeywords.Any(k => text.Contains(k));
+    }
+
+    private bool IsFrench(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        text = text.ToLowerInvariant();
+        // Count french indicators
+        int count = FrenchIndicators.Count(k => text.Contains(k));
+        return count >= 3; // Threshold to avoid false positives on short strings
+    }
+
 
     private async Task<ThreatSource> GetOrCreateSourceAsync(string name, string type)
     {

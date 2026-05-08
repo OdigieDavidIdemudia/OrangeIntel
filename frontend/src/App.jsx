@@ -9,7 +9,6 @@ import ThreatsView from './screens/ThreatsView';
 
 import AdvisoryBuilder from './screens/AdvisoryBuilder';
 
-import AssessmentBuilder from './screens/AssessmentBuilder';
 import ReportBuilder from './screens/ReportBuilder';
 import SettingsScreen from './screens/SettingsScreen';
 import MonitoringScreen from './screens/MonitoringScreen';
@@ -64,9 +63,6 @@ function App() {
               <Route path="threats" element={<ThreatsView />} />
               <Route path="advisories" element={<Navigate to="/advisories/new" />} />
               <Route path="advisories/:id" element={<AdvisoryBuilder />} />
-
-              <Route path="assessments" element={<AssessmentBuilder />} />
-              <Route path="assessments/:id" element={<AssessmentBuilder />} />
 
               <Route path="reports" element={<ReportBuilder />} />
 

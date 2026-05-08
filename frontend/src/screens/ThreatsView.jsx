@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { ArrowRight, Trash2, Clock, AlertCircle, RotateCw, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,13 +11,144 @@ const SOURCE_THEMES = {
     'alienvault otx': '#10B981', // Green
     'the hacker news': '#EF4444', // Red
     'cisa kev': '#3B82F6',       // Blue
-    'vendor alerts': '#8B5CF6'   // Purple
+    'vendor alerts': '#8B5CF6',  // Purple
+    'bleepingcomputer': '#0284C7', // Blue-Sky
+    'techpoint africa': '#F97316', // Orange
+    'it news africa': '#E11D48',   // Rose
+    'cert nigeria': '#16A34A',     // Green
+    'ngcert': '#16A34A',           // Green
+    'onsa': '#16A34A'              // Green
 };
 
 const getSourceColor = (name) => {
     if (!name) return '#9CA3AF';
     const key = Object.keys(SOURCE_THEMES).find(k => name.toLowerCase().includes(k));
     return key ? SOURCE_THEMES[key] : '#9CA3AF'; // Default gray
+};
+
+const ThreatCard = ({ threat, safeFormatDate, getSourceColor, handlePromote, handleDiscard }) => {
+    const score = Math.round(threat.confidence);
+
+    let priority = 'LOW';
+    let priorityColor = 'var(--text-secondary)';
+    let badgeLabel = 'LOW PRIORITY';
+
+    if (score >= 90) {
+        priority = 'CRITICAL';
+        priorityColor = 'var(--color-danger)';
+        badgeLabel = 'CRITICAL';
+    } else if (score >= 70) {
+        priority = 'HIGH';
+        priorityColor = '#F97316'; // Orange
+        badgeLabel = 'HIGH PRIORITY';
+    } else if (score >= 40) {
+        priority = 'MEDIUM';
+        priorityColor = '#F59E0B'; // Amber
+        badgeLabel = 'MONITORING';
+    }
+
+    return (
+        <div className={styles.card} style={{ borderLeftColor: priorityColor }}>
+            <div className={styles.cardContent}>
+                <div className={styles.cardHeader}>
+                    <span
+                        className={styles.priorityBadge}
+                        data-priority={priority}
+                        style={priority === 'MEDIUM' ? {
+                            color: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderColor: 'rgba(245, 158, 11, 0.2)'
+                        } : {}}
+                    >
+                        {badgeLabel}
+                    </span>
+                    <span className={styles.detectedTime}>Detected: {safeFormatDate(threat.firstSeen || threat.ingestedAt)}</span>
+                </div>
+
+                <h3 className={styles.cardTitle}>{threat.title}</h3>
+                <p className={styles.cardSummary} style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.85rem',
+                    margin: '0.5rem 0',
+                    lineHeight: '1.4',
+                    display: '-webkit-box',
+                    WebkitLineClamp: '3',
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                }}>
+                    {threat.summary || "No detailed summary available."}
+                </p>
+
+                <div className={styles.metrics}>
+                    <div className={styles.metric}>
+                        <span className={styles.metricLabel}>CONFIDENCE</span>
+                        <span className={styles.metricValueLarge}>{score} <span className={styles.metricMax}>/100</span></span>
+                    </div>
+                    <div className={styles.metricDivider}></div>
+                    <div className={styles.metric}>
+                        <span className={styles.metricLabel}>SOURCES</span>
+                        <span className={styles.metricValue}>{(threat.source ? 1 : 0)}</span>
+                    </div>
+                    <div className={styles.metricDivider}></div>
+                    <div className={styles.metric}>
+                        <span className={styles.metricLabel}>INDICATORS</span>
+                        <span className={styles.metricValue}>
+                            <AlertCircle size={14} style={{ display: 'inline', marginRight: 4 }} />
+                            {(threat.indicators || []).length}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.cardActions}>
+                {threat.source && (
+                    <span
+                        className={styles.sourceTag}
+                        style={{ color: getSourceColor(threat.source.name) }}
+                    >
+                        {threat.source.name}
+                    </span>
+                )}
+                {(() => {
+                    let link = null;
+                    try {
+                        if (threat.metadataJson) {
+                            const meta = JSON.parse(threat.metadataJson);
+                            link = meta.Link || meta.link || meta.url || meta.Url;
+                        }
+                    } catch { /* ignore */ }
+
+                    if (link) {
+                        return (
+                            <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.linkButton}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <ArrowRight size={16} /> Read Source
+                            </a>
+                        );
+                    }
+                    return null;
+                })()}
+
+                <button
+                    className={styles.acceptButton}
+                    onClick={() => handlePromote(threat.id)}
+                >
+                    <span className={styles.checkIcon}>✓</span> Accept Topic
+                </button>
+                <button
+                    className={styles.discardButton}
+                    onClick={() => handleDiscard(threat.id)}
+                >
+                    <Trash2 size={16} /> Discard Topic
+                </button>
+            </div>
+        </div>
+    );
 };
 
 const ThreatsView = () => {
@@ -42,15 +173,15 @@ const ThreatsView = () => {
         try {
             if (!dateStr) return 'N/A';
             return new Date(dateStr).toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
-        } catch (e) {
-            console.error("Date parse error", dateStr, e);
+        } catch (error) {
+            console.error("Date parse error", dateStr, error);
             return 'Invalid Date';
         }
     };
 
     console.log("Rendering ThreatsView, threats count:", threats.length);
 
-    const fetchThreats = async (isManualRefresh = false) => {
+    const fetchThreats = useCallback(async (isManualRefresh = false) => {
         if (isManualRefresh) setRefreshing(true);
         try {
             const params = {
@@ -73,18 +204,18 @@ const ThreatsView = () => {
             setThreats(Array.isArray(data) ? data : []);
             setLastUpdated(new Date());
             if (isManualRefresh) toast.success('Queue refreshed');
-        } catch (err) {
-            setError(err.message);
+        } catch (error) {
+            setError(error.message);
             if (isManualRefresh) toast.error('Failed to refresh queue');
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, [filters.days, filters.endDate, filters.priority, filters.sector, filters.startDate]);
 
     useEffect(() => {
         fetchThreats();
-    }, [filters]);
+    }, [fetchThreats]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -111,8 +242,8 @@ const ThreatsView = () => {
                     color: '#fff',
                 },
             });
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
             toast.error('Failed to promote topic', {
                 style: {
                     background: '#333',
@@ -131,8 +262,8 @@ const ThreatsView = () => {
             
             // Filter out locally
             setThreats(prev => prev.filter(t => t.id !== threatId));
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
             toast.error('Failed to discard threat', { id: toastId });
         }
     };
@@ -147,16 +278,29 @@ const ThreatsView = () => {
             const data = res.data;
             toast.success(data.message || 'Ingestion complete', { id: toastId });
             fetchThreats();
-        } catch (err) {
+        } catch {
             toast.error('Ingestion failed', { id: toastId });
+        }
+    };
+
+    const handlePurge = async () => {
+        const toastId = toast.loading('Scanning for irrelevant entries...');
+        try {
+            const res = await axios.post('/api/threats/purge-irrelevant');
+            const data = res.data;
+            if (data.count === 0) {
+                toast.success('Queue is clean — no irrelevant items found.', { id: toastId });
+            } else {
+                toast.success(`Removed ${data.count} irrelevant item${data.count !== 1 ? 's' : ''} from the database.`, { id: toastId });
+                fetchThreats();
+            }
+        } catch {
+            toast.error('Purge failed', { id: toastId });
         }
     };
 
     // Verify threats is an array before mapping
     const safeThreats = Array.isArray(threats) ? threats : [];
-
-    // Extract unique categories (ThreatTypes) from threats
-    const categories = ['all', ...new Set(safeThreats.map(t => t?.threatType || 'Unknown'))];
 
     const getProcessedThreats = () => {
         try {
@@ -186,8 +330,8 @@ const ThreatsView = () => {
             });
 
             return processed;
-        } catch (err) {
-            console.error("Error processing threats:", err);
+        } catch (error) {
+            console.error("Error processing threats:", error);
             return safeThreats;
         }
     };
@@ -253,6 +397,9 @@ const ThreatsView = () => {
                             <RotateCw size={18} className={refreshing ? styles.animateSpin : ''} />
                         </button>
 
+                        <button className={styles.purgeButton} onClick={handlePurge} title="Remove irrelevant non-cybersecurity items from the database">
+                            Clean DB
+                        </button>
                         <button className={styles.primaryButton} onClick={handleIngest}>
                             Ingest Live Data
                         </button>
@@ -270,135 +417,16 @@ const ThreatsView = () => {
                 />
             ) : (
                 <div className={styles.list}>
-                    {displayedThreats.map(threat => {
-                        const score = Math.round(threat.confidence);
-
-                        // New Logic: 
-                        // Critical >= 90
-                        // High >= 70
-                        // Medium >= 40 (Amber)
-
-                        let priority = 'LOW';
-                        let priorityColor = 'var(--text-secondary)';
-                        let badgeLabel = 'LOW PRIORITY';
-
-                        if (score >= 90) {
-                            priority = 'CRITICAL';
-                            priorityColor = 'var(--color-danger)';
-                            badgeLabel = 'CRITICAL';
-                        } else if (score >= 70) {
-                            priority = 'HIGH';
-                            priorityColor = '#F97316'; // Orange
-                            badgeLabel = 'HIGH PRIORITY';
-                        } else if (score >= 40) {
-                            priority = 'MEDIUM';
-                            priorityColor = '#F59E0B'; // Amber - Correct visual treatment
-                            badgeLabel = 'MONITORING'; // "Contextual" or "Monitoring" per spec
-                        }
-
-                        return (
-                            <div key={threat.id} className={styles.card} style={{ borderLeftColor: priorityColor }}>
-                                <div className={styles.cardContent}>
-                                    <div className={styles.cardHeader}>
-                                        <span
-                                            className={styles.priorityBadge}
-                                            data-priority={priority}
-                                            style={priority === 'MEDIUM' ? {
-                                                color: '#F59E0B',
-                                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                                                borderColor: 'rgba(245, 158, 11, 0.2)'
-                                            } : {}}
-                                        >
-                                            {badgeLabel}
-                                        </span>
-                                        <span className={styles.detectedTime}>Detected: {safeFormatDate(threat.firstSeen || threat.ingestedAt)}</span>
-                                    </div>
-
-                                    <h3 className={styles.cardTitle}>{threat.title}</h3>
-                                    <p className={styles.cardSummary} style={{
-                                        color: 'var(--text-secondary)',
-                                        fontSize: '0.85rem',
-                                        margin: '0.5rem 0',
-                                        lineHeight: '1.4',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: '3',
-                                        WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden'
-                                    }}>
-                                        {threat.summary || "No detailed summary available."}
-                                    </p>
-
-                                    <div className={styles.metrics}>
-                                        <div className={styles.metric}>
-                                            <span className={styles.metricLabel}>CONFIDENCE</span>
-                                            <span className={styles.metricValueLarge}>{score} <span className={styles.metricMax}>/100</span></span>
-                                        </div>
-                                        <div className={styles.metricDivider}></div>
-                                        <div className={styles.metric}>
-                                            <span className={styles.metricLabel}>SOURCES</span>
-                                            <span className={styles.metricValue}>{(threat.source ? 1 : 0)}</span>
-                                        </div>
-                                        <div className={styles.metricDivider}></div>
-                                        <div className={styles.metric}>
-                                            <span className={styles.metricLabel}>INDICATORS</span>
-                                            <span className={styles.metricValue}>
-                                                <AlertCircle size={14} style={{ display: 'inline', marginRight: 4 }} />
-                                                {(threat.indicators || []).length}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className={styles.cardActions}>
-                                    {threat.source && (
-                                        <span
-                                            className={styles.sourceTag}
-                                            style={{ color: getSourceColor(threat.source.name) }}
-                                        >
-                                            {threat.source.name}
-                                        </span>
-                                    )}
-                                    {(() => {
-                                        let link = null;
-                                        try {
-                                            if (threat.metadataJson) {
-                                                const meta = JSON.parse(threat.metadataJson);
-                                                link = meta.Link || meta.link || meta.url || meta.Url;
-                                            }
-                                        } catch (e) { /* ignore parse error */ }
-
-                                        if (link) {
-                                            return (
-                                                <a
-                                                    href={link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={styles.linkButton}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <ArrowRight size={16} /> Read Source
-                                                </a>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-
-                                    <button
-                                        className={styles.acceptButton}
-                                        onClick={() => handlePromote(threat.id)}
-                                    >
-                                        <span className={styles.checkIcon}>✓</span> Accept Topic
-                                    </button>
-                                    <button
-                                        className={styles.discardButton}
-                                        onClick={() => handleDiscard(threat.id)}
-                                    >
-                                        <Trash2 size={16} /> Discard Topic
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {displayedThreats.map(threat => (
+                        <ThreatCard 
+                            key={threat.id} 
+                            threat={threat} 
+                            safeFormatDate={safeFormatDate}
+                            getSourceColor={getSourceColor}
+                            handlePromote={handlePromote}
+                            handleDiscard={handleDiscard}
+                        />
+                    ))}
                 </div>
             )}
 

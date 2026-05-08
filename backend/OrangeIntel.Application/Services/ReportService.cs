@@ -9,7 +9,6 @@ namespace OrangeIntel.Application.Services;
 public class ReportService : IReportService
 {
     private readonly IReportRepository _repository;
-    private readonly IAssessmentRepository _assessmentRepository;
     private readonly IAdvisoryRepository _advisoryRepository;
     private readonly IReportGenerator _generator; // Single generator
     private readonly ILogger<ReportService> _logger;
@@ -17,13 +16,11 @@ public class ReportService : IReportService
     public ReportService(
         IReportRepository repository, 
         IAdvisoryRepository advisoryRepository, 
-        IAssessmentRepository assessmentRepository, 
         IReportGenerator generator,
         ILogger<ReportService> logger)
     {
         _repository = repository;
         _advisoryRepository = advisoryRepository;
-        _assessmentRepository = assessmentRepository;
         _generator = generator;
         _logger = logger;
     }
@@ -136,32 +133,9 @@ public class ReportService : IReportService
 
             contentJson = JsonSerializer.Serialize(reportModel);
         }
-        else // Assessment
+        else
         {
-             var assessment = await _assessmentRepository.GetByIdAsync(artifactId);
-             if (assessment == null) return null;
-
-             title = assessment.Advisory?.Title ?? "Assessment";
-             classification = assessment.Advisory?.Classification ?? "TLP:AMBER";
-
-             var reportModel = new ThreatAssessmentReport();
-             reportModel.ThreatIntelligenceAssessment.Metadata.ReportTitle = title;
-             reportModel.ThreatIntelligenceAssessment.Metadata.ReportId = $"TIA-{DateTime.UtcNow:ddMMyy}-{assessment.Id.ToString().Substring(0,4)}";
-             reportModel.ThreatIntelligenceAssessment.Metadata.Date = DateTime.UtcNow.ToString("yyyy-MM-dd");
-             
-             reportModel.ThreatIntelligenceAssessment.ExecutiveSummary.AdvisorySummary = assessment.ExecutiveSummary;
-             reportModel.ThreatIntelligenceAssessment.ImpactAssessment.PotentialImpact.Add(assessment.BusinessImpact);
-             
-             reportModel.ThreatIntelligenceAssessment.AffectedAssets.ImpactedServices = assessment.ImpactedServices;
-             reportModel.ThreatIntelligenceAssessment.AffectedAssets.Systems = assessment.Systems;
-             reportModel.ThreatIntelligenceAssessment.AffectedAssets.Applications = assessment.Applications;
-             reportModel.ThreatIntelligenceAssessment.AffectedAssets.DataTypes = assessment.DataTypes;
-             
-             reportModel.ThreatIntelligenceAssessment.Recommendations.ImmediateActions = assessment.ImmediateActions;
-             reportModel.ThreatIntelligenceAssessment.Recommendations.ShortTermActions = assessment.ShortTermActions;
-             reportModel.ThreatIntelligenceAssessment.Recommendations.LongTermActions = assessment.LongTermActions;
-
-             contentJson = JsonSerializer.Serialize(reportModel);
+            return null; // Assessment removed
         }
 
         return new Report

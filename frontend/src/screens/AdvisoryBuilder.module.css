@@ -108,6 +108,26 @@
     border-color: var(--color-brand);
 }
 
+.generateButton {
+    background-color: #2F855A; /* Success Green */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.generateButton:hover:not(:disabled) {
+    background-color: #276749;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.generateButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .saveButton {
     background-color: var(--bg-hover);
     color: var(--text-primary);

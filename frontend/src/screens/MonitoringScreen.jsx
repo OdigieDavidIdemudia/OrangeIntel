@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Activity, AlertTriangle, Shield, Bell, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -31,7 +31,7 @@ const MonitoringScreen = () => {
     }, []);
 
 
-    const refreshData = async (isManual = false) => {
+    const refreshData = useCallback(async (isManual = false) => {
         if (isRefreshing) return; // Prevent concurrent refreshes
 
         try {
@@ -39,6 +39,26 @@ const MonitoringScreen = () => {
 
             const response = await axios.get('/api/metrics/dashboard');
             const data = response.data;
+
+            // Apply time window filter from Settings > Monitor Config
+            const windowDays = parseFloat(localStorage.getItem('monitor_threat_window') || '7');
+            if (windowDays > 0 && data.recentThreats) {
+                const cutoff = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
+                data.recentThreats = data.recentThreats.filter(t => new Date(t.ingestedAt) >= cutoff);
+
+                // Recalculate threat counts based on filtered window
+                let highCount = 0, mediumCount = 0, lowCount = 0;
+                data.recentThreats.forEach(t => {
+                    if (t.confidence >= 70) highCount++;
+                    else if (t.confidence >= 40) mediumCount++;
+                    else lowCount++;
+                });
+                data.threatCounts = {
+                    High: { count: highCount, deltaSinceOneHour: data.threatCounts?.High?.deltaSinceOneHour || 0 },
+                    Medium: { count: mediumCount, deltaSinceOneHour: data.threatCounts?.Medium?.deltaSinceOneHour || 0 },
+                    Low: { count: lowCount, deltaSinceOneHour: data.threatCounts?.Low?.deltaSinceOneHour || 0 },
+                };
+            }
 
             // Critical Threat FIFO Queue Management (max 5, newest first)
             if (data.recentThreats) {
@@ -56,7 +76,7 @@ const MonitoringScreen = () => {
                     setNewCriticalAlert(threat);
                     lastReminderRef.current = now;
                     if (audioRef.current) {
-                        audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+                        audioRef.current.play().catch(error => console.log('Audio play failed:', error));
                     }
                     setTimeout(() => setNewCriticalAlert(null), 10000);
                 };
@@ -75,12 +95,12 @@ const MonitoringScreen = () => {
             setDashboard(data);
             setLoading(false);
             if (isManual) setIsRefreshing(false);
-        } catch (e) {
-            console.error("Failed to fetch dashboard metrics", e);
+        } catch (error) {
+            console.error("Failed to fetch dashboard metrics", error);
             setLoading(false);
             if (isManual) setIsRefreshing(false);
         }
-    };
+    }, [isRefreshing]);
 
     const handleManualRefresh = () => {
         refreshData(true);
@@ -129,7 +149,7 @@ const MonitoringScreen = () => {
             if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
             if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
         };
-    }, [refreshInterval]);
+    }, [refreshInterval, refreshData]);
 
     // Auto-rotation for threat carousel
     useEffect(() => {
@@ -160,18 +180,6 @@ const MonitoringScreen = () => {
             </div>
         );
     }
-
-    const getStateColor = (state) => {
-        if (state === 'CRITICAL') return '#EF4444';
-        if (state === 'ELEVATED') return '#F59E0B';
-        return '#10B981';
-    };
-
-    const getStateIcon = (state) => {
-        if (state === 'CRITICAL') return <AlertTriangle size={32} />;
-        if (state === 'ELEVATED') return <Activity size={32} />;
-        return <Shield size={32} />;
-    };
 
     const formatTimestamp = (isoString) => {
         if (!isoString) return 'N/A';
@@ -221,7 +229,9 @@ const MonitoringScreen = () => {
                 if (metadata.topic) return metadata.topic;
                 if (metadata.tags && metadata.tags.length > 0) return metadata.tags[0];
             }
-        } catch { }
+        } catch (error) {
+            console.error("Error extracting topic", error);
+        }
         return threat.threatType || 'General';
     };
 
@@ -305,18 +315,6 @@ const MonitoringScreen = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                    <div style={{
-                        ...overallStateStyle,
-                        borderColor: getStateColor(dashboard.overallState),
-                        color: getStateColor(dashboard.overallState)
-                    }}>
-                        {getStateIcon(dashboard.overallState)}
-                        <div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>THREAT POSTURE</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{dashboard.overallState}</div>
-                        </div>
-                    </div>
-
                     <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         <div style={{ fontWeight: 'bold' }}>SOC WALLBOARD 01</div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'monospace' }}>
@@ -610,19 +608,6 @@ const formatLiveTimeSpan = (timestamp) => {
     }
 };
 
-// Helper to format TimeSpan from backend
-const formatTimeSpan = (timeSpan) => {
-    if (typeof timeSpan === 'string') {
-        const parts = timeSpan.split(':');
-        if (parts.length === 3) {
-            const hours = parseInt(parts[0]);
-            const minutes = parseInt(parts[1]);
-            return `${hours}h ${minutes}m`;
-        }
-    }
-    return 'N/A';
-};
-
 // Styles
 const containerStyle = {
     height: '100vh',
@@ -673,18 +658,6 @@ const headerStyle = {
     paddingBottom: '1.5rem',
     borderBottom: '1px solid var(--border-color)',
     backdropFilter: 'blur(8px)',
-};
-
-const overallStateStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    padding: '0.875rem 1.5rem',
-    border: '1px solid',
-    borderRadius: '10px',
-    backgroundColor: 'var(--bg-glass)',
-    backdropFilter: 'blur(4px)',
-    transition: 'all 0.3s ease'
 };
 
 const mainGridStyle = {
@@ -802,20 +775,6 @@ const metricTileStyle = {
     backgroundColor: 'var(--bg-tile)',
     borderRadius: '6px',
     border: '1px solid var(--border-color)'
-};
-
-const priorityTileStyle = {
-    padding: '1.25rem 1rem',
-    backgroundColor: 'var(--bg-tile-translucent)',
-    borderRadius: '10px',
-    border: '1px solid',
-    textAlign: 'center',
-    transition: 'all 0.2s ease',
-    cursor: 'default',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    gap: '0.25rem'
 };
 
 const healthBarStyle = {

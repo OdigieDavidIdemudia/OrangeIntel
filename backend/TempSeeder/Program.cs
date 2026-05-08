@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
@@ -15,7 +15,6 @@ class Program
         Console.WriteLine($"Generating templates in: {basePath}");
 
         CreateAdvisoryTemplate(Path.Combine(basePath, "ThreatAdvisoryTemplate.docx"));
-        CreateAssessmentTemplate(Path.Combine(basePath, "ThreatAssessmentTemplate.docx"));
         
         Console.WriteLine("Templates generated successfully.");
     }
@@ -59,29 +58,6 @@ class Program
         mainPart.Document.Save();
     }
 
-    private static void CreateAssessmentTemplate(string path)
-    {
-        Console.WriteLine($"Creating {Path.GetFileName(path)}...");
-        using var wordDocument = WordprocessingDocument.Create(path, WordprocessingDocumentType.Document);
-        var mainPart = wordDocument.AddMainDocumentPart();
-        mainPart.Document = new Document();
-        var body = mainPart.Document.AppendChild(new Body());
-
-        AddParagraph(body, "Strategic Threat Assessment", "32", true, "00529B", JustificationValues.Center);
-        AddParagraph(body, "{{ReportTitle}}", "48", true, "000000", JustificationValues.Center);
-        AddParagraph(body, "ID: {{ReportIdentifier}} | Date: {{Date}}", "24", false, "666666", JustificationValues.Center);
-        
-        AddHeading(body, "Executive Summary");
-        AddParagraph(body, "{{ExecutiveSummary}}");
-        AddKeyValue(body, "Risk Statement", "{{RiskStatement}}");
-
-        AddHeading(body, "Impact Assessment");
-        AddParagraph(body, "{{#Impacts}}");
-
-        AddHeading(body, "Strategic Recommendations");
-        AddParagraph(body, "{{#Recommendations}}");
-
-        mainPart.Document.Save();
     }
 
     private static void AddHeading(Body body, string text)

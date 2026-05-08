@@ -236,16 +236,32 @@ public class ThreatService : IThreatService
 
         // Segmented Metrics Calculations
         var severityCounts = new Dictionary<string, int> { { "Critical", 0 }, { "High", 0 }, { "Medium", 0 }, { "Low", 0 } };
-        var environmentThreats = new Dictionary<string, int> { { "Financial", 0 }, { "Hospitality", 0 }, { "Healthcare", 0 }, { "Telecom", 0 }, { "Technology", 0 }, { "General", 0 } };
-        var teamDistribution = new Dictionary<string, int> { { "SOC", 0 }, { "Threat Intelligence", 0 }, { "Vulnerability Management", 0 }, { "IT Security", 0 } };
+        var environmentThreats = new Dictionary<string, int> 
+        { 
+            { "Financial", 0 }, { "Hospitality", 0 }, { "Healthcare", 0 }, { "Telecom", 0 }, { "Technology", 0 }, 
+            { "Government", 0 }, { "Energy", 0 }, { "Agriculture", 0 }, { "Education", 0 }, { "Logistics", 0 },
+            { "General", 0 } 
+        };
+        var teamDistribution = new Dictionary<string, int> 
+        { 
+            { "SOC", 0 }, { "Threat Intelligence", 0 }, { "Vulnerability Management", 0 }, { "IT Security", 0 } 
+        };
         var riskDistribution = new Dictionary<string, double> { { "Critical", 0 }, { "High", 0 }, { "Medium", 0 }, { "Low", 0 } };
 
         foreach (var t in allThreats)
         {
             var classification = ClassifyThreat(t);
-            severityCounts[classification.SeverityLabel]++;
-            environmentThreats[classification.Environment]++;
-            teamDistribution[classification.Team]++;
+            
+            // Use GetValueOrDefault pattern or indexer with pre-check to be safe, 
+            // but we've initialized the likely keys above.
+            if (severityCounts.ContainsKey(classification.SeverityLabel)) severityCounts[classification.SeverityLabel]++;
+            else severityCounts[classification.SeverityLabel] = 1;
+
+            if (environmentThreats.ContainsKey(classification.Environment)) environmentThreats[classification.Environment]++;
+            else environmentThreats[classification.Environment] = 1;
+
+            if (teamDistribution.ContainsKey(classification.Team)) teamDistribution[classification.Team]++;
+            else teamDistribution[classification.Team] = 1;
         }
 
         int total = allThreats.Count;

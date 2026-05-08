@@ -35,12 +35,6 @@ c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Relational.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.Extensions.Configuration.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Binder.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.Extensions.Primitives.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
@@ -61,7 +55,6 @@ c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\Quartz.Extensions.Hosting.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\QuestPDF.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\System.Configuration.ConfigurationManager.dll
-c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\System.Diagnostics.DiagnosticSource.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\System.Drawing.Common.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
 c:\Users\DELL\.gemini\antigravity\scratch\OrangeIntel\backend\OrangeIntel.Tests\bin\Debug\net9.0\System.IO.Packaging.dll

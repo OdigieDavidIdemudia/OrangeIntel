@@ -11,6 +11,7 @@ public class ThreatItem
     public ThreatSource? Source { get; set; }
 
     public string Title { get; set; } = string.Empty;
+    public string OriginalTitle { get; set; } = string.Empty; // ADDED
     public string ThreatType { get; set; } = string.Empty; // e.g. CVE, Malware
     public string AttackVector { get; set; } = string.Empty;
     public string DeliveryMechanism { get; set; } = string.Empty;
@@ -19,10 +20,12 @@ public class ThreatItem
     public int Severity { get; set; } // 1-10
     public int Confidence { get; set; } // 1-100
     public string Summary { get; set; } = string.Empty;
+    public string OriginalSummary { get; set; } = string.Empty; // ADDED
+    public string Language { get; set; } = "en"; // ADDED
 
     // Postgres JSONB
     public string MetadataJson { get; set; } = "{}"; // Store as string for EF if using simple mapping, or JsonDocument
-
+    
     public DateTime? FirstSeen { get; set; }
     public DateTime? LastSeen { get; set; }
     public string HashDedup { get; set; } = string.Empty;

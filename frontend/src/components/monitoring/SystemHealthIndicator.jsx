@@ -1,19 +1,19 @@
 import React from 'react';
 import { Server, Database } from 'lucide-react';
 
+const StatusDot = ({ status }) => (
+    <span style={{
+        display: 'inline-block',
+        width: '8px',
+        height: '8px',
+        borderRadius: '50%',
+        background: status === 'Connected' || status === 'Active' || status === 'Healthy' ? '#10B981' : '#EF4444',
+        marginRight: '6px'
+    }} />
+);
+
 const SystemHealthIndicator = ({ health }) => {
     // health = { status: "Healthy", database: "Connected", ingestion: "Active" }
-
-    const StatusDot = ({ status }) => (
-        <span style={{
-            display: 'inline-block',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: status === 'Connected' || status === 'Active' || status === 'Healthy' ? '#10B981' : '#EF4444',
-            marginRight: '6px'
-        }} />
-    );
 
     return (
         <div style={{

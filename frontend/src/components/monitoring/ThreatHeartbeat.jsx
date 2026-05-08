@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
 const ThreatHeartbeat = ({ lastThreatTime }) => {
-    const [timeDiff, setTimeDiff] = useState('00:00:00');
-    const [color, setColor] = useState('#10B981'); // Green
+    const [timeDiff, setTimeDiff] = useState(lastThreatTime ? '00:00:00' : '--:--:--');
+    const [color, setColor] = useState(lastThreatTime ? '#10B981' : '#6B7280'); // Green or Grey
 
     useEffect(() => {
-        if (!lastThreatTime) {
-            setTimeDiff('--:--:--');
-            setColor('#6B7280'); // Grey
-            return;
-        }
+        if (!lastThreatTime) return;
 
-        const interval = setInterval(() => {
+        const updateHeartbeat = () => {
             const now = new Date();
             const last = new Date(lastThreatTime);
             const diffMs = now - last;
-
             const diffMins = Math.floor(diffMs / 60000);
 
             // Format HH:MM:SS
@@ -31,8 +26,10 @@ const ThreatHeartbeat = ({ lastThreatTime }) => {
             if (diffMins < 30) setColor('#10B981'); // Green
             else if (diffMins < 120) setColor('#F59E0B'); // Amber
             else setColor('#6B7280'); // Grey
+        };
 
-        }, 1000);
+        updateHeartbeat(); // Run immediately when lastThreatTime changes
+        const interval = setInterval(updateHeartbeat, 1000);
 
         return () => clearInterval(interval);
     }, [lastThreatTime]);

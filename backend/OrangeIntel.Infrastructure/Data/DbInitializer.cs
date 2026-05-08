@@ -16,6 +16,13 @@ public static class DbInitializer
         var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+        var conn = context.Database.GetDbConnection();
+        var sanitizedConn = conn.ConnectionString;
+        if (sanitizedConn != null && sanitizedConn.Contains("Password=")) {
+            sanitizedConn = "ConnectionString present (hidden password)";
+        }
+        System.IO.File.AppendAllText("seed_log.txt", $"Connection String: {sanitizedConn}\n");
+
         if (resetDb)
         {
             await context.Database.EnsureDeletedAsync();

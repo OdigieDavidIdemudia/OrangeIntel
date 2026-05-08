@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Users, Shield, Activity, Plus, Filter } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -17,11 +17,7 @@ const AdminDashboard = () => {
 
     const { token, user: currentUser } = useAuth(); // Use real auth context
 
-    useEffect(() => {
-        fetchData();
-    }, [activeTab]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             if (activeTab === 'users') {
@@ -35,12 +31,16 @@ const AdminDashboard = () => {
                 });
                 if (res.ok) setAuditLogs(await res.json());
             }
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab, token]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleCreateSubmit = async (e) => {
         e.preventDefault();
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
                 const errorMsg = data.length > 0 ? data[0].description : 'Failed to create user';
                 toast.error(errorMsg);
             }
-        } catch (err) {
+        } catch {
             toast.error('Error creating user');
         } finally {
             setCreateLoading(false);

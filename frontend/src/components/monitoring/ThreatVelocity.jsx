@@ -10,7 +10,7 @@ const ThreatVelocity = ({ velocity }) => {
     return (
         <div style={{
             background: isSpike ? 'rgba(239, 68, 68, 0.1)' : 'var(--surface-color)',
-            border: `1px solid ${isSpike ? '#EF4444' : 'var(--border-color)'}`,
+            border: `1px solid ${color}`,
             borderRadius: '12px',
             padding: '1rem',
             marginTop: '1rem',
@@ -20,7 +20,7 @@ const ThreatVelocity = ({ velocity }) => {
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{
-                    background: isSpike ? '#EF4444' : '#10B981',
+                    background: color,
                     padding: '8px',
                     borderRadius: '50%',
                     display: 'flex'

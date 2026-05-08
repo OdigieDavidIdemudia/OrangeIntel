@@ -180,6 +180,25 @@
     transform: translateY(-1px);
 }
 
+/* Purge / Destructive Action Button */
+.purgeButton {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    padding: 0.4rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.purgeButton:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
 /* Secondary Action: Icon only */
 .secondaryButton {
     background: transparent;

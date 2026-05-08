@@ -7,6 +7,7 @@ namespace OrangeIntel.Infrastructure.Notifications;
 
 public class SignalNotificationProvider : INotificationProvider
 {
+    public string Name => "Signal";
     private readonly IConfiguration _config;
     private readonly ILogger<SignalNotificationProvider> _logger;
 

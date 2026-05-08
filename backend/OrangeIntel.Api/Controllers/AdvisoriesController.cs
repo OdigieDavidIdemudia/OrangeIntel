@@ -39,8 +39,13 @@ public class AdvisoriesController : ControllerBase
     [HttpPost("update")]
     public async Task<ActionResult> UpdateAdvisory([FromBody] Advisory advisory)
     {
-        // Simple update: ensure it exists first? Service handle logic.
-        // Assuming user sends full object.
+        // If it's a new advisory (Id is empty), create it instead of updating
+        if (advisory.Id == Guid.Empty)
+        {
+            await _service.AddAdvisoryAsync(advisory);
+            return Ok(advisory);
+        }
+
         var existing = await _service.GetAdvisoryByIdAsync(advisory.Id);
         if (existing == null) return NotFound();
 

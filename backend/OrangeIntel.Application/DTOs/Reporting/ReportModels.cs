@@ -441,3 +441,210 @@ public class ReferenceItem
     [JsonPropertyName("url")]
     public string Url { get; set; } = string.Empty;
 }
+
+// ---------------------------------------------------------
+// GTBank Structured Advisory Models (Task 33)
+// ---------------------------------------------------------
+
+// ---------------------------------------------------------
+// GTBank Structured Advisory Models (v1.0 Canonical)
+// ---------------------------------------------------------
+
+public class GTBankAdvisoryReportV1
+{
+    [JsonPropertyName("_schema")]
+    public string Schema { get; set; } = "GTBank Threat Advisory Report Template v1.0";
+
+    [JsonPropertyName("_description")]
+    public string Description { get; set; } = "This is the canonical JSON contract between OrangeIntel and the AdvisoryDocxService.";
+
+    [JsonPropertyName("metadata")]
+    public MetadataV1 Metadata { get; set; } = new();
+
+    [JsonPropertyName("executive_summary")]
+    public ExecutiveSummaryV1 ExecutiveSummary { get; set; } = new();
+
+    [JsonPropertyName("threat_analysis")]
+    public ThreatAnalysisV1 ThreatAnalysis { get; set; } = new();
+
+    [JsonPropertyName("iocs")]
+    public IocsV1 Iocs { get; set; } = new();
+
+    [JsonPropertyName("detection_methods")]
+    public DetectionMethodsV1 DetectionMethods { get; set; } = new();
+
+    [JsonPropertyName("assessment")]
+    public AssessmentV1 Assessment { get; set; } = new();
+
+    [JsonPropertyName("remediation")]
+    public RemediationV1 Remediation { get; set; } = new();
+
+    [JsonPropertyName("references")]
+    public ReferencesV1 References { get; set; } = new();
+}
+
+public class MetadataV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Cover Page + Report Overview";
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = string.Empty;
+    [JsonPropertyName("prepared_by")]
+    public string PreparedBy { get; set; } = string.Empty;
+    [JsonPropertyName("reviewed_by")]
+    public string ReviewedBy { get; set; } = string.Empty;
+    [JsonPropertyName("organization_unit")]
+    public string OrganizationUnit { get; set; } = "Security Monitoring and Threat Intelligence";
+    [JsonPropertyName("tlp")]
+    public string Tlp { get; set; } = "RED";
+    [JsonPropertyName("classification")]
+    public string Classification { get; set; } = "CONFIDENTIAL";
+}
+
+public class ExecutiveSummaryV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 1";
+    [JsonPropertyName("body")]
+    public string Body { get; set; } = string.Empty;
+}
+
+public class ThreatAnalysisV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 2";
+    [JsonPropertyName("intro")]
+    public string Intro { get; set; } = string.Empty;
+    [JsonPropertyName("attack_chain")]
+    public List<AttackChainStepV1> AttackChain { get; set; } = new();
+    [JsonPropertyName("permissions_abuse")]
+    public List<string> PermissionsAbuse { get; set; } = new();
+    [JsonPropertyName("mitre_attack")]
+    public List<MitreAttackV1> MitreAttack { get; set; } = new();
+}
+
+public class AttackChainStepV1
+{
+    [JsonPropertyName("step")]
+    public int Step { get; set; }
+    [JsonPropertyName("label")]
+    public string Label { get; set; } = string.Empty;
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+}
+
+public class MitreAttackV1
+{
+    [JsonPropertyName("technique_id")]
+    public string TechniqueId { get; set; } = string.Empty;
+    [JsonPropertyName("tactic")]
+    public string Tactic { get; set; } = string.Empty;
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+}
+
+public class IocsV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 3";
+    [JsonPropertyName("entries")]
+    public List<IocEntryV1> Entries { get; set; } = new();
+}
+
+public class IocEntryV1
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+    [JsonPropertyName("indicator")]
+    public string Indicator { get; set; } = string.Empty;
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+    [JsonPropertyName("defanged")]
+    public bool Defanged { get; set; }
+}
+
+public class DetectionMethodsV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 4";
+    [JsonPropertyName("entries")]
+    public List<DetectionEntryV1> Entries { get; set; } = new();
+}
+
+public class DetectionEntryV1
+{
+    [JsonPropertyName("sub_heading")]
+    public string SubHeading { get; set; } = string.Empty;
+    [JsonPropertyName("body")]
+    public string Body { get; set; } = string.Empty;
+    [JsonPropertyName("commands")]
+    public List<string> Commands { get; set; } = new();
+    [JsonPropertyName("command_language")]
+    public string? CommandLanguage { get; set; }
+}
+
+public class AssessmentV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 5";
+    [JsonPropertyName("intro")]
+    public string Intro { get; set; } = string.Empty;
+    [JsonPropertyName("questions")]
+    public List<AssessmentQuestionV1> Questions { get; set; } = new();
+    [JsonPropertyName("risk_rating")]
+    public RiskRatingV1 RiskRating { get; set; } = new();
+    [JsonPropertyName("assessment_notes")]
+    public string AssessmentNotes { get; set; } = string.Empty;
+}
+
+public class AssessmentQuestionV1
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+    [JsonPropertyName("category")]
+    public string Category { get; set; } = string.Empty;
+    [JsonPropertyName("question")]
+    public string Question { get; set; } = string.Empty;
+}
+
+public class RiskRatingV1
+{
+    [JsonPropertyName("selected")]
+    public string? Selected { get; set; }
+}
+
+public class RemediationV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 6";
+    [JsonPropertyName("entries")]
+    public List<RemediationEntryV1> Entries { get; set; } = new();
+}
+
+public class RemediationEntryV1
+{
+    [JsonPropertyName("label")]
+    public string Label { get; set; } = string.Empty;
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+}
+
+public class ReferencesV1
+{
+    [JsonPropertyName("_section")]
+    public string Section { get; set; } = "Section 7";
+    [JsonPropertyName("entries")]
+    public List<ReferenceEntryV1> Entries { get; set; } = new();
+}
+
+public class ReferenceEntryV1
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = string.Empty;
+}

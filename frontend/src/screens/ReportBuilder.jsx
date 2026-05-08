@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { FileDown, FileText, Search, Filter } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -18,13 +18,7 @@ const ReportBuilder = () => {
     });
     const [generating, setGenerating] = useState(false);
 
-    useEffect(() => {
-        if (token) {
-            fetchData();
-        }
-    }, [token]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
 
@@ -33,25 +27,16 @@ const ReportBuilder = () => {
             try {
                 const res = await fetch('/api/advisories', { headers });
                 if (res.ok) advisories = await res.json();
-            } catch (e) {
-                console.error("Failed to fetch advisories", e);
-            }
-
-            let assessments = [];
-            try {
-                // Assessment APIs might not be ready
-                const res = await fetch('/api/assessments', { headers });
-                if (res.ok) assessments = await res.json();
-            } catch (e) {
-                console.warn("Assessments API not available or failed");
+            } catch (error) {
+                console.error("Failed to fetch advisories", error);
             }
 
             let reportsData = [];
             try {
                 const res = await fetch('/api/reports', { headers });
                 if (res.ok) reportsData = await res.json();
-            } catch (e) {
-                console.error("Failed to fetch reports", e);
+            } catch (error) {
+                console.error("Failed to fetch reports", error);
             }
 
             // Combine into selectable sources
@@ -61,18 +46,18 @@ const ReportBuilder = () => {
                 type: 'Advisory'
             })) : [];
 
-            const asmOptions = Array.isArray(assessments) ? assessments.map(a => ({
-                id: a.id,
-                title: a.id + ' (Strategic Assessment)',
-                type: 'Assessment'
-            })) : [];
-
-            setSources([...advOptions, ...asmOptions]);
+            setSources([...advOptions]);
             setReports(Array.isArray(reportsData) ? reportsData : []);
-        } catch (err) {
-            console.error("Error in report builder fetch", err);
+        } catch (error) {
+            console.error("Error in report builder fetch", error);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        if (token) {
+            fetchData();
+        }
+    }, [token, fetchData]);
 
     const generateReport = async () => {
         if (!selectedSource) return toast.error('Please select a source');
@@ -94,7 +79,7 @@ const ReportBuilder = () => {
             const data = await response.json();
             toast.success('Report generated successfully: ' + data.id);
             fetchData(); // Refresh list
-        } catch (err) {
+        } catch {
             toast.error('Failed to generate report');
         } finally {
             setGenerating(false);

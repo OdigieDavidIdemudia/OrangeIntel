@@ -18,7 +18,8 @@ const ThreatCounters = ({ metrics }) => {
 
     return (
         <div className={styles.container}>
-            {priorities.map(({ key, label, icon: Icon, status }) => {
+            {priorities.map((priority) => {
+                const { key, label, icon: Icon, status } = priority;
                 const data = metrics?.[key] || { count: 0, deltaSinceOneHour: 0 };
                 const isPositive = data.deltaSinceOneHour > 0;
                 

@@ -61,6 +61,21 @@ public class ReportsController : ControllerBase
         var mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
         return File(fileBytes, mimeType, $"{report.Title}.docx");
     }
+
+    [HttpPost("advisory")]
+    public async Task<IActionResult> GenerateAdvisoryReport([FromBody] OrangeIntel.Application.DTOs.Reporting.GTBankAdvisoryReportV1 model, [FromServices] OrangeIntel.Application.Interfaces.IAdvisoryDocxService advisoryService)
+    {
+        try
+        {
+            var bytes = advisoryService.GenerateAdvisory(model);
+            var fileName = $"GTBank_ThreatAdvisory_{model.Metadata.Title.Replace(" ", "_")}.docx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Failed to generate advisory: {ex.Message}");
+        }
+    }
 }
 
 public class CreateReportRequest

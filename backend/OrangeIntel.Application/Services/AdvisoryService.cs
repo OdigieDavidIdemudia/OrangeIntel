@@ -6,10 +6,12 @@ namespace OrangeIntel.Application.Services;
 public class AdvisoryService : IAdvisoryService
 {
     private readonly IAdvisoryRepository _repository;
+    private readonly INotificationService _notificationService;
 
-    public AdvisoryService(IAdvisoryRepository repository)
+    public AdvisoryService(IAdvisoryRepository repository, INotificationService notificationService)
     {
         _repository = repository;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<Advisory>> GetAdvisoriesAsync()
@@ -24,12 +26,24 @@ public class AdvisoryService : IAdvisoryService
 
     public async Task UpdateAdvisoryAsync(Advisory advisory)
     {
-        // Repository needs Update logic? AdvisoryRepository usually has Add/Get.
-        // I need to check if AdvisoryRepository has UpdateAsync. 
-        // Assuming it does or I'll add it.
-        // Actually, let's assume I need to add it to Repository interface too if missing.
-        // But for now, let's call it.
+        var existing = await _repository.GetByIdAsync(advisory.Id);
+        bool isBecomingApproved = existing != null && existing.Status == AdvisoryStatus.Draft && advisory.Status == AdvisoryStatus.Approved;
+
         await _repository.UpdateAsync(advisory);
+
+        if (isBecomingApproved)
+        {
+            await _notificationService.NotifyAdvisoryPublishedAsync(advisory);
+        }
+    }
+
+    public async Task AddAdvisoryAsync(Advisory advisory)
+    {
+        if (advisory.Id == Guid.Empty)
+        {
+            advisory.Id = Guid.NewGuid();
+        }
+        await _repository.AddAsync(advisory);
     }
 
     public async Task SaveDraftAsync(AdvisoryDraft draft)
