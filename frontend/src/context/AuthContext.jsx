@@ -12,7 +12,8 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     // Configure Axios defaults
-    axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || '';
+    const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    axios.defaults.baseURL = rawBaseUrl.replace(/^"|"$/g, '').replace(/^'|'$/g, '');
 
     const login = (accessToken, newRefreshToken) => {
         setToken(accessToken);
