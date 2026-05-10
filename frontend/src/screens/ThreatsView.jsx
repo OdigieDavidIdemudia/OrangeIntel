@@ -218,7 +218,23 @@ const ThreatsView = () => {
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const navigate = useNavigate();
 
-    const safeFormatDate = (d) => { try { if (!d) return 'N/A'; return new Date(d).toISOString().replace('T',' ').substring(0,16)+' UTC'; } catch { return 'Invalid'; }};
+    const safeFormatDate = (d) => { 
+        try { 
+            if (!d) return 'N/A'; 
+            const date = new Date(d);
+            // Use local formatting
+            return date.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch { 
+            return 'Invalid'; 
+        }
+    };
 
     const fetchThreats = useCallback(async (isManual = false) => {
         if (isManual) setRefreshing(true);
