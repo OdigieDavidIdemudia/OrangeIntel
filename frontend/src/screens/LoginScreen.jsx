@@ -13,7 +13,7 @@ const LoginScreen = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
@@ -37,7 +37,7 @@ const LoginScreen = () => {
 
         try {
             const res = await axios.post('/api/auth/login', { 
-                email, 
+                usernameOrEmail: identifier, 
                 password,
                 mfaCode: requiresMfa ? mfaCode : null,
                 trustDevice 
@@ -103,14 +103,14 @@ const LoginScreen = () => {
 
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.formGroup}>
-                        <label className={styles.label}>Email Address</label>
+                        <label className={styles.label}>Username or Email</label>
                         <div className={styles.inputWrapper}>
                             <input
-                                type="email"
+                                type="text"
                                 className={styles.input}
-                                placeholder="admin@orangeintel.local"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter username or email"
+                                value={identifier}
+                                onChange={(e) => setIdentifier(e.target.value)}
                                 required
                                 disabled={requiresMfa}
                                 autoFocus

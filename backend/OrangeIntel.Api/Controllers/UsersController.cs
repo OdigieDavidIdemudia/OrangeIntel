@@ -137,9 +137,9 @@ public class UsersController : ControllerBase
 
         var newUser = new AppUser
         {
-            UserName = model.Email,
+            UserName = model.UserName,
             Email = model.Email,
-            EmailConfirmed = true, // Auto-confirm for manually created users
+            EmailConfirmed = true, 
             CreatedAt = DateTime.UtcNow
         };
 
@@ -151,7 +151,7 @@ public class UsersController : ControllerBase
             await _userManager.AddToRoleAsync(newUser, model.Role);
         }
 
-        await _auditService.LogAsync(currentUser!.Id, "create_user", $"Created user {model.Email}");
+        await _auditService.LogAsync(currentUser!.Id, "create_user", $"Created user {newUser.UserName}");
         return Ok();
     }
 
@@ -178,7 +178,7 @@ public class UsersController : ControllerBase
             }
         }
 
-        await _auditService.LogAsync(currentUser!.Id, "update_user", $"Updated user {targetUser.Email}");
+        await _auditService.LogAsync(currentUser!.Id, "update_user", $"Updated user {targetUser.UserName ?? targetUser.Email}");
         return Ok();
     }
 }

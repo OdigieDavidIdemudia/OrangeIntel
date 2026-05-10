@@ -14,7 +14,7 @@ const AdminDashboard = () => {
 
     // Create User Modal State
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newUser, setNewUser] = useState({ email: '', password: '', role: 'analyst' });
+    const [newUser, setNewUser] = useState({ email: '', userName: '', password: '', role: 'analyst' });
     const [createLoading, setCreateLoading] = useState(false);
 
     const { token, user: currentUser } = useAuth(); // Use real auth context
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
             await axios.post('/api/admin/users', newUser);
             toast.success('User created successfully!');
             setShowCreateModal(false);
-            setNewUser({ email: '', password: '', role: 'analyst' });
+            setNewUser({ email: '', userName: '', password: '', role: 'analyst' });
             fetchData();
         } catch (err) {
             const data = err.response?.data;
@@ -109,6 +109,7 @@ const AdminDashboard = () => {
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Username</th>
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>MFA Status</th>
@@ -120,6 +121,7 @@ const AdminDashboard = () => {
                             {users.map((u, index) => (
                                 <tr key={u.id}>
                                     <td className={styles.mono} title={u.id}>{index + 1}</td>
+                                    <td>{u.userName}</td>
                                     <td>{u.email}</td>
                                     <td>
                                         {u.roles && u.roles.length > 0 ? (
@@ -140,7 +142,7 @@ const AdminDashboard = () => {
                                                 className={styles.actionBtn} 
                                                 title="Reset MFA"
                                                 onClick={async () => {
-                                                    if (window.confirm(`Reset MFA for ${u.email}?`)) {
+                                                    if (window.confirm(`Reset MFA for ${u.userName || u.email}?`)) {
                                                         const res = await axios.post(`/api/admin/users/${u.id}/mfa/reset`);
                                                         if (res.status === 200) { toast.success("MFA Reset"); fetchData(); }
                                                     }
@@ -153,7 +155,7 @@ const AdminDashboard = () => {
                                                 style={{ color: '#EF4444' }}
                                                 title="Delete User"
                                                 onClick={async () => {
-                                                    if (window.confirm(`Delete user ${u.email}?`)) {
+                                                    if (window.confirm(`Delete user ${u.userName || u.email}?`)) {
                                                         const res = await axios.delete(`/api/admin/users/${u.id}`);
                                                         if (res.status === 200) { toast.success("User Deleted"); fetchData(); }
                                                     }
@@ -205,6 +207,16 @@ const AdminDashboard = () => {
                     <div className={styles.modal}>
                         <h2 className={styles.modalTitle}>Create New User</h2>
                         <form onSubmit={handleCreateSubmit} className={styles.form}>
+                            <div className={styles.formGroup}>
+                                <label>Username</label>
+                                <input
+                                    type="text"
+                                    value={newUser.userName}
+                                    onChange={e => setNewUser({ ...newUser, userName: e.target.value })}
+                                    required
+                                    className={styles.input}
+                                />
+                            </div>
                             <div className={styles.formGroup}>
                                 <label>Email</label>
                                 <input

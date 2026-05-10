@@ -52,9 +52,9 @@ public class AdminController : ControllerBase
     {
         var user = new AppUser
         {
-            UserName = model.Email,
+            UserName = model.UserName,
             Email = model.Email,
-            EmailConfirmed = true // Auto-confirm/verify not required for initial create by admin
+            EmailConfirmed = true 
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
@@ -65,7 +65,7 @@ public class AdminController : ControllerBase
         await _userManager.AddToRoleAsync(user, role);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "create_user", $"Created user {model.Email} with role {role}");
+        await _auditService.LogAsync(currentUserId, "create_user", $"Created user {user.UserName} with role {role}");
 
         return Ok(new { Message = "User created successfully" });
     }
@@ -82,7 +82,7 @@ public class AdminController : ControllerBase
         await _userManager.AddToRoleAsync(user, model.NewRole);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "assign_role", $"Updated user {user.Email} role to {model.NewRole}");
+        await _auditService.LogAsync(currentUserId, "assign_role", $"Updated user {user.UserName ?? user.Email} role to {model.NewRole}");
 
         return Ok();
     }
@@ -99,7 +99,7 @@ public class AdminController : ControllerBase
         await _userManager.UpdateAsync(user);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "reset_mfa", $"Reset MFA and revoked sessions for user {user.Email}");
+        await _auditService.LogAsync(currentUserId, "reset_mfa", $"Reset MFA and revoked sessions for user {user.UserName ?? user.Email}");
 
         return Ok("MFA reset successfully and sessions revoked.");
     }
@@ -115,7 +115,7 @@ public class AdminController : ControllerBase
         if (!result.Succeeded) return BadRequest(result.Errors);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "delete_user", $"Deleted user {user.Email}");
+        await _auditService.LogAsync(currentUserId, "delete_user", $"Deleted user {user.UserName ?? user.Email}");
 
         return Ok("User deleted successfully");
     }
@@ -131,7 +131,7 @@ public class AdminController : ControllerBase
         await _userManager.UpdateAsync(user);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "revoke_sessions", $"Revoked all sessions for user {user.Email}");
+        await _auditService.LogAsync(currentUserId, "revoke_sessions", $"Revoked all sessions for user {user.UserName ?? user.Email}");
 
         return Ok("All sessions have been revoked.");
     }
@@ -153,7 +153,7 @@ public class AdminController : ControllerBase
         await _userManager.UpdateAsync(user);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "admin_reset_password", $"Admin reset password for user {user.Email}");
+        await _auditService.LogAsync(currentUserId, "admin_reset_password", $"Admin reset password for user {user.UserName ?? user.Email}");
 
         return Ok("Password reset successfully and sessions revoked.");
     }

@@ -64,12 +64,14 @@ public class AuthController : ControllerBase
             return StatusCode(StatusCodes.Status429TooManyRequests, "Too many login attempts. Please try again in a minute.");
         }
 
-        _logger.LogInformation("Login attempt for email: {Email} from IP: {IP}", model.Email, ipAddress);
+        _logger.LogInformation("Login attempt for {Identifier} from IP: {IP}", model.UsernameOrEmail, ipAddress);
         
-        var user = await _userManager.FindByEmailAsync(model.Email);
+        var user = await _userManager.FindByEmailAsync(model.UsernameOrEmail) 
+                   ?? await _userManager.FindByNameAsync(model.UsernameOrEmail);
+
         if (user == null) 
         {
-            _logger.LogWarning("Login failed: User {Email} not found.", model.Email);
+            _logger.LogWarning("Login failed: User {Identifier} not found.", model.UsernameOrEmail);
             return Unauthorized("Invalid credentials (User not found)");
         }
 
@@ -83,8 +85,8 @@ public class AuthController : ControllerBase
             };
             cache.Set(cacheKey, (cache.TryGetValue(cacheKey, out int current) ? current : 0) + 1, cacheOptions);
 
-            _logger.LogWarning("Login failed: Invalid password for user {Email}. IsLockedOut: {Locked}, IsNotAllowed: {NotAllowed}", 
-                model.Email, result.IsLockedOut, result.IsNotAllowed);
+            _logger.LogWarning("Login failed: Invalid password for user {Identifier}. IsLockedOut: {Locked}, IsNotAllowed: {NotAllowed}", 
+                model.UsernameOrEmail, result.IsLockedOut, result.IsNotAllowed);
             return Unauthorized("Invalid credentials (Password/Account issue)");
         }
 
