@@ -17,13 +17,19 @@ public class UsersController : ControllerBase
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IAuditService _auditService;
-    private readonly ApplicationDbContext _context; // Required for listing with EF
+    private readonly ApplicationDbContext _context; 
+    private readonly IEnumerable<INotificationProvider> _notificationProviders;
 
-    public UsersController(UserManager<AppUser> userManager, IAuditService auditService, ApplicationDbContext context)
+    public UsersController(
+        UserManager<AppUser> userManager, 
+        IAuditService auditService, 
+        ApplicationDbContext context,
+        IEnumerable<INotificationProvider> notificationProviders)
     {
         _userManager = userManager;
         _auditService = auditService;
         _context = context;
+        _notificationProviders = notificationProviders;
     }
 
     [HttpGet("profile")]
@@ -180,5 +186,25 @@ public class UsersController : ControllerBase
 
         await _auditService.LogAsync(currentUser!.Id, "update_user", $"Updated user {targetUser.UserName ?? targetUser.Email}");
         return Ok();
+    }
+
+    [HttpPost("profile/test-telegram")]
+    public async Task<ActionResult> TestTelegram([FromQuery] string? chatId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        var targetChatId = chatId ?? user?.TelegramChatId;
+
+        if (string.IsNullOrEmpty(targetChatId))
+            return BadRequest("No Chat ID provided or configured.");
+
+        var provider = _notificationProviders.FirstOrDefault(p => p.Name == "Telegram");
+        if (provider == null) return BadRequest("Telegram provider not available.");
+
+        var title = "🛡️ OrangeIntel | Connection Test";
+        var body = $"Hello {user?.FullName ?? "Analyst"},\n\nThis is a test notification to confirm your Chat ID is correctly linked to the OrangeIntel Threat Intelligence Platform.\n\nTime: {DateTime.Now:f}";
+
+        var result = await provider.SendAsync(targetChatId, title, body);
+        if (result) return Ok("Test message sent successfully.");
+        return BadRequest("Failed to send test message. Please check your Chat ID and Bot permissions.");
     }
 }

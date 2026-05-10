@@ -220,13 +220,30 @@ const PersonalSettings = ({ user }) => {
                 </div>
                 <div className={styles.formGroup}>
                     <label>Telegram Chat ID</label>
-                    <input 
-                        type="text" 
-                        className={styles.input} 
-                        value={profile.telegramChatId || ''} 
-                        onChange={e => setProfile({...profile, telegramChatId: e.target.value})}
-                        placeholder="Telegram Chat ID"
-                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input 
+                            type="text" 
+                            className={styles.input} 
+                            style={{ flex: 1 }}
+                            value={profile.telegramChatId || ''} 
+                            onChange={e => setProfile({...profile, telegramChatId: e.target.value})}
+                            placeholder="Telegram Chat ID"
+                        />
+                        <button 
+                            className={styles.btnSecondary}
+                            style={{ height: '38px', padding: '0 12px', whiteSpace: 'nowrap' }}
+                            onClick={async () => {
+                                try {
+                                    await axios.post(`/api/users/profile/test-telegram?chatId=${profile.telegramChatId}`);
+                                    toast.success("Test message sent!");
+                                } catch (err) {
+                                    toast.error(err.response?.data || "Test failed");
+                                }
+                            }}
+                        >
+                            Test Connection
+                        </button>
+                    </div>
                     <span className={styles.hint}>Used for personalized threat alerts via Telegram Bot</span>
                 </div>
                 <button 
@@ -414,13 +431,30 @@ const IntegrationSettings = () => {
                 </div>
                 <div className={styles.formGroup}>
                     <label>Default Telegram Chat ID</label>
-                    <input 
-                        type="text" 
-                        className={styles.input} 
-                        placeholder="Default Chat ID" 
-                        value={settings['telegram_chat_id'] || ''} 
-                        onChange={(e) => updateSetting('telegram_chat_id', e.target.value)} 
-                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input 
+                            type="text" 
+                            className={styles.input} 
+                            style={{ flex: 1 }}
+                            placeholder="Default Chat ID" 
+                            value={settings['telegram_chat_id'] || ''} 
+                            onChange={(e) => updateSetting('telegram_chat_id', e.target.value)} 
+                        />
+                        <button 
+                            className={styles.btnSecondary}
+                            style={{ height: '38px', padding: '0 12px', whiteSpace: 'nowrap' }}
+                            onClick={async () => {
+                                try {
+                                    await axios.post(`/api/users/profile/test-telegram?chatId=${settings['telegram_chat_id']}`);
+                                    toast.success("Global test message sent!");
+                                } catch (err) {
+                                    toast.error(err.response?.data || "Global test failed");
+                                }
+                            }}
+                        >
+                            Test Global
+                        </button>
+                    </div>
                 </div>
                 <div className={styles.statusHealthy}><CheckCircle size={14} /> Telegram Ingress Active</div>
             </div>

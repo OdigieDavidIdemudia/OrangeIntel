@@ -253,6 +253,25 @@ input:checked + .slider:before {
     box-shadow: 0 4px 12px rgba(224, 123, 0, 0.2);
 }
 
+.btnSecondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btnSecondary:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-secondary);
+}
+
 .btnDanger {
     background: var(--color-danger-bg);
     color: var(--color-danger);
