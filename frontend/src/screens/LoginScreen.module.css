@@ -54,9 +54,9 @@
 }
 
 .cardLogo {
-    width: 48px;
-    height: 48px;
-    margin-bottom: var(--space-6);
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
 }
 
 .title {

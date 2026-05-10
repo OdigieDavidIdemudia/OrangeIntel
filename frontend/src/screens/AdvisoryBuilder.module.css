@@ -139,6 +139,32 @@
     border-color: rgba(74, 222, 128, 0.1);
 }
 
+.smartButton {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139, 92, 246, 0.1);
+    color: #7C3AED;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    transition: all 0.2s;
+}
+
+.smartButton:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+[data-theme='dark'] .smartButton {
+    background: rgba(167, 139, 250, 0.08);
+    color: #A78BFA;
+    border-color: rgba(167, 139, 250, 0.15);
+}
+
 /* Form Sections */
 .form {
     display: flex;

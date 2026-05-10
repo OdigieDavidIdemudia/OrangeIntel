@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OrangeIntel.Application.Interfaces;
 using OrangeIntel.Domain.Entities;
+using System.Text;
 
 namespace OrangeIntel.Application.Services;
 
@@ -35,7 +36,6 @@ public class NotificationService : INotificationService
 
     public async Task NotifyAdvisoryPublishedAsync(Advisory advisory)
     {
-        // Trigger: AdvisoryPublished (Conditions: {}) -> Always notify
         var botToken = _config["Telegram:BotToken"];
         if (string.IsNullOrEmpty(botToken) || botToken == "<BOT_TOKEN>") return;
 
@@ -59,9 +59,6 @@ Review the full advisory in OrangeIntel.
 
     private async Task NotifyTelegramThreatAsync(ThreatItem threat)
     {
-        // Trigger: ThreatAccepted
-        // Conditions: severity: ["Critical", "High"], sector: ["Financial"]
-        
         bool isHighSeverity = threat.Severity >= 7 || threat.Confidence >= 70;
         bool isFinancial = threat.EnvironmentRelevance == "Financial";
 

@@ -1,0 +1,11 @@
+<svg viewBox="0 0 68 79" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="brandFavGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#EB4D00" />
+            <stop offset="100%" stop-color="#A83800" />
+        </linearGradient>
+    </defs>
+    <polygon points="34,0 68,19.6 68,58.8 34,78.4 0,58.8 0,19.6" fill="url(#brandFavGrad)" />
+    <circle cx="34" cy="39.2" r="17" fill="none" stroke="white" stroke-width="1.5" opacity="0.35" />
+    <circle cx="34" cy="39.2" r="3.5" fill="white" />
+</svg>

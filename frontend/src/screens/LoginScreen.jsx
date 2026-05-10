@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 import styles from './LoginScreen.module.css';
+import BrandLogo from '../components/common/BrandLogo';
 
 const LoginScreen = () => {
     const { login, token } = useAuth();
@@ -94,7 +95,7 @@ const LoginScreen = () => {
             </button>
 
             <main className={styles.loginCard}>
-                <img src="/logo.png" alt="OrangeIntel Logo" className={styles.cardLogo} />
+                <BrandLogo size={64} className={styles.cardLogo} hideText />
 
                 <h1 className={styles.title}>Secure Login</h1>
                 <p className={styles.subtitle}>Access your real-time threat intelligence platform</p>

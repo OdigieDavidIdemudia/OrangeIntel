@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Save, CheckCircle, Clock, Shield } from 'lucide-react';
+import { Save, CheckCircle, Clock, Shield, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from '../components/common/Select';
 import ReportModal from '../components/intelligence/ReportModal';
@@ -225,6 +225,63 @@ const AdvisoryBuilder = () => {
         }
     };
 
+    const handleSmartFill = () => {
+        const sourceText = `${advisory.executive_summary.body} ${advisory.threat_analysis.intro}`;
+        if (!sourceText.trim()) return toast.error("Please provide some summary or analysis text first.");
+
+        const iocList = [];
+        const remediationList = [];
+
+        // 1. Extract IOCs using Regex
+        const ipv4Regex = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g;
+        const domainRegex = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}\b/gi;
+        const urlRegex = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi;
+        const sha256Regex = /\b[a-f0-9]{64}\b/gi;
+        const md5Regex = /\b[a-f0-9]{32}\b/gi;
+        const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+        const cveRegex = /\bCVE-\d{4}-\d{4,}\b/gi;
+
+        const ips = [...new Set(sourceText.match(ipv4Regex) || [])];
+        const domains = [...new Set(sourceText.match(domainRegex) || [])];
+        const urls = [...new Set(sourceText.match(urlRegex) || [])];
+        const sha256s = [...new Set(sourceText.match(sha256Regex) || [])];
+        const md5s = [...new Set(sourceText.match(md5Regex) || [])];
+        const emails = [...new Set(sourceText.match(emailRegex) || [])];
+        const cves = [...new Set(sourceText.match(cveRegex) || [])];
+
+        ips.forEach(ip => iocList.push({ type: 'Network', indicator: ip, description: 'Observed IP', defanged: true }));
+        domains.forEach(d => iocList.push({ type: 'Network', indicator: d, description: 'Observed Domain', defanged: true }));
+        urls.forEach(u => iocList.push({ type: 'Network', indicator: u, description: 'Observed URL', defanged: true }));
+        sha256s.forEach(h => iocList.push({ type: 'File', indicator: h, description: 'SHA256 Hash', defanged: false }));
+        md5s.forEach(h => iocList.push({ type: 'File', indicator: h, description: 'MD5 Hash', defanged: false }));
+        emails.forEach(e => iocList.push({ type: 'Email', indicator: e, description: 'Phishing/Sender Email', defanged: true }));
+        cves.forEach(c => iocList.push({ type: 'Host', indicator: c, description: 'Known Exploited Vulnerability', defanged: false }));
+
+        // 2. Suggest Remediation (Expanded triggers)
+        const sentences = sourceText.split(/[.!?\n]+/);
+        const actionKeywords = [
+            'block', 'update', 'patch', 'monitor', 'restrict', 'disable', 'enable', 'reset', 'audit',
+            'mitigate', 'prevent', 'protect', 'defend', 'security', 'measure', 'recommend', 'ensure',
+            'isolation', 'quarantine', 'investigate'
+        ];
+        
+        sentences.forEach(s => {
+            const trimmed = s.trim();
+            if (actionKeywords.some(kw => trimmed.toLowerCase().includes(kw)) && trimmed.length > 20) {
+                remediationList.push({ label: 'Recommended Action', description: trimmed });
+            }
+        });
+
+        // 3. Update State
+        setAdvisory(prev => ({
+            ...prev,
+            iocs: { entries: [...prev.iocs.entries, ...iocList] },
+            remediation: { entries: [...prev.remediation.entries, ...remediationList] }
+        }));
+
+        toast.success(`Extracted ${iocList.length} IOCs and ${remediationList.length} actions!`);
+    };
+
     const handleMetaConfirm = async (meta) => {
         setMetaModalOpen(false);
         setGenerating(true);
@@ -259,6 +316,9 @@ const AdvisoryBuilder = () => {
                     <p className={styles.subtitle}>GTBank Threat Advisory Framework v1.0</p>
                 </div>
                 <div className={styles.actions}>
+                    <button className={styles.smartButton} onClick={handleSmartFill} title="Auto-extract IOCs and Actions">
+                        <Sparkles size={16} /> Smart Extract
+                    </button>
                     <button className={styles.secondaryButton} onClick={handlePreview}>Preview</button>
                     <button className={styles.generateButton} onClick={() => setReportModalOpen(true)} disabled={generating}>
                         {generating ? 'Finalizing...' : 'Generate Report'}

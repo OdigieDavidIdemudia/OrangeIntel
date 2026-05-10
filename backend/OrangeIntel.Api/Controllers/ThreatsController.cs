@@ -54,7 +54,7 @@ public class ThreatsController : ControllerBase
     [HttpPost("promote")]
     public async Task<ActionResult> PromoteThreat([FromBody] PromoteThreatRequest request)
     {
-        var advisory = await _service.PromoteThreatAsync(request.ThreatId); // Maps to TopicId/ThreatId in request
+        var advisory = await _service.PromoteThreatAsync(request.ThreatId);
         if (advisory == null)
         {
             return NotFound("Threat not found");
@@ -98,6 +98,14 @@ public class ThreatsController : ControllerBase
     {
         var threats = await _service.GetAcknowledgedThreatsAsync();
         return Ok(threats);
+    }
+
+    [HttpPost("broadcast")]
+    public async Task<ActionResult> BroadcastAlerts()
+    {
+        var count = await _ingestionService.BroadcastRecentAlertsAsync();
+        if (count == 0) return Ok(new { message = "No recent critical threats found to broadcast." });
+        return Ok(new { message = $"Successfully broadcasted recent critical alerts to {count} destinations.", destinations = count });
     }
 }
 

@@ -9,6 +9,7 @@ using OrangeIntel.Domain.Enums;
 using OrangeIntel.Infrastructure.Data;
 using System.Security.Cryptography;
 using System.Text;
+using OrangeIntel.Application.Interfaces;
 
 namespace OrangeIntel.Infrastructure.Services;
 
@@ -18,13 +19,15 @@ public class ThreatIngestionService
     private readonly HttpClient _httpClient;
     private readonly ILogger<ThreatIngestionService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IEnumerable<INotificationProvider> _notificationProviders;
 
-    public ThreatIngestionService(ApplicationDbContext context, HttpClient httpClient, ILogger<ThreatIngestionService> logger, IConfiguration configuration)
+    public ThreatIngestionService(ApplicationDbContext context, HttpClient httpClient, ILogger<ThreatIngestionService> logger, IConfiguration configuration, IEnumerable<INotificationProvider> notificationProviders)
     {
         _context = context;
         _httpClient = httpClient;
         _logger = logger;
         _configuration = configuration;
+        _notificationProviders = notificationProviders;
     }
 
     private string ComputeStableHash(string input)
@@ -272,7 +275,7 @@ public class ThreatIngestionService
          }
          catch (Exception ex)
          { 
-             _logger.LogError(ex, "RSS Ingestion Failed");
+             _logger.LogError(ex, "RSS Ingestion Failed for {Url}", rssUrl);
              return (0, $"Failed: {ex.Message}"); 
          }
     } 
@@ -527,6 +530,56 @@ public class ThreatIngestionService
             await _context.SaveChangesAsync();
         }
         return source;
+    }
+
+    public async Task<int> BroadcastRecentAlertsAsync()
+    {
+        var provider = _notificationProviders.FirstOrDefault(p => p.Name == "Telegram");
+        if (provider == null) return 0;
+
+        // 1. Fetch recent critical threats
+        var criticalThreats = await _context.ThreatItems
+            .Include(t => t.Source)
+            .Where(t => t.Severity >= 8)
+            .OrderByDescending(t => t.FirstSeen)
+            .Take(5)
+            .ToListAsync();
+
+        if (criticalThreats.Count == 0) return 0;
+
+        // 2. Format Message
+        var title = "📢 OrangeIntel | Critical Alerts Broadcast";
+        var bodyBuilder = new StringBuilder();
+        bodyBuilder.AppendLine("The following high-priority threats require immediate attention:\n");
+
+        foreach (var threat in criticalThreats)
+        {
+            var severityLabel = threat.Severity >= 9 ? "CRITICAL" : "HIGH";
+            var sourceName = threat.Source?.Name ?? "Unknown";
+            bodyBuilder.AppendLine($"*[{severityLabel}]* {threat.Title}");
+            bodyBuilder.AppendLine($"> Sector: {threat.EnvironmentRelevance} | Source: {sourceName}\n");
+        }
+
+        bodyBuilder.AppendLine("\n_Action: Review all topics in the analyst dashboard._");
+        var body = bodyBuilder.ToString();
+
+        // 3. Send to Global Chat
+        int successCount = 0;
+        if (await provider.SendAsync("", title, body)) successCount++;
+
+        // 4. Send to all users with Telegram IDs
+        var userChatIds = await _context.Users
+            .Where(u => !string.IsNullOrEmpty(u.TelegramChatId))
+            .Select(u => u.TelegramChatId)
+            .ToListAsync();
+
+        foreach (var chatId in userChatIds.Distinct())
+        {
+            if (chatId == _configuration["Telegram:ChatId"]) continue; // Skip if already sent to global
+            if (await provider.SendAsync(chatId, title, body)) successCount++;
+        }
+
+        return successCount;
     }
 }
 

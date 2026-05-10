@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, AlertTriangle, FileText, FileBarChart, Settings, Shield, LogOut, Monitor, Activity } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
+import BrandLogo from '../common/BrandLogo';
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -21,11 +22,7 @@ const Sidebar = () => {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
-        <img src="/logo.png" alt="OrangeIntel Logo" className={styles.logo} />
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span className={styles.appName}><span className={styles.brandOrange}>Orange</span>Intel</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '400' }}>Threat Intelligence Platform</span>
-        </div>
+        <BrandLogo size={32} subtitle="Threat Intelligence Platform" />
       </div>
 
       <nav className={styles.nav}>
