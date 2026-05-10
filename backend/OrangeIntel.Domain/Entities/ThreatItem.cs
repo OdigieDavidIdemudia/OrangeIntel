@@ -37,4 +37,10 @@ public class ThreatItem
     
     // Status for workflow (replaces TopicStatus)
     public ThreatStatus Status { get; set; } // Keep Enum or refactor? Let's use existing Enum for now
+    
+    // Category & Workflow Enhancements
+    public string Category { get; set; } = string.Empty;
+    public string AcknowledgedBy { get; set; } = string.Empty;
+    public DateTime? AcknowledgedAt { get; set; }
+    public string AcknowledgementNote { get; set; } = string.Empty;
 }

@@ -1,14 +1,14 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, AlertTriangle, Shield, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertCircle, Shield, Activity } from 'lucide-react';
 import styles from './ThreatCounters.module.css';
 
 const ThreatCounters = ({ metrics }) => {
     // metrics = { High: { count, delta }, Medium: { count, delta }, Low: { count, delta } }
     
     const priorities = [
-        { key: 'High', label: 'CRITICAL THREATS', icon: AlertTriangle, status: 'high' },
+        { key: 'High', label: 'CRITICAL OPS', icon: AlertCircle, status: 'high' },
         { key: 'Medium', label: 'ELEVATED RISK', icon: Shield, status: 'medium' },
-        { key: 'Low', label: 'ROUTINE MONITORING', icon: Activity, status: 'low' }
+        { key: 'Low', label: 'ROUTINE INTEL', icon: Activity, status: 'low' }
     ];
 
     const getProgress = (count) => {
@@ -30,25 +30,26 @@ const ThreatCounters = ({ metrics }) => {
                                 <span className={styles.label}>{label}</span>
                                 <span className={styles.priorityBadge}>{key} Priority</span>
                             </div>
-                            <Icon size={20} opacity={0.5} />
+                            <Icon size={16} opacity={0.6} />
                         </div>
                         
                         <div className={styles.value}>{data.count}</div>
                         
-                        <div className={styles.delta} style={{ color: isPositive ? '#EF4444' : '#10B981' }}>
-                            {isPositive ? <TrendingUp size={14} className={styles.deltaIcon} /> : <TrendingDown size={14} className={styles.deltaIcon} />}
-                            <span>{Math.abs(data.deltaSinceOneHour)} since last hour</span>
+                        <div className={styles.delta} style={{ color: isPositive ? 'var(--color-danger)' : 'var(--color-success)' }}>
+                            {isPositive ? <TrendingUp size={12} className={styles.deltaIcon} /> : <TrendingDown size={12} className={styles.deltaIcon} />}
+                            <span>{Math.abs(data.deltaSinceOneHour)} item{Math.abs(data.deltaSinceOneHour) !== 1 ? 's' : ''} shift</span>
                         </div>
 
                         <div className={styles.progressContainer}>
                             <div className={styles.progressLabel}>
-                                <span>Utilization</span>
+                                <span>Load Utilization</span>
                                 <span>{Math.round(getProgress(data.count))}%</span>
                             </div>
                             <div className={styles.progressBar}>
                                 <div 
                                     className={styles.progressFill} 
                                     style={{ width: `${getProgress(data.count)}%` }} 
+                                    title={`${Math.round(getProgress(data.count))}% Capacity`}
                                 />
                             </div>
                         </div>

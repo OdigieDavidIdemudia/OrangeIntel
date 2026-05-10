@@ -8,6 +8,7 @@ using OrangeIntel.Application.Interfaces;
 using OrangeIntel.Domain.Entities;
 using OrangeIntel.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace OrangeIntel.Api.Controllers;
 
@@ -20,6 +21,7 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IOneTimePasswordService _otpService;
     private readonly EncryptionService _encryptionService;
+    private readonly IHibpService _hibpService;
     private readonly ILogger<AuthController> _logger;
     private readonly OrangeIntel.Infrastructure.Data.ApplicationDbContext _context;
 
@@ -29,6 +31,7 @@ public class AuthController : ControllerBase
         ITokenService tokenService,
         IOneTimePasswordService otpService,
         EncryptionService encryptionService,
+        IHibpService hibpService,
         ILogger<AuthController> logger,
         OrangeIntel.Infrastructure.Data.ApplicationDbContext context)
     {
@@ -37,6 +40,7 @@ public class AuthController : ControllerBase
         _tokenService = tokenService;
         _otpService = otpService;
         _encryptionService = encryptionService;
+        _hibpService = hibpService;
         _logger = logger;
         _context = context;
     }
@@ -50,9 +54,17 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto model)
+    public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto model, [FromServices] Microsoft.Extensions.Caching.Memory.IMemoryCache cache)
     {
-        _logger.LogInformation("Login attempt for email: {Email}", model.Email);
+        var ipAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var cacheKey = $"login_attempt_{ipAddress}";
+        
+        if (cache.TryGetValue(cacheKey, out int attempts) && attempts >= 10)
+        {
+            return StatusCode(StatusCodes.Status429TooManyRequests, "Too many login attempts. Please try again in a minute.");
+        }
+
+        _logger.LogInformation("Login attempt for email: {Email} from IP: {IP}", model.Email, ipAddress);
         
         var user = await _userManager.FindByEmailAsync(model.Email);
         if (user == null) 
@@ -64,27 +76,68 @@ public class AuthController : ControllerBase
         var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
         if (!result.Succeeded) 
         {
+            // Increment rate limit counter
+            var cacheOptions = new Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1)
+            };
+            cache.Set(cacheKey, (cache.TryGetValue(cacheKey, out int current) ? current : 0) + 1, cacheOptions);
+
             _logger.LogWarning("Login failed: Invalid password for user {Email}. IsLockedOut: {Locked}, IsNotAllowed: {NotAllowed}", 
                 model.Email, result.IsLockedOut, result.IsNotAllowed);
             return Unauthorized("Invalid credentials (Password/Account issue)");
         }
 
+        // HIBP Password Breach Check
+        bool isPwned = await _hibpService.IsPasswordPwnedAsync(model.Password);
+
         // MFA Check
         if (!string.IsNullOrEmpty(user.MfaSecret))
         {
-            if (string.IsNullOrEmpty(model.MfaCode))
+            // Check for 24h mfa_trust cookie
+            bool isTrusted = Request.Cookies.TryGetValue("mfa_trust", out var trustToken) && 
+                             _tokenService.ValidateMfaTrustToken(trustToken, user.Id);
+
+            if (!isTrusted && string.IsNullOrEmpty(model.MfaCode))
             {
-                return StatusCode(StatusCodes.Status403Forbidden, new { Message = "MFA required", RequiresMfa = true });
+                return StatusCode(StatusCodes.Status403Forbidden, new { 
+                    message = "MFA required", 
+                    requiresMfa = true,
+                    isPasswordPwned = isPwned 
+                });
             }
 
-            var decryptedSecret = _encryptionService.Decrypt(user.MfaSecret);
-            if (!_otpService.VerifyCode(decryptedSecret, model.MfaCode))
+            if (!isTrusted)
             {
-                return Unauthorized("Invalid MFA code");
+                var decryptedSecret = _encryptionService.Decrypt(user.MfaSecret);
+                if (!_otpService.VerifyCode(decryptedSecret, model.MfaCode))
+                {
+                    return Unauthorized("Invalid MFA code");
+                }
+
+                // If user checked "Trust this device" (we'll add this to LoginDto)
+                if (model.TrustDevice)
+                {
+                    var trustTokenNew = _tokenService.GenerateMfaTrustToken(user.Id);
+                    Response.Cookies.Append("mfa_trust", trustTokenNew, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Expires = DateTimeOffset.UtcNow.AddHours(24)
+                    });
+                }
             }
         }
 
-        return await GenerateTokenResponse(user);
+        var tokenResponse = await GenerateTokenResponse(user);
+        
+        return Ok(new { 
+            accessToken = tokenResponse.AccessToken,
+            refreshToken = tokenResponse.RefreshToken,
+            isPasswordPwned = isPwned,
+            message = isPwned ? "Warning: Your password was found in a known data breach. We recommend changing it." : null 
+        });
     }
 
     [AllowAnonymous]
@@ -269,7 +322,8 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(ClaimTypes.Email, user.Email!),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim("id", user.Id)
+            new Claim("id", user.Id),
+            new Claim("token_version", user.TokenVersion.ToString())
         };
         
         foreach(var r in roles)

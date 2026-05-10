@@ -8,6 +8,7 @@ namespace OrangeIntel.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class AdvisoriesController : ControllerBase
 {
     private readonly IAdvisoryService _service;

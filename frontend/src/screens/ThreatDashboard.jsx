@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { 
-    AlertTriangle, Shield, Activity, TrendingUp, 
-    ArrowRight, LayoutDashboard, FileText, Monitor, 
+    Shield, Activity, TrendingUp, 
+    ArrowRight, FileText, Monitor, 
     Clock, Database, Server 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -32,89 +32,93 @@ const ThreatDashboard = () => {
     }, []);
 
     if (loading || !metrics) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--text-secondary)' }}>Initializing Intel Dashboard...</div>;
+        return <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--text-muted)', fontSize: '13px' }}>Initializing Platform Intelligence...</div>;
     }
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+        <div className={styles.container}>
             <header className={styles.dashboardHeader}>
-                <div>
+                <div className={styles.titleBlock}>
                     <h1 className={styles.title}>Analyst Commander</h1>
                     <p className={styles.subtitle}>Unified threat intelligence and platform operations</p>
                 </div>
                 <div className={styles.velocityBadge}>
-                    <TrendingUp size={16} color={metrics.velocity.status === 'SpikeDetected' ? '#EF4444' : '#10B981'} />
-                    <span>Velocity: {metrics.velocity.currentRate}/hr</span>
+                    <TrendingUp size={14} style={{ color: metrics.velocity.status === 'SpikeDetected' ? 'var(--color-danger)' : 'var(--color-success)' }} />
+                    <span>Rate: {metrics.velocity.currentRate} items/hr</span>
                 </div>
             </header>
 
-
-
             <div className={styles.grid}>
                 <div className={styles.mainGroup}>
-                    <h3 className={styles.sectionTitle}><Activity size={18} /> Operational Load</h3>
-                    <ThreatCounters metrics={metrics.threatCounts} />
+                    <div>
+                        <h3 className={styles.sectionTitle}><Activity size={12} /> Operational Load</h3>
+                        <ThreatCounters metrics={metrics.threatCounts} />
+                    </div>
                     
-                    <h3 className={styles.sectionTitle} style={{ marginTop: '2.5rem' }}><Clock size={18} /> Recent Intelligence</h3>
-                    <RecentThreatTicker threats={metrics.recentThreats} />
+                    <div>
+                        <h3 className={styles.sectionTitle}><Clock size={12} /> Recent Intelligence</h3>
+                        <RecentThreatTicker threats={metrics.recentThreats} />
+                    </div>
                 </div>
 
                 <div className={styles.sideGroup}>
-                    <h3 className={styles.sectionTitle}><LayoutDashboard size={18} /> Navigation</h3>
-                    <div className={styles.quickLinks}>
-                        <Link to="/threats" className={styles.linkItem}>
-                            <div className={styles.linkInfo}>
-                                <div className={styles.linkIcon}><Monitor size={20} /></div>
-                                <span className={styles.linkText}>Threats Queue</span>
-                            </div>
-                            <ArrowRight size={16} />
-                        </Link>
-                        <Link to="/advisories" className={styles.linkItem}>
-                            <div className={styles.linkInfo}>
-                                <div className={styles.linkIcon}><Shield size={20} /></div>
-                                <span className={styles.linkText}>Advisories</span>
-                            </div>
-                            <ArrowRight size={16} />
-                        </Link>
-                        <Link to="/reports" className={styles.linkItem}>
-                            <div className={styles.linkInfo}>
-                                <div className={styles.linkIcon}><FileText size={20} /></div>
-                                <span className={styles.linkText}>Reports</span>
-                            </div>
-                            <ArrowRight size={16} />
-                        </Link>
+                    <div>
+                        <h3 className={styles.sectionTitle}><Monitor size={12} /> Navigation</h3>
+                        <div className={styles.quickLinks}>
+                            <Link to="/threats" className={styles.linkItem}>
+                                <div className={styles.linkInfo}>
+                                    <div className={styles.linkIcon}><Monitor size={18} /></div>
+                                    <span className={styles.linkText}>Threats Queue</span>
+                                </div>
+                                <ArrowRight size={14} />
+                            </Link>
+                            <Link to="/advisories" className={styles.linkItem}>
+                                <div className={styles.linkInfo}>
+                                    <div className={styles.linkIcon}><Shield size={18} /></div>
+                                    <span className={styles.linkText}>Advisory Builder</span>
+                                </div>
+                                <ArrowRight size={14} />
+                            </Link>
+                            <Link to="/reports" className={styles.linkItem}>
+                                <div className={styles.linkInfo}>
+                                    <div className={styles.linkIcon}><FileText size={18} /></div>
+                                    <span className={styles.linkText}>Report Archive</span>
+                                </div>
+                                <ArrowRight size={14} />
+                            </Link>
+                        </div>
                     </div>
 
-                    <div className={styles.card} style={{ marginTop: '2rem' }}>
-                        <h3 className={styles.sectionTitle} style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>System Status</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                               <span style={{ color: 'var(--text-secondary)' }}>Database</span>
-                               <span style={{ color: '#10B981', fontWeight: 600 }}>{metrics.systemHealth.database}</span>
-                           </div>
-                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                               <span style={{ color: 'var(--text-secondary)' }}>Ingestion</span>
-                               <span style={{ color: '#10B981', fontWeight: 600 }}>{metrics.systemHealth.ingestion}</span>
-                           </div>
-                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                               <span style={{ color: 'var(--text-secondary)' }}>Latency</span>
-                               <span style={{ color: 'var(--text-primary)' }}>{metrics.systemHealth.ingestLatencyMs}ms</span>
-                           </div>
+                    <div className={styles.card}>
+                        <h3 className={styles.sectionTitle} style={{ marginBottom: '12px' }}>System Integrity</h3>
+                        <div className={styles.statusList}>
+                            <div className={styles.statusRow}>
+                                <span className={styles.statusLabel}>Database Cluster</span>
+                                <span className={`${styles.statusValue} ${styles.valueSuccess}`}>{metrics.systemHealth.database}</span>
+                            </div>
+                            <div className={styles.statusRow}>
+                                <span className={styles.statusLabel}>Ingestion Engine</span>
+                                <span className={`${styles.statusValue} ${styles.valueSuccess}`}>{metrics.systemHealth.ingestion}</span>
+                            </div>
+                            <div className={styles.statusRow}>
+                                <span className={styles.statusLabel}>Node Latency</span>
+                                <span className={`${styles.statusValue} ${styles.valueNormal}`}>{metrics.systemHealth.ingestLatencyMs}ms</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <footer className={styles.footer} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '2rem', textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Database size={14} /> <span>DB_SECURE</span>
+            <footer className={styles.footer}>
+                <div className={styles.footerContent}>
+                    <div className={styles.footerItem}>
+                        <Database size={12} /> <span>DB_SECURE</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Server size={14} /> <span>INGEST_READY</span>
+                    <div className={styles.footerItem}>
+                        <Server size={12} /> <span>INGEST_READY</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Activity size={14} /> <span>PLATFORM_HEALTHY</span>
+                    <div className={styles.footerItem}>
+                        <Activity size={12} /> <span>SYSTEM_HEALTHY</span>
                     </div>
                 </div>
             </footer>

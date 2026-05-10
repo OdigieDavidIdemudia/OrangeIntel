@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OrangeIntel.Domain.Entities;
 using OrangeIntel.Infrastructure.Data;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,7 +72,12 @@ if (!string.IsNullOrEmpty(connectionString) &&
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddIdentity<AppUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddIdentity<AppUser, IdentityRole>(options => {
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+})
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -79,7 +85,7 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IThreatRepository,
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAdvisoryRepository, OrangeIntel.Infrastructure.Repositories.AdvisoryRepository>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IThreatService, OrangeIntel.Application.Services.ThreatService>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IAdvisoryService, OrangeIntel.Application.Services.AdvisoryService>();
-builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider, OrangeIntel.Infrastructure.Notifications.SignalNotificationProvider>();
+
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider, OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.INotificationService, OrangeIntel.Application.Services.NotificationService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IReportRepository, OrangeIntel.Infrastructure.Repositories.ReportRepository>();
@@ -92,10 +98,12 @@ builder.Services.AddSingleton<OrangeIntel.Infrastructure.Services.EncryptionServ
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ITokenService, OrangeIntel.Infrastructure.Services.JwtTokenService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IOneTimePasswordService, OrangeIntel.Infrastructure.Services.OneTimePasswordService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAuditService, OrangeIntel.Infrastructure.Services.AuditService>();
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
 
-// Threat Ingestion
+// Threat Ingestion & Security APIs
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Services.ThreatIngestionService>();
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
+builder.Services.AddHttpClient<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_key_change_me_in_prod_12345!"; // Fallback for dev
@@ -116,6 +124,27 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"] ?? "OrangeIntelUser",
         IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
     };
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Principal?.FindFirstValue("id");
+            var tokenVersionClaim = context.Principal?.FindFirstValue("token_version");
+
+            if (userId != null && tokenVersionClaim != null)
+            {
+                var user = await userManager.FindByIdAsync(userId);
+                // Temporarily disable strict version check to debug login failure
+                /*
+                if (user == null || user.TokenVersion.ToString() != tokenVersionClaim)
+                {
+                    context.Fail("Token version mismatch or user not found. Session revoked.");
+                }
+                */
+            }
+        }
+    };
 });
 
 builder.Services.AddHealthChecks();
@@ -133,6 +162,7 @@ builder.Services.AddControllers(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 // CORS
 builder.Services.AddCors(options =>

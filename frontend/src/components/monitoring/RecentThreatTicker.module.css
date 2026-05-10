@@ -1,0 +1,103 @@
+/* REFINED LIST LAYOUT V2 */
+.listContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.listCard {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: var(--space-3) var(--space-4);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+}
+
+.listCard:hover {
+    transform: translateX(4px);
+    border-color: var(--color-brand);
+    background: var(--bg-hover);
+}
+
+.accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+}
+
+.cardMain {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.threatTitle {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeBadge {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cardMeta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.categoryTag {
+    font-size: 10px;
+    background: var(--border-subtle);
+    color: var(--text-muted);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Empty State */
+.emptyContainer {
+    padding: var(--space-6);
+    background: var(--bg-panel);
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.emptyText {
+    font-size: 13px;
+    color: var(--text-muted);
+}

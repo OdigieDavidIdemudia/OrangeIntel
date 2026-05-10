@@ -1,48 +1,147 @@
 :root {
-  /* Brand Colors */
-  --color-brand: #F97316;
-  /* Orange */
-  --color-brand-hover: #EA580C;
+  /* Surface Layering - Light Mode */
+  --sidebar-background: #F7F6F4;
+  --page-canvas-background: #F4F4F2;
+  --card-background: #FFFFFF;
+  --topbar-background: #FFFFFF;
+  --card-border: #E0DDD8;
+  
+  /* Brand */
+  --color-brand: #E07B00;
+  --color-brand-hover: #C96D00;
   --color-brand-contrast: #FFFFFF;
 
-  /* Functional Colors */
-  --color-danger: #EF4444;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-info: #3B82F6;
+  /* Semantic - Light Mode */
+  --color-danger: #DC2626;
+  --color-danger-bg: #FEF2F2;
+  --color-danger-text: #991B1B;
+  
+  --color-warning: #CA8A04;
+  --color-warning-bg: #FEFCE8;
+  --color-warning-text: #854D0E;
+  
+  --color-success: #16A34A;
+  --color-success-bg: #F0FDF4;
+  --color-success-text: #166534;
+
+  --color-info: #185FA5; /* Blue for Informational/Acknowledge */
+  --color-info-border: #85B7EB;
+  --color-info-bg: #EFF6FF;
+
+  /* Severity specific colors (from design review) */
+  --severity-critical-bg: #FEF2F2;
+  --severity-critical-text: #991B1B;
+  --severity-critical-border: #DC2626;
+  
+  --severity-high-bg: #FFF7ED;
+  --severity-high-text: #9A3412;
+  --severity-high-border: #EA580C;
+  
+  --severity-medium-bg: #FEFCE8;
+  --severity-medium-text: #854D0E;
+  --severity-medium-border: #CA8A04;
+  
+  --severity-low-bg: #F9FAFB;
+  --severity-low-text: #374151;
+  --severity-low-border: #9CA3AF;
+
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+
+  /* Typography */
+  --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-primary: #1A1A1A;
+  --text-secondary: #5F5E5A;
+  --text-muted: #888780;
+  --text-label: #888780;
 
   color-scheme: light dark;
 
-  /* Default to Light Theme Variables */
-  --bg-app: #F3F4F6;
-  --bg-panel: #FFFFFF;
-  --bg-hover: #F9FAFB;
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-  --border-color: #E5E7EB;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  /* Global Control Spec */
+  --ctrl-height: 36px;
+  --ctrl-font-size: 13px;
+  --ctrl-font-weight: 400;
+  --ctrl-padding-x: 12px;
+  --ctrl-border-radius: 6px;
+
+  /* Global background mappings */
+  --bg-app: var(--page-canvas-background);
+  --bg-panel: var(--card-background);
+  --bg-card: var(--card-background);
+  --bg-hover: #F0EEE9;
+  --border-color: var(--card-border);
+  --border-subtle: #EBE9E4;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
 }
 
-/* Dark Theme Overrides */
 [data-theme='dark'] {
-  --bg-app: #111827;
-  /* Gray 900 */
-  --bg-panel: #1F2937;
-  /* Gray 800 */
-  --bg-hover: #374151;
-  /* Gray 700 */
-  --text-primary: #F9FAFB;
-  /* Gray 50 */
-  --text-secondary: #D1D5DB;
-  /* Gray 300 */
-  --text-muted: #9CA3AF;
-  /* Gray 400 */
-  --border-color: #374151;
-  /* Gray 700 */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+  /* Surface Layering - Dark Mode */
+  --sidebar-background: #141413;
+  --page-canvas-background: #0F0F0E;
+  --card-background: #1C1C1A;
+  --topbar-background: #141413;
+  --card-border: #2A2A27;
+
+  /* Typography - Dark Mode */
+  --text-primary: #F5F5F4;
+  --text-secondary: #A8A8A5;
+  --text-muted: #6B6B68;
+  --text-label: #6B6B68;
+  --text-placeholder: #4A4A47;
+  --text-link: #378ADD;
+  --text-danger: #E05252;
+
+  /* Brand - Dark Mode */
+  --color-brand: #F59732;
+  --color-brand-hover: #F6A84A;
+
+  /* Background mappings - Dark Mode */
+  --bg-app: var(--page-canvas-background);
+  --bg-panel: var(--card-background);
+  --bg-card: var(--card-background);
+  --bg-hover: #222220;
+  --border-color: var(--card-border);
+  --border-subtle: #222220;
+  --border-emphasis: #3A3A37;
+
+  /* Semantic - Dark Mode */
+  --color-info: #378ADD;
+  --color-info-border: #185FA5;
+  --color-danger: #E05252;
+
+  /* Tags/Labels - Dark Mode */
+  --tag-tlp-amber-bg: #2D1F0A;
+  --tag-tlp-amber-text: #F59732;
+  --tag-tlp-red-bg: #2D0A0A;
+  --tag-tlp-red-text: #E05252;
+  --tag-tlp-green-bg: #0A1F0F;
+  --tag-tlp-green-text: #4ADE80;
+
+  /* Stats Row - Dark Mode */
+  --stat-pending-border: #4A4A47;
+  --stat-sla-bg: #1F1010;
+  --stat-sla-text: #E05252;
+  --stat-sla-border: #DC2626;
+  --stat-ack-text: #4ADE80;
+  --stat-ack-border: #16A34A;
+
+  /* Severity specific colors - Dark Mode Override */
+  --severity-critical-bg: rgba(220, 38, 38, 0.1);
+  --severity-critical-border: #DC2626;
+  --severity-high-bg: rgba(234, 88, 12, 0.1);
+  --severity-high-border: #F59732;
+  --severity-medium-bg: rgba(202, 138, 4, 0.1);
+  --severity-medium-border: #CA8A04;
+  --severity-low-bg: rgba(156, 163, 175, 0.1);
+  --severity-low-border: #4A4A47;
 }
 
 body {
@@ -52,48 +151,52 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-button {
+button { cursor: pointer; font-family: inherit; }
+
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 600; }
+
+a { color: var(--color-brand); text-decoration: none; }
+
+/* ── Global Control Styles ── */
+/* Every <select>, button, and custom Select in the app
+   references these variables so height/font/radius are always in sync */
+
+select,
+.oi-select-trigger {
+  height: var(--ctrl-height);
+  font-size: var(--ctrl-font-size);
+  font-weight: var(--ctrl-font-weight);
+  padding: 0 var(--ctrl-padding-x);
+  border-radius: var(--ctrl-border-radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
   cursor: pointer;
   font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+  color-scheme: dark;
+  outline: none;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  font-weight: 600;
+select:hover,
+.oi-select-trigger:hover {
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text-primary);
 }
 
-a {
-  color: var(--color-brand);
-  text-decoration: none;
+select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-app);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }

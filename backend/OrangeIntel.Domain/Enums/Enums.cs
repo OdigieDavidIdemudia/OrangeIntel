@@ -5,7 +5,8 @@ public enum ThreatStatus
     New,
     Analyzing,
     Promoted,
-    Archived
+    Archived,
+    Acknowledged
 }
 
 public enum AdvisorySeverity

@@ -19,17 +19,25 @@ public class ReportsController : ControllerBase
         _service = service;
     }
 
+    private string GetCurrentUserId()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier) 
+            ?? User.FindFirstValue("id") 
+            ?? User.FindFirstValue("sub") 
+            ?? "system";
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Report>>> GetReports()
     {
-        return Ok(await _service.GetReportsAsync());
+        var userId = GetCurrentUserId();
+        return Ok(await _service.GetReportsAsync(userId));
     }
 
     [HttpPost("create")]
     public async Task<ActionResult<Report>> CreateReport([FromBody] CreateReportRequest request)
     {
-        // Get current user ID
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
+        var userId = GetCurrentUserId();
         
         // Enforce DOCX
         var report = await _service.GenerateReportAsync(request.ArtifactId, request.Type, "DOCX", userId);
@@ -41,7 +49,7 @@ public class ReportsController : ControllerBase
     [HttpGet("preview")]
     public async Task<IActionResult> PreviewReport([FromQuery] Guid artifactId, [FromQuery] string type)
     {
-         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
+         var userId = GetCurrentUserId();
          var fileBytes = await _service.GeneratePreviewAsync(artifactId, type, userId);
          
          if (fileBytes == null) return NotFound("Could not generate preview. Artifact might not exist.");
@@ -67,6 +75,11 @@ public class ReportsController : ControllerBase
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Log to database
+            await _service.SaveAdvisoryReportAsync(model, userId);
+
             var bytes = advisoryService.GenerateAdvisory(model);
             var fileName = $"GTBank_ThreatAdvisory_{model.Metadata.Title.Replace(" ", "_")}.docx";
             return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);

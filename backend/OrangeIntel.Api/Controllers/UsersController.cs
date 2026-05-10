@@ -41,7 +41,8 @@ public class UsersController : ControllerBase
             UserName = user.UserName!,
             Roles = roles.ToList(),
             MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
-            SignalPhoneNumber = user.SignalPhoneNumber,
+            FullName = user.FullName,
+            TelegramChatId = user.TelegramChatId,
             NotificationPreferencesJson = user.NotificationPreferencesJson
         };
     }
@@ -52,7 +53,14 @@ public class UsersController : ControllerBase
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return NotFound();
 
-        user.SignalPhoneNumber = model.SignalPhoneNumber;
+        user.FullName = model.FullName;
+        user.TelegramChatId = model.TelegramChatId;
+        
+        if (!string.IsNullOrEmpty(model.UserName) && model.UserName != user.UserName)
+        {
+            user.UserName = model.UserName;
+        }
+
         await _userManager.UpdateAsync(user);
 
         await _auditService.LogAsync(user.Id, "update_profile", "Updated profile details");
@@ -108,7 +116,8 @@ public class UsersController : ControllerBase
                 UserName = user.UserName!,
                 Roles = roles.ToList(),
                 MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
-                SignalPhoneNumber = user.SignalPhoneNumber,
+                FullName = user.FullName,
+                TelegramChatId = user.TelegramChatId,
                 NotificationPreferencesJson = user.NotificationPreferencesJson
             });
         }

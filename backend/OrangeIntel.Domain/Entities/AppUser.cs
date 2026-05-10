@@ -12,7 +12,8 @@ public class AppUser : IdentityUser
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
     
-    public string? SignalPhoneNumber { get; set; }
+    public string? FullName { get; set; }
+    public string? TelegramChatId { get; set; }
     
     // JSON blob for storing granular notification preferences
     // e.g. { "topic_promotion": true, "advisory_recommendation": true }
@@ -20,6 +21,9 @@ public class AppUser : IdentityUser
     
     // JSON blob for UI preferences (theme, density, etc.)
     public string? UiPreferencesJson { get; set; }
+    
+    // Security Versioning
+    public int TokenVersion { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

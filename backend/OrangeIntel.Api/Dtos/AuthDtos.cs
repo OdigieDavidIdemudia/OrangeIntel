@@ -12,6 +12,7 @@ public class LoginDto
     public string Password { get; set; } = string.Empty;
 
     public string? MfaCode { get; set; }
+    public bool TrustDevice { get; set; }
 }
 
 public class TokenDto

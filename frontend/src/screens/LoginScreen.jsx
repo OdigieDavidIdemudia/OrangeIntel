@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Eye, EyeOff, Shield, ShieldCheck, Lock, Globe, Sun, Moon } from 'lucide-react';
+import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import toast from 'react-hot-toast';
 import styles from './LoginScreen.module.css';
 
 const LoginScreen = () => {
@@ -15,13 +16,13 @@ const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-
-    // MFA State
-    const [requiresMfa, setRequiresMfa] = useState(false);
-    const [mfaCode, setMfaCode] = useState('');
-
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const [mfaCode, setMfaCode] = useState('');
+    const [requiresMfa, setRequiresMfa] = useState(false);
+    const [trustDevice, setTrustDevice] = useState(false);
+    const [pwnedWarning, setPwnedWarning] = useState('');
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -31,33 +32,50 @@ const LoginScreen = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setPwnedWarning('');
         setLoading(true);
 
         try {
-            const payload = {
-                email,
+            const res = await axios.post('/api/auth/login', { 
+                email, 
                 password,
-                ...(requiresMfa && { mfaCode })
-            };
+                mfaCode: requiresMfa ? mfaCode : null,
+                trustDevice 
+            });
+            
+            const { token, accessToken, AccessToken, refreshToken, RefreshToken, isPasswordPwned, IsPasswordPwned, message, Message } = res.data;
+            const finalAccessToken = token || accessToken || AccessToken;
+            const finalRefreshToken = refreshToken || RefreshToken;
+            const finalIsPwned = isPasswordPwned || IsPasswordPwned;
+            const finalMessage = message || Message;
+            
+            if (finalIsPwned) {
+                console.warn(finalMessage);
+                toast.error(finalMessage, { duration: 6000 });
+            }
 
-            const res = await axios.post('/api/auth/login', payload);
-            const { accessToken, refreshToken } = res.data;
+            if (!finalAccessToken) {
+                const keys = Object.keys(res.data).join(', ');
+                throw new Error(`Server returned success but no access token was found. Available keys: ${keys}`);
+            }
 
-            login(accessToken, refreshToken);
+            login(finalAccessToken, finalRefreshToken);
+            
             const from = location.state?.from?.pathname || '/';
             navigate(from, { replace: true });
 
         } catch (err) {
             console.error("Login failed:", err);
-            // Handle MFA challenge specifically if API returns 403 Forbidden with specific flag
-            // (Assumes backend structure supports this, otherwise standardized error)
-            if (err.response?.status === 403 && err.response.data?.requiresMfa) {
+            
+            if (err.response?.status === 403 && err.response?.data?.requiresMfa) {
                 setRequiresMfa(true);
-                setError('');
+                toast.success("MFA Required. Please enter your code.");
+                if (err.response.data.isPasswordPwned) {
+                    console.warn("Security Warning: Compromised password detected.");
+                }
             } else {
-                const status = err.response?.status;
-                const message = err.response?.data?.message || err.message;
-                setError(`Authentication failed (${status || 'Network Error'}): ${message}`);
+                const message = err.response?.data?.message || err.message || "Invalid credentials. Please try again.";
+                setError(`Error: ${message}`);
             }
         } finally {
             setLoading(false);
@@ -66,122 +84,106 @@ const LoginScreen = () => {
 
     return (
         <div className={styles.container}>
-            {/* Top Navigation / Header */}
-            <nav className={styles.topNav}>
-                <div className={styles.brand}>
-                    <img src="/logo.png" alt="OrangeIntel" className={styles.brandLogo} />
-                    <span><span className={styles.brandOrange}>Orange</span>Intel</span>
-                </div>
-                <div className={styles.navActions}>
-                    <button
-                        className={styles.themeToggle}
-                        onClick={toggleTheme}
-                        aria-label="Toggle Theme"
-                    >
-                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                    </button>
-                    <button className={styles.navButton}>Support</button>
-                    <button className={styles.primaryNavButton}>Contact Sales</button>
-                </div>
-            </nav>
+            {/* Floating Theme Toggle */}
+            <button
+                className={styles.pageThemeToggle}
+                onClick={toggleTheme}
+                aria-label="Toggle Theme"
+            >
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
-            {/* Main Content Area */}
-            <main className={styles.main}>
-                <div className={styles.loginCard}>
-                    <img src="/logo.png" alt="Logo" className={styles.cardLogo} />
+            <main className={styles.loginCard}>
+                <img src="/logo.png" alt="OrangeIntel Logo" className={styles.cardLogo} />
 
-                    <h1 className={styles.title}>Secure Login</h1>
-                    <p className={styles.subtitle}>Access your real-time threat intelligence platform</p>
+                <h1 className={styles.title}>Secure Login</h1>
+                <p className={styles.subtitle}>Access your real-time threat intelligence platform</p>
 
-                    {error && <div className={styles.error}>{error}</div>}
+                {error && <div className={styles.error}>{error}</div>}
 
-                    <form onSubmit={handleSubmit} className={styles.form}>
-                        {!requiresMfa ? (
-                            <>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Email Address</label>
-                                    <div className={styles.inputWrapper}>
-                                        <input
-                                            type="email"
-                                            className={styles.input}
-                                            placeholder="analyst@orange-intel.com"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className={styles.formGroup}>
-                                    <div className={styles.labelRow}>
-                                        <label className={styles.label}>Password</label>
-                                        <a href="#" className={styles.forgotLink}>Forgot?</a>
-                                    </div>
-                                    <div className={styles.inputWrapper}>
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            className={styles.input}
-                                            placeholder="••••••••"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            className={styles.passwordToggle}
-                                            onClick={() => setShowPassword(!showPassword)}
-                                        >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className={styles.formGroup}>
-                                <div className={styles.mfaBox}>
-                                    <div className={styles.mfaLabel}>
-                                        <ShieldCheck size={16} /> Multi-Factor Auth
-                                    </div>
-                                    <input
-                                        type="text"
-                                        className={styles.mfaInput}
-                                        value={mfaCode}
-                                        onChange={(e) => setMfaCode(e.target.value)}
-                                        placeholder="000000"
-                                        maxLength={6}
-                                        autoFocus
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <button type="submit" className={styles.submitButton} disabled={loading}>
-                            {loading ? 'Authenticating...' : (requiresMfa ? 'Verify Code' : 'Sign In to Platform')}
-                        </button>
-                    </form>
-
-                    <div className={styles.footerDetails}>
-                        <div className={styles.line}></div>
-                        <span>Secured Connection</span>
-                        <div className={styles.line}></div>
+                <form onSubmit={handleSubmit} className={styles.form}>
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Email Address</label>
+                        <div className={styles.inputWrapper}>
+                            <input
+                                type="email"
+                                className={styles.input}
+                                placeholder="admin@orangeintel.local"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={requiresMfa}
+                                autoFocus
+                            />
+                        </div>
                     </div>
+
+                    <div className={styles.formGroup}>
+                        <div className={styles.labelRow}>
+                            <label className={styles.label}>Password</label>
+                            <a href="#" className={styles.forgotLink}>Forgot?</a>
+                        </div>
+                        <div className={styles.inputWrapper}>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className={styles.input}
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={requiresMfa}
+                            />
+                            <button
+                                type="button"
+                                className={styles.passwordToggle}
+                                onClick={() => setShowPassword(!showPassword)}
+                                disabled={requiresMfa}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {requiresMfa && (
+                        <div className={styles.formGroup} style={{ animation: 'slideDown 0.3s ease-out' }}>
+                            <label className={styles.label}>MFA Verification Code</label>
+                            <div className={styles.inputWrapper}>
+                                <input
+                                    type="text"
+                                    className={styles.input}
+                                    placeholder="000000"
+                                    value={mfaCode}
+                                    onChange={(e) => setMfaCode(e.target.value)}
+                                    required
+                                    autoFocus
+                                    maxLength={6}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className={styles.trustDeviceGroup}>
+                        <label className={styles.checkboxLabel}>
+                            <input
+                                type="checkbox"
+                                checked={trustDevice}
+                                onChange={(e) => setTrustDevice(e.target.checked)}
+                            />
+                            <span>Trust this device for 24 hours</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" className={styles.submitButton} disabled={loading}>
+                        {loading ? 'Authenticating...' : requiresMfa ? 'Verify & Sign In' : 'Sign In to Platform'}
+                    </button>
+                </form>
+
+                <div className={styles.footerDetails}>
+                    <div className={styles.line}></div>
+                    <span>Secured Connection</span>
+                    <div className={styles.line}></div>
                 </div>
             </main>
-
-            {/* Sticky Footer */}
-            <footer className={styles.pageFooter}>
-                <div className={styles.badges}>
-                    <div className={styles.badge}><Lock size={14} /> AES-256 Protocol</div>
-                    <div className={styles.badge}><Shield size={14} /> SOC2 Compliant</div>
-                    <div className={styles.badge}><Globe size={14} /> Global Nodes</div>
-                </div>
-                <div className={styles.links}>
-                    <a href="#" className={styles.footerLink}>Privacy Policy</a>
-                    <a href="#" className={styles.footerLink}>Terms of Service</a>
-                    <span>© 2026 OrangeIntel Inc.</span>
-                </div>
-            </footer>
         </div>
     );
 };

@@ -1,182 +1,90 @@
-/* Global Reset for this screen */
+/* ============================================
+   ORANGEINTEL LOGIN SCREEN — PREMIUM REFINED
+   Aesthetics: Clean, Secure, High-Fidelity
+   ============================================ */
+
 .container {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    background-color: var(--bg-app, #F9FAFB);
-    /* Subtle Grid Pattern */
-    background-image:
-        linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    font-family: 'Inter', system-ui, sans-serif;
-    color: var(--text-primary, #111827);
-    overflow-x: hidden;
-}
-
-/* --- Navigation Header --- */
-.topNav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 3rem;
-    background-color: var(--bg-panel, #FFFFFF);
-    border-bottom: 1px solid var(--border-color, #E5E7EB);
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 800;
-    /* Extra Bold */
-    font-size: 1.5rem;
-    /* Larger */
-    color: var(--text-primary, #111827);
-    /* Revert to dark/theme color */
-    letter-spacing: -0.025em;
-}
-
-.brandOrange {
-    color: #F97316;
-    /* Orange Brand Color */
-}
-
-.brandLogo {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-}
-
-.navActions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.navButton {
-    background: transparent;
-    border: 1px solid var(--border-color, #E5E7EB);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary, #4B5563);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.navButton:hover {
-    background-color: var(--bg-hover, #F3F4F6);
-    color: var(--text-primary, #111827);
-}
-
-.primaryNavButton {
-    /* Structure */
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    /* Theme */
-    background-color: #F97316;
-    /* Brand Orange */
-    color: white;
-    border: 1px solid #F97316;
-}
-
-.primaryNavButton:hover {
-    background-color: #EA580C;
-    /* Darker Orange */
-    transform: translateY(-1px);
-}
-
-.themeToggle {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    color: var(--text-secondary, #6B7280);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.themeToggle:hover {
-    background-color: var(--bg-hover, #F3F4F6);
-    color: var(--text-primary, #111827);
-}
-
-/* --- Main Content Area --- */
-.main {
-    flex: 1;
-    display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
+    background-color: var(--bg-app);
+    background-image: 
+        linear-gradient(var(--border-subtle) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+    background-size: 30px 30px;
+    padding: var(--space-4);
+    position: relative;
 }
 
+[data-theme='dark'] .container {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Center Card */
 .loginCard {
-    background-color: var(--bg-panel, #FFFFFF);
-    padding: 3rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
+    padding: 48px;
     width: 100%;
     max-width: 460px;
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.05),
-        0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border-color, #E5E7EB);
-    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.4s ease-out;
 }
 
-/* Card Header */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+[data-theme='dark'] .loginCard {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
 .cardLogo {
     width: 48px;
     height: 48px;
-    object-fit: contain;
-    margin: 0 auto 1.5rem auto;
-    display: block;
-}
-
-.cardIconWrapper {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem auto;
+    margin-bottom: var(--space-6);
 }
 
 .title {
-    font-size: 1.75rem;
+    font-size: 28px;
     font-weight: 700;
-    color: var(--text-primary, #111827);
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.025em;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
 }
 
 .subtitle {
-    font-size: 0.95rem;
-    color: var(--text-secondary, #6B7280);
-    margin-bottom: 2.5rem;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    text-align: center;
 }
 
 /* Form Styles */
 .form {
-    text-align: left;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 20px;
 }
 
 .formGroup {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .labelRow {
@@ -186,212 +94,182 @@
 }
 
 .label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary, #374151);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-label);
 }
 
 .forgotLink {
-    font-size: 0.85rem;
-    color: #F97316;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-brand);
     text-decoration: none;
-    font-weight: 500;
-    cursor: pointer;
 }
 
 .forgotLink:hover {
     text-decoration: underline;
 }
 
+/* Input Styles */
 .inputWrapper {
     position: relative;
-    display: flex;
-    align-items: center;
+    width: 100%;
 }
 
 .input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color, #D1D5DB);
+    height: 44px;
+    background: var(--bg-app);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    font-size: 1rem;
-    color: var(--text-primary, #111827);
-    background-color: var(--bg-app, #FFFFFF);
+    padding: 0 16px;
+    font-size: 14px;
+    color: var(--text-primary);
     transition: all 0.2s;
+    outline: none;
 }
 
 .input:focus {
-    outline: none;
-    border-color: #F97316;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgba(224, 123, 0, 0.1);
+}
+
+.input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.5;
 }
 
 .passwordToggle {
     position: absolute;
-    right: 0.75rem;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     background: transparent;
     border: none;
-    color: var(--text-secondary, #9CA3AF);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-.passwordToggle:hover {
-    color: var(--text-primary, #4B5563);
-}
-
-/* MFA Section */
-.mfaBox {
-    background-color: var(--bg-app, #F9FAFB);
-    border: 1px solid var(--border-color, #E5E7EB);
-    padding: 1.5rem;
-    border-radius: 12px;
-    text-align: center;
-    margin-top: 0.5rem;
-}
-
-.mfaLabel {
+    color: var(--text-muted);
+    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-secondary, #4B5563);
-    margin-bottom: 1rem;
-    letter-spacing: 0.05em;
 }
 
-.mfaInput {
-    text-align: center;
-    font-family: 'Courier New', monospace;
-    font-size: 1.5rem;
-    letter-spacing: 0.5em;
-    padding: 0.75rem;
-    font-weight: 700;
-    width: 100%;
-    border: 1px solid var(--border-color, #D1D5DB);
-    border-radius: 8px;
-}
-
-.mfaInput:focus {
-    outline: none;
-    border-color: #F97316;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
-}
-
-/* Actions */
+/* Submit Button */
 .submitButton {
-    width: 100%;
-    padding: 0.875rem;
-    background-color: #F97316;
+    margin-top: 12px;
+    height: 48px;
+    background: var(--color-brand);
     color: white;
-    font-weight: 600;
-    font-size: 1rem;
     border: none;
     border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    margin-top: 1rem;
     transition: all 0.2s;
-    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.25);
+    box-shadow: 0 4px 12px rgba(224, 123, 0, 0.2);
 }
 
 .submitButton:hover {
-    background-color: #EA580C;
-    /* Orange-600 */
+    background: var(--color-brand-hover);
     transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(224, 123, 0, 0.3);
+}
+
+.submitButton:active {
+    transform: translateY(0);
 }
 
 .submitButton:disabled {
-    opacity: 0.7;
-    cursor: wait;
+    opacity: 0.6;
+    cursor: not-allowed;
     transform: none;
 }
 
+[data-theme='dark'] .submitButton {
+    color: #0F0F0E;
+}
+
+.trustDeviceGroup {
+    display: flex;
+    align-items: center;
+    margin-top: -8px;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkboxLabel input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-brand);
+}
+
+/* Error Message */
 .error {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--color-danger, #EF4444);
-    padding: 0.75rem;
+    width: 100%;
+    padding: 12px;
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger);
     border-radius: 8px;
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
+    color: var(--color-danger-text);
+    font-size: 13px;
+    margin-bottom: 20px;
     text-align: center;
-    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 /* Footer Section */
 .footerDetails {
-    margin-top: 2rem;
+    margin-top: 40px;
+    width: 100%;
     display: flex;
     align-items: center;
+    gap: 16px;
     justify-content: center;
-    gap: 1rem;
-    color: var(--text-muted, #9CA3AF);
-    font-size: 0.75rem;
-    font-weight: 600;
+}
+
+.footerDetails span {
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
 .line {
-    width: 40px;
+    flex: 1;
     height: 1px;
-    background-color: var(--border-color, #E5E7EB);
+    background: var(--border-subtle);
 }
 
-.pageFooter {
-    background-color: var(--bg-panel, #FFFFFF);
-    border-top: 1px solid var(--border-color, #E5E7EB);
-    padding: 1.5rem 3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-    color: var(--text-secondary, #6B7280);
-}
-
-.badges {
-    display: flex;
-    gap: 2rem;
-}
-
-.badge {
+/* Page Theme Toggle */
+.pageThemeToggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.links {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.footerLink {
-    text-decoration: none;
-    color: var(--text-secondary, #6B7280);
-    transition: color 0.1s;
-}
-
-.footerLink:hover {
-    color: var(--text-primary, #111827);
-}
-
-/* Mobile */
-@media (max-width: 640px) {
-    .topNav {
-        padding: 1rem;
-    }
-
-    .navActions,
-    .pageFooter {
-        display: none;
-    }
-
-    /* Simplify for mobile */
-    .loginCard {
-        padding: 2rem 1.5rem;
-    }
+.pageThemeToggle:hover {
+    background: var(--bg-hover);
+    color: var(--color-brand);
 }

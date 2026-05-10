@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using OrangeIntel.Application.DTOs;
 using OrangeIntel.Application.Services;
 using OrangeIntel.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OrangeIntel.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ThreatsController : ControllerBase
 {
     private readonly IThreatService _service;
@@ -79,4 +81,24 @@ public class ThreatsController : ControllerBase
         var count = await _ingestionService.PurgeIrrelevantThreatsAsync();
         return Ok(new { message = $"Purged {count} irrelevant threat items from the database.", count });
     }
+
+    [HttpPost("{id}/acknowledge")]
+    public async Task<ActionResult> AcknowledgeThreat(Guid id, [FromBody] AcknowledgeThreatRequest request)
+    {
+        var result = await _service.AcknowledgeThreatAsync(id, request.AcknowledgedBy, request.Note);
+        if (!result)
+        {
+            return NotFound("Threat not found");
+        }
+        return Ok(new { message = "Threat acknowledged" });
+    }
+
+    [HttpGet("acknowledged")]
+    public async Task<ActionResult<IEnumerable<ThreatItem>>> GetAcknowledgedThreats()
+    {
+        var threats = await _service.GetAcknowledgedThreatsAsync();
+        return Ok(threats);
+    }
 }
+
+public record AcknowledgeThreatRequest(string AcknowledgedBy, string Note);

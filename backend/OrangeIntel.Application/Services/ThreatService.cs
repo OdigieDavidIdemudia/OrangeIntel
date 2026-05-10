@@ -313,7 +313,9 @@ public class ThreatService : IThreatService
     public async Task<IEnumerable<ThreatItem>> GetFilteredIntelligenceAsync(string? priority, int? days, string? sector, DateTime? startDate = null, DateTime? endDate = null)
     {
         var all = await _repository.GetAllAsync();
-        var query = all.AsQueryable();
+        var query = all
+            .Where(t => t.Status == ThreatStatus.New || t.Status == ThreatStatus.Analyzing)
+            .AsQueryable();
 
         // 1. Priority Filter
         if (!string.IsNullOrEmpty(priority) && priority != "All")
@@ -357,6 +359,27 @@ public class ThreatService : IThreatService
         threat.Status = ThreatStatus.Archived;
         await _repository.UpdateAsync(threat);
         return true;
+    }
+
+    public async Task<bool> AcknowledgeThreatAsync(Guid threatId, string acknowledgedBy, string note)
+    {
+        var threat = await _repository.GetByIdAsync(threatId);
+        if (threat == null) return false;
+
+        threat.Status = ThreatStatus.Acknowledged;
+        threat.AcknowledgedBy = acknowledgedBy;
+        threat.AcknowledgedAt = DateTime.UtcNow;
+        threat.AcknowledgementNote = note;
+        await _repository.UpdateAsync(threat);
+        return true;
+    }
+
+    public async Task<IEnumerable<ThreatItem>> GetAcknowledgedThreatsAsync()
+    {
+        var all = await _repository.GetAllAsync();
+        return all
+            .Where(t => t.Status == ThreatStatus.Acknowledged)
+            .OrderByDescending(t => t.AcknowledgedAt);
     }
 
     public async Task<int> MigrateExistingThreatsAsync()

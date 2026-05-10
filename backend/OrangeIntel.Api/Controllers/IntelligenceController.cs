@@ -6,6 +6,7 @@ namespace OrangeIntel.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class IntelligenceController : ControllerBase
 {
     private readonly IThreatService _threatService;

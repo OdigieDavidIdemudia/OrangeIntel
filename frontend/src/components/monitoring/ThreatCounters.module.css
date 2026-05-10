@@ -1,30 +1,35 @@
+/* ============================================
+   THREAT COUNTERS — PREMIUM DASHBOARD COMPONENT
+   ============================================ */
+
 .container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: var(--space-4);
 }
 
 .counterCard {
     background: var(--bg-panel);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 1.5rem;
+    border-radius: 12px;
+    padding: var(--space-4);
     position: relative;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
 }
 
 .counterCard:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-emphasis, #C4C2BC);
 }
 
 .cardHeader {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-3);
 }
 
 .labelGroup {
@@ -33,34 +38,34 @@
 }
 
 .label {
-    font-size: 0.75rem;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.05em;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .priorityBadge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
+    font-size: 10px;
+    padding: 1px 6px;
     border-radius: 4px;
-    font-weight: 800;
+    font-weight: 700;
     margin-top: 4px;
     width: fit-content;
     text-transform: uppercase;
 }
 
 .value {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 32px;
+    font-weight: 700;
     line-height: 1;
-    margin-bottom: 0.5rem;
-    font-family: 'Inter', sans-serif;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
 }
 
 .delta {
     display: flex;
     align-items: center;
-    font-size: 0.85rem;
+    font-size: 11px;
     font-weight: 600;
 }
 
@@ -69,51 +74,53 @@
 }
 
 .progressContainer {
-    margin-top: 1.5rem;
+    margin-top: var(--space-4);
 }
 
 .progressLabel {
     display: flex;
     justify-content: space-between;
-    font-size: 0.75rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    text-transform: uppercase;
 }
 
 .progressBar {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
+    height: 4px;
+    background: var(--border-subtle);
+    border-radius: 2px;
     overflow: hidden;
 }
 
 .progressFill {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Priority Specific Colors */
+/* Priority Specific Overrides */
 .high .priorityBadge {
-    background: rgba(239, 68, 68, 0.1);
-    color: #EF4444;
+    background: var(--severity-high-bg);
+    color: var(--severity-high-text);
 }
-.high .value { color: #EF4444; }
-.high .progressFill { background: #EF4444; }
+.high .progressFill { background: var(--severity-high-border); }
 
 .medium .priorityBadge {
-    background: rgba(245, 158, 11, 0.1);
-    color: #F59E0B;
+    background: var(--severity-medium-bg);
+    color: var(--severity-medium-text);
 }
-.medium .value { color: #F59E0B; }
-.medium .progressFill { background: #F59E0B; }
+.medium .progressFill { background: var(--severity-medium-border); }
 
 .low .priorityBadge {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3B82F6;
+    background: var(--severity-low-bg);
+    color: var(--severity-low-text);
 }
-.low .value { color: #3B82F6; }
-.low .progressFill { background: #3B82F6; }
+.low .progressFill { background: var(--severity-low-border); }
+
+[data-theme='dark'] .high .priorityBadge { background: rgba(245, 151, 50, 0.1); color: #F59732; }
+[data-theme='dark'] .high .progressFill { background: #F59732; }
 
 @media (max-width: 1024px) {
     .container {

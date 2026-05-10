@@ -63,4 +63,56 @@ public class JwtTokenService : ITokenService
 
         return principal;
     }
+
+    public string GenerateMfaTrustToken(string userId)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? "super_secret_key_change_me_in_prod_12345!"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim("sub", userId),
+            new Claim("mfa_trust", "true")
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"] ?? "OrangeIntel",
+            audience: _config["Jwt:Audience"] ?? "OrangeIntelUser",
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(24),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public bool ValidateMfaTrustToken(string token, string userId)
+    {
+        if (string.IsNullOrEmpty(token)) return false;
+        
+        try
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? "super_secret_key_change_me_in_prod_12345!"));
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidAudience = _config["Jwt:Audience"] ?? "OrangeIntelUser",
+                ValidIssuer = _config["Jwt:Issuer"] ?? "OrangeIntel",
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateLifetime = true
+            }, out _);
+
+            var subClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier) ?? principal.Claims.FirstOrDefault(c => c.Type == "sub");
+            var trustClaim = principal.Claims.FirstOrDefault(c => c.Type == "mfa_trust");
+
+            return subClaim?.Value == userId && trustClaim?.Value == "true";
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

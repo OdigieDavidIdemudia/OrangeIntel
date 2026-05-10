@@ -1,145 +1,182 @@
+/* ============================================
+   ORANGEINTEL REPORT BUILDER — PREMIUM REFINED
+   Aesthetics: Document-centric, Clean, Precise
+   ============================================ */
+
 .container {
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
+    padding: var(--space-6) var(--space-6) var(--space-7);
 }
 
+/* Header */
 .header {
-    margin-bottom: 2.5rem;
+    margin-bottom: var(--space-7);
 }
 
 .title {
-    font-size: 2rem;
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-1);
 }
 
 .subtitle {
-    color: var(--text-secondary);
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
+/* Generator Panel */
 .generator {
     background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 3rem;
+    padding: var(--space-6);
+    margin-bottom: var(--space-7);
     box-shadow: var(--shadow-sm);
 }
 
 .panelHeader {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
     color: var(--color-brand);
 }
 
-.panelIcon {
-    background-color: rgba(249, 115, 22, 0.1);
-    padding: 0.5rem;
-    border-radius: 50%;
-    display: flex;
+.panelHeader h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
+.panelIcon {
+    background-color: rgba(224, 123, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme='dark'] .panelIcon {
+    background-color: rgba(245, 151, 50, 0.1);
+}
+
+/* Field Grid */
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
 }
 
 .field {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-2);
 }
 
 .field label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.field select,
-.field input {
-    padding: 0.75rem;
-    background-color: var(--bg-app);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-label);
 }
 
 .hint {
-    font-size: 0.75rem;
+    font-size: 12px;
     color: var(--text-muted);
+    font-weight: 400;
 }
 
-.formatToggle {
-    display: flex;
-    background-color: var(--bg-app);
-    border-radius: 6px;
-    padding: 2px;
-    border: 1px solid var(--border-color);
-}
-
-.formatToggle button {
-    flex: 1;
-    border: none;
-    background: none;
-    padding: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    border-radius: 4px;
-    font-weight: 600;
-}
-
-.formatToggle button.active {
-    background-color: var(--bg-panel);
-    color: var(--text-primary);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
+/* Actions */
 .generateAction {
     display: flex;
     justify-content: flex-end;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    align-items: center;
+    gap: var(--space-4);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-subtle);
 }
 
 .generateButton {
     background-color: var(--color-brand);
     color: white;
     border: none;
-    padding: 0.75rem 2rem;
+    padding: 8px 24px;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 1rem;
-    transition: background-color 0.2s;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+[data-theme='dark'] .generateButton {
+    color: var(--page-canvas-background);
 }
 
 .generateButton:hover {
     background-color: var(--color-brand-hover);
+    box-shadow: 0 4px 12px rgba(224, 123, 0, 0.2);
 }
 
-/* History Table */
+.previewButton {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.previewButton:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--text-muted);
+}
+
+/* History Section */
+.history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
 .historyHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+}
+
+.historyHeader h3 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-label);
 }
 
 .search {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
     background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
-    padding: 0.5rem 0.75rem;
+    padding: 0 12px;
     border-radius: 6px;
-    width: 250px;
+    height: 34px;
+    width: 240px;
     color: var(--text-muted);
+    transition: border-color 0.2s;
+}
+
+.search:focus-within {
+    border-color: var(--color-brand);
 }
 
 .search input {
@@ -147,84 +184,101 @@
     background: none;
     outline: none;
     color: var(--text-primary);
+    font-size: 13px;
     width: 100%;
 }
 
+/* Table Refinement */
 .table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background-color: var(--bg-panel);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .table th {
     text-align: left;
-    padding: 1rem;
-    font-size: 0.75rem;
+    padding: 12px 16px;
+    font-size: 11px;
     text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-label);
+    font-weight: 700;
     border-bottom: 1px solid var(--border-color);
-    background-color: var(--bg-app);
+    background-color: var(--sidebar-background);
 }
 
 .table td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: 13px;
+    vertical-align: middle;
 }
 
-.idCell {
-    font-family: monospace;
-    color: var(--color-brand);
+.table tr:last-child td {
+    border-bottom: none;
 }
 
 .topicCell {
-    white-space: normal;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    min-width: 300px;
-    line-height: 1.4;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
+/* Badges */
 .badge {
-    padding: 0.25rem 0.5rem;
+    padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 11px;
     font-weight: 700;
 }
 
 .TLPRED {
-    background-color: #EF4444;
-    color: white;
+    background-color: var(--tag-tlp-red-bg, #EF4444);
+    color: var(--tag-tlp-red-text, white);
 }
 
 .TLPAMBER {
-    background-color: #F59E0B;
-    color: black;
+    background-color: var(--tag-tlp-amber-bg, #F59E0B);
+    color: var(--tag-tlp-amber-text, black);
 }
 
 .TLPGREEN {
-    background-color: #10B981;
-    color: white;
+    background-color: var(--tag-tlp-green-bg, #10B981);
+    color: var(--tag-tlp-green-text, white);
 }
 
 .TLPCLEAR {
-    background-color: #E5E7EB;
-    color: black;
+    background-color: var(--border-subtle);
+    color: var(--text-muted);
 }
 
 .downloadButton {
-    background: none;
-    border: none;
+    background: transparent;
+    border: 1px solid var(--border-color);
     color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: all 0.2s;
 }
 
 .downloadButton:hover {
     color: var(--color-brand);
+    border-color: var(--color-brand);
+    background-color: var(--bg-hover);
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }

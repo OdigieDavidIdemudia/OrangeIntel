@@ -38,7 +38,8 @@ public class AdminController : ControllerBase
                 UserName = user.UserName!,
                 Roles = roles.ToList(),
                 MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
-                SignalPhoneNumber = user.SignalPhoneNumber,
+                FullName = user.FullName,
+                TelegramChatId = user.TelegramChatId,
                 CreatedAt = user.CreatedAt
             });
         }
@@ -94,11 +95,66 @@ public class AdminController : ControllerBase
         if (user == null) return NotFound();
 
         user.MfaSecret = null;
+        user.TokenVersion++;
         await _userManager.UpdateAsync(user);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
-        await _auditService.LogAsync(currentUserId, "reset_mfa", $"Reset MFA for user {user.Email}");
+        await _auditService.LogAsync(currentUserId, "reset_mfa", $"Reset MFA and revoked sessions for user {user.Email}");
 
-        return Ok("MFA reset successfully");
+        return Ok("MFA reset successfully and sessions revoked.");
+    }
+
+    [HttpDelete("users/{id}")]
+    [Authorize(Roles = "super_admin")]
+    public async Task<ActionResult> DeleteUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+
+        var currentUserId = _userManager.GetUserId(User) ?? "unknown";
+        await _auditService.LogAsync(currentUserId, "delete_user", $"Deleted user {user.Email}");
+
+        return Ok("User deleted successfully");
+    }
+
+    [HttpPost("users/{id}/sessions/revoke")]
+    [Authorize(Roles = "super_admin")]
+    public async Task<ActionResult> RevokeSessions(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        user.TokenVersion++;
+        await _userManager.UpdateAsync(user);
+
+        var currentUserId = _userManager.GetUserId(User) ?? "unknown";
+        await _auditService.LogAsync(currentUserId, "revoke_sessions", $"Revoked all sessions for user {user.Email}");
+
+        return Ok("All sessions have been revoked.");
+    }
+
+    [HttpPost("users/{id}/password/reset")]
+    [Authorize(Roles = "super_admin")]
+    public async Task<ActionResult> ResetPassword(string id, [FromBody] AdminResetPasswordDto model)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+        
+        if (!result.Succeeded) return BadRequest(result.Errors);
+
+        // Security requirement: Revoke all existing sessions on password reset
+        user.TokenVersion++;
+        await _userManager.UpdateAsync(user);
+
+        var currentUserId = _userManager.GetUserId(User) ?? "unknown";
+        await _auditService.LogAsync(currentUserId, "admin_reset_password", $"Admin reset password for user {user.Email}");
+
+        return Ok("Password reset successfully and sessions revoked.");
     }
 }

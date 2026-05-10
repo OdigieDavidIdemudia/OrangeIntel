@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { User, Brain, Network, Shield, Settings as SettingsIcon, Monitor } from 'lucide-react';
+import { User, Brain, Network, Shield, Settings as SettingsIcon, Monitor, CheckCircle, AlertTriangle, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import styles from './SettingsScreen.module.css';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-
+import Select from '../components/common/Select';
 import Modal from '../components/common/Modal';
 
 const SettingsScreen = () => {
@@ -12,17 +12,17 @@ const SettingsScreen = () => {
     const [activeTab, setActiveTab] = useState('personal');
 
     const tabs = [
-        { id: 'personal', label: 'Personal', icon: User, hidden: false },
-        { id: 'monitor', label: 'Monitor Config', icon: Monitor, hidden: false },
+        { id: 'personal', label: 'Account', icon: User, hidden: false },
+        { id: 'monitor', label: 'Monitor', icon: Monitor, hidden: false },
         { id: 'intelligence', label: 'Intelligence', icon: Brain, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
-        { id: 'integration', label: 'Integration', icon: Network, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
-        { id: 'security', label: 'Security & Access', icon: Shield, hidden: !user?.roles?.includes('super_admin') },
-        { id: 'system', label: 'System Controls', icon: SettingsIcon, hidden: !user?.roles?.includes('super_admin') },
+        { id: 'integration', label: 'Integrations', icon: Network, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
+        { id: 'security', label: 'Security', icon: Shield, hidden: !user?.roles?.includes('super_admin') },
+        { id: 'system', label: 'System', icon: SettingsIcon, hidden: !user?.roles?.includes('super_admin') },
     ];
 
     return (
         <div className={styles.container}>
-            <div className={styles.sidebar}>
+            <aside className={styles.sidebar}>
                 <h2 className={styles.title}>Settings</h2>
                 <nav className={styles.nav}>
                     {tabs.filter(t => !t.hidden).map(tab => (
@@ -31,31 +31,37 @@ const SettingsScreen = () => {
                             onClick={() => setActiveTab(tab.id)}
                             className={`${styles.navItem} ${activeTab === tab.id ? styles.active : ''}`}
                         >
-                            <tab.icon size={18} />
+                            <tab.icon size={16} />
                             <span>{tab.label}</span>
                         </button>
                     ))}
                 </nav>
-            </div>
-            <div className={styles.content}>
+            </aside>
+            <main className={styles.content}>
                 {activeTab === 'personal' && <PersonalSettings user={user} />}
                 {activeTab === 'monitor' && <MonitorSettings />}
                 {activeTab === 'intelligence' && <IntelligenceSettings />}
                 {activeTab === 'integration' && <IntegrationSettings />}
                 {activeTab === 'security' && <SecuritySettings />}
                 {activeTab === 'system' && <SystemSettings />}
-            </div>
+            </main>
         </div>
     );
 };
 
-const Toggle = ({ checked, onChange }) => (
-    <button
-        onClick={() => onChange({ target: { checked: !checked } })}
-        className={`${styles.enableBtn} ${checked ? styles.btnStateOn : styles.btnStateOff}`}
-    >
-        {checked ? 'Disable' : 'Enable'}
-    </button>
+/* Unified High-Fidelity Toggle */
+const Toggle = ({ label, checked, onChange }) => (
+    <div className={styles.toggleWrapper}>
+        <label>{label}</label>
+        <label className={styles.switch}>
+            <input 
+                type="checkbox" 
+                checked={checked} 
+                onChange={e => onChange(e)} 
+            />
+            <span className={styles.slider}></span>
+        </label>
+    </div>
 );
 
 // --- Settings Logic Hook ---
@@ -68,9 +74,7 @@ const useSettings = (category) => {
             try {
                 const response = await axios.get(`/api/settings?category=${category}`);
                 const settingsMap = {};
-                response.data.forEach(s => {
-                    settingsMap[s.key] = s.value;
-                });
+                response.data.forEach(s => { settingsMap[s.key] = s.value; });
                 setSettings(settingsMap);
             } catch (error) {
                 console.error("Failed to fetch settings", error);
@@ -82,20 +86,12 @@ const useSettings = (category) => {
     }, [category]);
 
     const updateSetting = async (key, value) => {
-        // Optimistic update
         setSettings(prev => ({ ...prev, [key]: value }));
-
         try {
-            // We send a list because the backend expects bulk updates but we can send one
-            await axios.put('/api/settings', [{
-                key,
-                value: String(value), // Ensure string
-                category
-            }]);
-            toast.success("Settings saved");
+            await axios.put('/api/settings', [{ key, value: String(value), category }]);
+            toast.success("Configuration updated");
         } catch (error) {
-            toast.error("Failed to save setting");
-            console.error(error);
+            toast.error("Failed to save changes");
         }
     };
 
@@ -103,162 +99,231 @@ const useSettings = (category) => {
 };
 
 const PersonalSettings = ({ user }) => {
+    const [profile, setProfile] = useState({ fullName: '', userName: '', email: '', telegramChatId: '' });
     const [userSettings, setUserSettings] = useState({ mfaEnabled: false });
     const [loading, setLoading] = useState(true);
-    const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
+    
+    // Change Password State
+    const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+    const [changingPassword, setChangingPassword] = useState(false);
 
-    // MFA Setup State
-    const [mfaStep, setMfaStep] = useState('init'); // init, qr, verify, success
+    const [isMfaModalOpen, setIsMfaModalOpen] = useState(false);
     const [mfaData, setMfaData] = useState({ secret: '', qrCodeUri: '' });
     const [mfaCode, setMfaCode] = useState('');
 
     useEffect(() => {
-        const fetchUserSettings = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axios.get('/api/settings/user');
-                setUserSettings(response.data);
+                const [profileRes, settingsRes] = await Promise.all([
+                    axios.get('/api/users/profile'),
+                    axios.get('/api/settings/user')
+                ]);
+                setProfile(profileRes.data);
+                setUserSettings(settingsRes.data);
             } catch (error) {
-                console.error("Failed to fetch user settings", error);
+                console.error("Failed to fetch account data", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchUserSettings();
+        fetchData();
     }, []);
+
+    const handleUpdateProfile = async () => {
+        setSaving(true);
+        try {
+            await axios.put('/api/users/profile', {
+                fullName: profile.fullName,
+                userName: profile.userName,
+                telegramChatId: profile.telegramChatId
+            });
+            toast.success("Profile updated successfully");
+        } catch (error) {
+            toast.error("Failed to update profile");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (passwords.new !== passwords.confirm) {
+            toast.error("Passwords do not match");
+            return;
+        }
+        setChangingPassword(true);
+        try {
+            await axios.post('/api/users/change-password', {
+                currentPassword: passwords.current,
+                newPassword: passwords.new
+            });
+            toast.success("Password changed successfully");
+            setPasswords({ current: '', new: '', confirm: '' });
+        } catch (error) {
+            toast.error(error.response?.data?.[0]?.description || "Failed to change password");
+        } finally {
+            setChangingPassword(false);
+        }
+    };
 
     const handleMfaToggle = async () => {
         if (!userSettings.mfaEnabled) {
-            // Start Setup
             try {
                 const res = await axios.post('/api/auth/mfa/setup');
                 setMfaData(res.data);
-                setMfaStep('qr');
                 setIsMfaModalOpen(true);
-            } catch {
-                toast.error("Failed to start MFA setup");
-            }
+            } catch { toast.error("MFA setup failed"); }
         } else {
-            // Disable MFA
-            if (window.confirm("Are you sure you want to disable MFA? This will reduce your account security.")) {
+            if (window.confirm("Disable MFA? Your account will be less secure.")) {
                 try {
                     await axios.post('/api/auth/mfa/disable');
                     setUserSettings(prev => ({ ...prev, mfaEnabled: false }));
                     toast.success("MFA Disabled");
-                } catch {
-                    toast.error("Failed to disable MFA");
-                }
+                } catch { toast.error("Action failed"); }
             }
         }
     };
 
-    const verifyMfa = async () => {
-        try {
-            await axios.post('/api/auth/mfa/verify', {
-                secret: mfaData.secret,
-                code: mfaCode
-            });
-            setUserSettings(prev => ({ ...prev, mfaEnabled: true }));
-            setIsMfaModalOpen(false);
-            setMfaStep('init');
-            setMfaCode('');
-            toast.success("MFA Enabled Successfully");
-        } catch {
-            toast.error("Invalid Code. Please try again.");
-        }
-    };
-
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className={styles.loading}>Accessing Profile...</div>;
 
     return (
         <div className={styles.section}>
-            <h3>Personal Settings</h3>
+            <h3>Account Settings</h3>
 
             <div className={styles.card}>
-                <h4>Profile</h4>
-                <div className={styles.formGroup}>
-                    <label>Display Name</label>
-                    <input type="text" className={styles.input} placeholder="Display Name" defaultValue={user?.userName || "User"} />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>Email</label>
-                    <input type="email" className={styles.input} disabled defaultValue={user?.email || "user@example.com"} />
-                </div>
-                <div className={styles.formGroup}>
-                    <label>Timezone</label>
-                    <select className={styles.select}>
-                        <option>UTC</option>
-                        <option>America/New_York</option>
-                        <option>Europe/London</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className={styles.card}>
-                <h4>Authentication</h4>
-                <div className={styles.row}>
-                    <label>Multi-Factor Authentication (MFA)</label>
-                    <Toggle checked={userSettings.mfaEnabled} onChange={handleMfaToggle} />
-                </div>
-                <div className={styles.badgeList}>
-                    <span className={styles.badge}>Status: {userSettings.mfaEnabled ? 'Enabled' : 'Disabled'}</span>
-                </div>
-            </div>
-
-            <div className={styles.card}>
-                <h4>Notifications</h4>
-                <div className={styles.row}>
-                    <label>In-App Notifications</label>
-                    <Toggle checked={true} onChange={() => { }} />
-                </div>
-                <div className={styles.row}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <label>Signal Integration</label>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Get alerts on your phone</span>
+                <h4><User size={14} /> Profile Information</h4>
+                <div className={styles.grid2}>
+                    <div className={styles.formGroup}>
+                        <label>Full Name</label>
+                        <input 
+                            type="text" 
+                            className={styles.input} 
+                            value={profile.fullName || ''} 
+                            onChange={e => setProfile({...profile, fullName: e.target.value})}
+                            placeholder="Analyst Name"
+                        />
                     </div>
-                    <button className={styles.btnPrimary} style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}>Link Number</button>
+                    <div className={styles.formGroup}>
+                        <label>Analyst Username</label>
+                        <input 
+                            type="text" 
+                            className={styles.input} 
+                            value={profile.userName || ''} 
+                            onChange={e => setProfile({...profile, userName: e.target.value})}
+                        />
+                    </div>
                 </div>
-                <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                        <input type="checkbox" className={styles.checkbox} defaultChecked />
-                        Notify on Topic Assigned
-                    </label>
-                    <label className={styles.checkboxLabel}>
-                        <input type="checkbox" className={styles.checkbox} defaultChecked />
-                        Notify on Advisory Approved
-                    </label>
+                <div className={styles.formGroup}>
+                    <label>Registered Email</label>
+                    <input type="email" className={styles.input} disabled value={profile.email || ''} />
+                </div>
+                <div className={styles.formGroup}>
+                    <label>Telegram Chat ID</label>
+                    <input 
+                        type="text" 
+                        className={styles.input} 
+                        value={profile.telegramChatId || ''} 
+                        onChange={e => setProfile({...profile, telegramChatId: e.target.value})}
+                        placeholder="Telegram Chat ID"
+                    />
+                    <span className={styles.hint}>Used for personalized threat alerts via Telegram Bot</span>
+                </div>
+                <button 
+                    className={styles.btnPrimary} 
+                    onClick={handleUpdateProfile}
+                    disabled={saving}
+                >
+                    {saving ? 'Saving...' : 'Save Profile Changes'}
+                </button>
+            </div>
+
+            <div className={styles.card}>
+                <h4><Lock size={14} /> Password Management</h4>
+                <form onSubmit={handleChangePassword}>
+                    <div className={styles.formGroup}>
+                        <label>Current Password</label>
+                        <input 
+                            type="password" 
+                            className={styles.input} 
+                            value={passwords.current}
+                            onChange={e => setPasswords({...passwords, current: e.target.value})}
+                            required
+                        />
+                    </div>
+                    <div className={styles.grid2}>
+                        <div className={styles.formGroup}>
+                            <label>New Password</label>
+                            <input 
+                                type="password" 
+                                className={styles.input} 
+                                value={passwords.new}
+                                onChange={e => setPasswords({...passwords, new: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label>Confirm New Password</label>
+                            <input 
+                                type="password" 
+                                className={styles.input} 
+                                value={passwords.confirm}
+                                onChange={e => setPasswords({...passwords, confirm: e.target.value})}
+                                required
+                            />
+                        </div>
+                    </div>
+                    <button 
+                        type="submit"
+                        className={styles.btnPrimary} 
+                        disabled={changingPassword}
+                    >
+                        {changingPassword ? 'Updating...' : 'Update Password'}
+                    </button>
+                </form>
+            </div>
+
+            <div className={styles.card}>
+                <h4><Shield size={14} /> Multi-Factor Authentication</h4>
+                <Toggle 
+                    label="Enable MFA Security" 
+                    checked={userSettings.mfaEnabled} 
+                    onChange={handleMfaToggle} 
+                />
+                <div style={{ marginTop: '8px' }}>
+                    {userSettings.mfaEnabled ? 
+                        <span className={styles.statusHealthy}><CheckCircle size={14} /> Protected by MFA</span> : 
+                        <span className={styles.statusWarning}><AlertTriangle size={14} /> MFA is highly recommended</span>
+                    }
                 </div>
             </div>
 
-            <Modal isOpen={isMfaModalOpen} onClose={() => setIsMfaModalOpen(false)} title="Setup MFA">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', padding: '1rem' }}>
-                    {mfaStep === 'qr' && (
-                        <>
-                            <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-                                Scan this QR code with your authenticator app (e.g. Google Authenticator, Authy).
-                            </p>
-                            <div style={{ background: 'white', padding: '10px', borderRadius: '8px' }}>
-                                {/* In a real app, use a QR code library. For now, we display the secret text fallback if no QR lib */}
-                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mfaData.qrCodeUri)}`} alt="QR Code" />
-                            </div>
-                            <div style={{ width: '100%' }}>
-                                <label style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Or enter manual key:</label>
-                                <div style={{ background: 'var(--bg-app)', padding: '0.5rem', borderRadius: '4px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                                    {mfaData.secret}
-                                </div>
-                            </div>
-                            <div style={{ width: '100%', display: 'flex', gap: '0.5rem' }}>
-                                <input
-                                    type="text"
-                                    className={styles.input}
-                                    placeholder="Enter 6-digit Code"
-                                    value={mfaCode}
-                                    onChange={(e) => setMfaCode(e.target.value)}
-                                    maxLength={6}
-                                />
-                                <button className={styles.btnPrimary} onClick={verifyMfa}>Verify</button>
-                            </div>
-                        </>
-                    )}
+            <Modal isOpen={isMfaModalOpen} onClose={() => setIsMfaModalOpen(false)} title="Setup Multi-Factor Authentication">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', alignItems: 'center', padding: '1rem' }}>
+                    <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                        Scan this QR code with your authenticator app to secure your account.
+                    </p>
+                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(mfaData.qrCodeUri)}`} alt="QR Code" />
+                    </div>
+                    <div style={{ width: '100%', display: 'flex', gap: '8px' }}>
+                        <input
+                            type="text"
+                            className={styles.input}
+                            placeholder="6-digit code"
+                            value={mfaCode}
+                            onChange={(e) => setMfaCode(e.target.value)}
+                            maxLength={6}
+                        />
+                        <button className={styles.btnPrimary} onClick={async () => {
+                            try {
+                                await axios.post('/api/auth/mfa/verify', { secret: mfaData.secret, code: mfaCode });
+                                setUserSettings(prev => ({ ...prev, mfaEnabled: true }));
+                                setIsMfaModalOpen(false);
+                                toast.success("Security verified");
+                            } catch { toast.error("Verification failed"); }
+                        }}>Verify</button>
+                    </div>
                 </div>
             </Modal>
         </div>
@@ -267,77 +332,51 @@ const PersonalSettings = ({ user }) => {
 
 const IntelligenceSettings = () => {
     const { settings, updateSetting, loading } = useSettings('intelligence');
-
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className={styles.loading}>Synchronizing Policies...</div>;
 
     return (
         <div className={styles.section}>
-            <h3>Intelligence Settings</h3>
+            <h3>Intelligence Governance</h3>
             <div className={styles.card}>
-                <h4>Ingestion Control</h4>
-                <div className={styles.row}>
-                    <label>Max Topics Per Day</label>
-                    <input
-                        type="number"
-                        className={styles.input}
-                        value={settings['max_topics'] || 10}
-                        onChange={(e) => updateSetting('max_topics', e.target.value)}
-                        style={{ width: '80px' }}
-                    />
+                <h4><Brain size={14} /> Ingestion Orchestration</h4>
+                <div className={styles.formGroup}>
+                    <label>Maximum Daily Ingestion Volume</label>
+                    <input type="number" className={styles.input} value={settings['max_topics'] || 10} onChange={(e) => updateSetting('max_topics', e.target.value)} />
                 </div>
-                <div className={styles.row}>
-                    <label>Poll Interval (Minutes)</label>
-                    <input
-                        type="number"
-                        className={styles.input}
-                        value={settings['poll_interval'] || 30}
-                        onChange={(e) => updateSetting('poll_interval', e.target.value)}
-                        style={{ width: '80px' }}
-                    />
-                </div>
-
+                <Toggle 
+                    label="Auto-Promote High Corroboration Threats" 
+                    checked={settings['promo_multi_source'] === 'true'} 
+                    onChange={e => updateSetting('promo_multi_source', e.target.checked)} 
+                />
             </div>
+        </div>
+    );
+};
 
+const MonitorSettings = () => {
+    const [threatWindow, setThreatWindow] = useState(() => localStorage.getItem('monitor_threat_window') || '7');
+    const [refreshInterval, setRefreshInterval] = useState(() => localStorage.getItem('monitor_refresh_interval') || '60');
+
+    return (
+        <div className={styles.section}>
+            <h3>Monitor Configuration</h3>
             <div className={styles.card}>
-                <h4>Severity Logic</h4>
-                <div className={styles.row}>
-                    <label>Enable Medium Threats</label>
-                    <Toggle
-                        checked={settings['enable_medium_threats'] === 'true'}
-                        onChange={(e) => updateSetting('enable_medium_threats', e.target.checked)}
+                <h4>Display Parameters</h4>
+                <div className={styles.formGroup}>
+                    <label>Historical Threat Window</label>
+                    <Select
+                        value={threatWindow}
+                        onChange={e => { setThreatWindow(e.target.value); localStorage.setItem('monitor_threat_window', e.target.value); }}
+                        options={[{ value: '1', label: 'Last 24 Hours' }, { value: '7', label: 'Last 7 Days' }, { value: '30', label: 'Last 30 Days' }]}
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label>Promotion Conditions (Auto-promote to Advisory)</label>
-                    <div className={styles.checkboxGroup}>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                className={styles.checkbox}
-                                checked={settings['promo_multi_source'] === 'true'}
-                                onChange={(e) => updateSetting('promo_multi_source', e.target.checked)}
-                            />
-                            Multi-Source Corroboration
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                className={styles.checkbox}
-                                checked={settings['promo_ioc_overlap'] === 'true'}
-                                onChange={(e) => updateSetting('promo_ioc_overlap', e.target.checked)}
-                            />
-                            IoC Overlap
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                className={styles.checkbox}
-                                checked={settings['promo_ttp_match'] === 'true'}
-                                onChange={(e) => updateSetting('promo_ttp_match', e.target.checked)}
-                            />
-                            TTP Match
-                        </label>
-                    </div>
+                    <label>Real-time Refresh Frequency</label>
+                    <Select
+                        value={refreshInterval}
+                        onChange={e => { setRefreshInterval(e.target.value); localStorage.setItem('monitor_refresh_interval', e.target.value); }}
+                        options={[{ value: '30', label: '30 Seconds' }, { value: '60', label: '1 Minute' }, { value: '300', label: '5 Minutes' }]}
+                    />
                 </div>
             </div>
         </div>
@@ -346,43 +385,44 @@ const IntelligenceSettings = () => {
 
 const IntegrationSettings = () => {
     const { settings, updateSetting, loading } = useSettings('integration');
-
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className={styles.loading}>Linking Nodes...</div>;
 
     return (
         <div className={styles.section}>
-            <h3>Integration Settings</h3>
+            <h3>Global Integrations</h3>
             <div className={styles.card}>
-                <h4>External APIs</h4>
-                <div className={styles.checkboxGroup}>
-                    {["CISA KEV", "NVD", "TAXII"].map(api => (
-                        <div key={api} className={styles.row} style={{ marginBottom: '0.5rem' }}>
-                            <label>{api}</label>
-                            <span className={`${styles.statusIndicator} ${styles.statusHealthy}`}></span>
-                        </div>
-                    ))}
-                    <div className={styles.formGroup} style={{ marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-                        <label>VirusTotal API Key</label>
-                        <input
-                            type="password"
-                            className={styles.input}
-                            placeholder="••••••••••••••••"
-                            value={settings['vt_api_key'] || ''}
-                            onChange={(e) => updateSetting('vt_api_key', e.target.value)}
-                        />
-                    </div>
+                <h4><Network size={14} /> Threat Intelligence Providers</h4>
+                <div className={styles.formGroup}>
+                    <label>VirusTotal API Gateway</label>
+                    <input type="password" className={styles.input} placeholder="••••••••••••••••" value={settings['vt_api_key'] || ''} onChange={(e) => updateSetting('vt_api_key', e.target.value)} />
                 </div>
+                <div className={styles.statusHealthy}><CheckCircle size={14} /> CISA KEV Feed Active</div>
+                <div className={styles.statusHealthy} style={{ marginTop: '8px' }}><CheckCircle size={14} /> NVD Database Synced</div>
             </div>
+
             <div className={styles.card}>
-                <h4>Notifications Integration</h4>
-                <div className={styles.row}>
-                    <label>Signal CLI</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span className={`${styles.statusIndicator} ${styles.statusHealthy}`}></span>
-                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Online</span>
-                    </div>
+                <h4><Shield size={14} /> Notification Integration</h4>
+                <div className={styles.formGroup}>
+                    <label>Telegram Bot Token</label>
+                    <input 
+                        type="password" 
+                        className={styles.input} 
+                        placeholder="Telegram Bot Token" 
+                        value={settings['telegram_bot_token'] || ''} 
+                        onChange={(e) => updateSetting('telegram_bot_token', e.target.value)} 
+                    />
                 </div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Managed by Super Admin</p>
+                <div className={styles.formGroup}>
+                    <label>Default Telegram Chat ID</label>
+                    <input 
+                        type="text" 
+                        className={styles.input} 
+                        placeholder="Default Chat ID" 
+                        value={settings['telegram_chat_id'] || ''} 
+                        onChange={(e) => updateSetting('telegram_chat_id', e.target.value)} 
+                    />
+                </div>
+                <div className={styles.statusHealthy}><CheckCircle size={14} /> Telegram Ingress Active</div>
             </div>
         </div>
     );
@@ -391,188 +431,199 @@ const IntegrationSettings = () => {
 const SecuritySettings = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    
+    // Create User State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [newUserStart, setNewUserStart] = useState({ email: '', password: '', role: 'analyst' });
-
-    // Edit State
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editUser, setEditUser] = useState(null);
+    const [newUser, setNewUser] = useState({ email: '', password: '', role: 'analyst' });
+    const [createLoading, setCreateLoading] = useState(false);
 
     const fetchUsers = async () => {
-        setLoading(true);
         try {
             const res = await axios.get('/api/users');
             setUsers(res.data);
-        } catch {
-            toast.error("Failed to fetch users");
-        } finally {
-            setLoading(false);
-        }
+        } catch { toast.error("Access list unavailable"); }
+        finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    useEffect(() => { fetchUsers(); }, []);
 
-    const handleCreateUser = async () => {
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        setCreateLoading(true);
         try {
-            await axios.post('/api/users', newUserStart);
-            toast.success("User created successfully");
+            await axios.post('/api/admin/users', newUser);
+            toast.success('User created successfully');
             setIsCreateModalOpen(false);
-            setNewUserStart({ email: '', password: '', role: 'analyst' });
+            setNewUser({ email: '', password: '', role: 'analyst' });
             fetchUsers();
         } catch (error) {
-            toast.error(error.response?.data || "Failed to create user");
+            toast.error(error.response?.data?.[0]?.description || 'Failed to create user');
+        } finally {
+            setCreateLoading(false);
         }
     };
 
-    const handleUpdateUser = async () => {
-        if (!editUser) return;
+    const handleDeleteUser = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this user? This action is irreversible.")) return;
         try {
-            await axios.patch(`/api/users/${editUser.id}`, { role: editUser.role });
-            toast.success("User updated successfully");
-            setIsEditModalOpen(false);
-            setEditUser(null);
+            await axios.delete(`/api/admin/users/${id}`);
+            toast.success("User deleted");
             fetchUsers();
-        } catch {
-            toast.error("Failed to update user");
-        }
+        } catch { toast.error("Failed to delete user"); }
     };
 
-    const openEditModal = (user) => {
-        // Find current role from list or default to User
-        // Simplified: We assume single role for now or just take the first one
-        const currentRole = user.roles && user.roles.length > 0 ? user.roles[0] : 'User';
-        setEditUser({ id: user.id, email: user.email, role: currentRole });
-        setIsEditModalOpen(true);
+    const handleResetMfa = async (id) => {
+        if (!window.confirm("Reset MFA for this user?")) return;
+        try {
+            await axios.post(`/api/admin/users/${id}/mfa/reset`);
+            toast.success("MFA Reset");
+            fetchUsers();
+        } catch { toast.error("Failed to reset MFA"); }
     };
+
+    const handleResetPassword = async () => {
+        try {
+            await axios.post(`/api/admin/users/${selectedUser.id}/password/reset`, { newPassword });
+            toast.success("Password reset successfully");
+            setIsPasswordModalOpen(false);
+            setNewPassword('');
+        } catch { toast.error("Failed to reset password"); }
+    };
+
+    if (loading) return <div className={styles.loading}>Scanning Directories...</div>;
 
     return (
         <div className={styles.section}>
-            <h3>Security & Access</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3>Security & Access Control</h3>
+                <button 
+                    className={styles.btnPrimary} 
+                    style={{ height: '32px', padding: '0 12px' }}
+                    onClick={() => setIsCreateModalOpen(true)}
+                >
+                    Add Analyst
+                </button>
+            </div>
+            
             <div className={styles.card}>
-                <div className={styles.row}>
-                    <h4>User Management (Verifying)</h4>
-                    <button className={styles.btnPrimary} onClick={() => setIsCreateModalOpen(true)}>Create User</button>
-                </div>
-                {loading ? <div>Loading users...</div> : (
+                <h4><Shield size={14} /> Analyst Directory</h4>
+                <div className={styles.tableWrapper}>
                     <table className={styles.userTable}>
                         <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Role</th>
-                                <th>MFA</th>
-                                <th>Actions</th>
-                            </tr>
+                            <tr><th>Analyst</th><th>Roles</th><th>Protection</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
                             {users.map(u => (
                                 <tr key={u.id}>
-                                    <td>{u.email}</td>
-                                    <td>{u.roles.join(', ') || 'User'}</td>
                                     <td>
-                                        <span className={u.mfaEnabled ? styles.statusHealthy : styles.statusWarning}
-                                            style={{ width: '10px', height: '10px', display: 'inline-block', borderRadius: '50%', marginRight: '5px' }}>
-                                        </span>
-                                        {u.mfaEnabled ? 'On' : 'Off'}
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontWeight: 600 }}>{u.fullName || 'Unnamed Analyst'}</span>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{u.email}</span>
+                                        </div>
+                                    </td>
+                                    <td>{u.roles.join(', ')}</td>
+                                    <td>
+                                        <div className={u.mfaEnabled ? styles.statusHealthy : styles.statusWarning}>
+                                            {u.mfaEnabled ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
+                                            <span style={{ marginLeft: '4px' }}>{u.mfaEnabled ? 'Secured' : 'No MFA'}</span>
+                                        </div>
                                     </td>
                                     <td>
-                                        <button
-                                            style={{ background: 'none', border: 'none', color: 'var(--color-brand)', cursor: 'pointer' }}
-                                            onClick={() => openEditModal(u)}
-                                        >
-                                            Edit
-                                        </button>
+                                        <div className={styles.actionGroup}>
+                                            <button 
+                                                className={styles.actionBtn} 
+                                                onClick={() => { setSelectedUser(u); setIsPasswordModalOpen(true); }}
+                                                title="Reset Password"
+                                            >
+                                                <Lock size={14} />
+                                            </button>
+                                            <button 
+                                                className={styles.actionBtn} 
+                                                onClick={() => handleResetMfa(u.id)}
+                                                title="Reset MFA"
+                                            >
+                                                <Shield size={14} />
+                                            </button>
+                                            <button 
+                                                className={styles.actionBtnDanger} 
+                                                onClick={() => handleDeleteUser(u.id)}
+                                                title="Delete User"
+                                            >
+                                                <User size={14} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                )}
-            </div>
-
-            <div className={styles.card}>
-                <h4>Access Policies</h4>
-                <div className={styles.row}>
-                    <label>Enforce MFA Globally</label>
-                    <Toggle checked={true} onChange={() => { }} />
-                </div>
-                <div className={styles.row}>
-                    <label>Session Timeout (Minutes)</label>
-                    <input type="number" className={styles.input} defaultValue={30} style={{ width: '80px' }} />
-                </div>
-            </div>
-
-            <div className={styles.card}>
-                <h4>Audit Logs</h4>
-                <div className={styles.logs}>
-                    <div>[2026-01-14 10:45:01] User 'admin' updated settings.</div>
-                    <div>[2026-01-14 10:42:12] User 'analyst' logged in.</div>
-                    <div>[2026-01-14 09:30:00] System backup completed.</div>
                 </div>
             </div>
 
             {/* Create User Modal */}
-            <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New User">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+            <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Analyst Account">
+                <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
                     <div className={styles.formGroup}>
-                        <label>Email</label>
-                        <input
-                            type="email"
-                            className={styles.input}
-                            value={newUserStart.email}
-                            onChange={(e) => setNewUserStart({ ...newUserStart, email: e.target.value })}
+                        <label>Email Address</label>
+                        <input 
+                            type="email" 
+                            className={styles.input} 
+                            value={newUser.email}
+                            onChange={e => setNewUser({...newUser, email: e.target.value})}
+                            required
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Password</label>
-                        <input
-                            type="password"
-                            className={styles.input}
-                            value={newUserStart.password}
-                            onChange={(e) => setNewUserStart({ ...newUserStart, password: e.target.value })}
+                        <label>Initial Password</label>
+                        <input 
+                            type="password" 
+                            className={styles.input} 
+                            value={newUser.password}
+                            onChange={e => setNewUser({...newUser, password: e.target.value})}
+                            required
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Role</label>
-                        <select
-                            className={styles.select}
-                            value={newUserStart.role}
-                            onChange={(e) => setNewUserStart({ ...newUserStart, role: e.target.value })}
-                        >
-                            <option value="analyst">Analyst</option>
-                            <option value="admin">Admin</option>
-                            <option value="super_admin">Super Admin</option>
-                        </select>
+                        <label>Access Role</label>
+                        <Select 
+                            value={newUser.role}
+                            onChange={e => setNewUser({...newUser, role: e.target.value})}
+                            options={[
+                                { value: 'analyst', label: 'Analyst' },
+                                { value: 'admin', label: 'Admin' },
+                                { value: 'super_admin', label: 'Super Admin' }
+                            ]}
+                        />
                     </div>
-                    <button className={styles.btnPrimary} onClick={handleCreateUser}>Create User</button>
-                </div>
+                    <button type="submit" className={styles.btnPrimary} disabled={createLoading}>
+                        {createLoading ? 'Provisioning...' : 'Create Account'}
+                    </button>
+                </form>
             </Modal>
 
-            {/* Edit User Modal */}
-            <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit User">
+            {/* Reset Password Modal */}
+            <Modal 
+                isOpen={isPasswordModalOpen} 
+                onClose={() => setIsPasswordModalOpen(false)} 
+                title={`Reset Password for ${selectedUser?.fullName || selectedUser?.email}`}
+            >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
-                    {editUser && (
-                        <>
-                            <div className={styles.formGroup}>
-                                <label>Email (Read-only)</label>
-                                <input type="text" className={styles.input} value={editUser.email} disabled />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Role</label>
-                                <select
-                                    className={styles.select}
-                                    value={editUser.role}
-                                    onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}
-                                >
-                                    <option value="analyst">Analyst</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="super_admin">Super Admin</option>
-                                </select>
-                            </div>
-                            <button className={styles.btnPrimary} onClick={handleUpdateUser}>Save Changes</button>
-                        </>
-                    )}
+                    <div className={styles.formGroup}>
+                        <label>New Password</label>
+                        <input 
+                            type="password" 
+                            className={styles.input} 
+                            value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                        />
+                    </div>
+                    <button className={styles.btnPrimary} onClick={handleResetPassword}>
+                        Reset User Password
+                    </button>
                 </div>
             </Modal>
         </div>
@@ -580,141 +631,20 @@ const SecuritySettings = () => {
 };
 
 const SystemSettings = () => {
-    const handleReset = async () => {
-        if (!window.confirm("Are you sure? This will delete ALL threat data. This cannot be undone.")) return;
-        try {
-            await axios.post('/api/settings/reset');
-            toast.success("Database Reset Successfully");
-        } catch (error) {
-            console.error(error);
-            toast.error(error.response?.data || "Failed to reset database");
-        }
-    };
-
     return (
         <div className={styles.section}>
             <h3>System Controls</h3>
-
-            <div className={styles.card}>
-                <h4>API Health</h4>
-                <div className={styles.row}>
-                    <label>CISA KEV</label>
-                    <button className={styles.btnPrimary} style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}>Test Fetch</button>
-                </div>
-                <div className={styles.row}>
-                    <label>NVD</label>
-                    <button className={styles.btnPrimary} style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}>Test Fetch</button>
-                </div>
-            </div>
-
-            <div className={styles.card}>
-                <h4>Emergency Mode</h4>
-                <div className={styles.row}>
-                    <label>Pause Ingestion</label>
-                    <Toggle checked={false} onChange={() => { }} />
-                </div>
-                <div className={styles.row}>
-                    <label>Disable Notifications</label>
-                    <Toggle checked={false} onChange={() => { }} />
-                </div>
-            </div>
-
             <div className={`${styles.card} ${styles.dangerZone}`}>
-                <h4 style={{ color: 'var(--color-danger)' }}>Danger Zone</h4>
-                <p style={{ fontSize: '0.875rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                    These actions are destructive and cannot be undone.
+                <h4>Emergency Protocol</h4>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Destructive actions. Use with extreme caution.
                 </p>
-                <button className={styles.btnDanger} onClick={handleReset}>Reset Database</button>
-            </div>
-        </div>
-    );
-};
-
-const MonitorSettings = () => {
-    const [threatWindow, setThreatWindow] = useState(() => {
-        return localStorage.getItem('monitor_threat_window') || '7';
-    });
-    const [refreshInterval, setRefreshInterval] = useState(() => {
-        return localStorage.getItem('monitor_refresh_interval') || '60';
-    });
-
-    const windowOptions = [
-        { value: '0.04', label: 'Last 1 Hour' },
-        { value: '0.5', label: 'Last 12 Hours' },
-        { value: '1', label: 'Last 24 Hours' },
-        { value: '3', label: 'Last 3 Days' },
-        { value: '7', label: 'Last 7 Days' },
-        { value: '14', label: 'Last 14 Days' },
-        { value: '30', label: 'Last 30 Days' },
-        { value: '60', label: 'Last 60 Days' },
-        { value: '0', label: 'All Time (No Filter)' },
-    ];
-
-    const refreshOptions = [
-        { value: '30', label: '30 Seconds' },
-        { value: '60', label: '1 Minute' },
-        { value: '120', label: '2 Minutes' },
-        { value: '300', label: '5 Minutes' },
-        { value: '600', label: '10 Minutes' },
-    ];
-
-    const handleWindowChange = (value) => {
-        setThreatWindow(value);
-        localStorage.setItem('monitor_threat_window', value);
-        toast.success(`Threat display window set to ${windowOptions.find(o => o.value === value)?.label}`);
-    };
-
-    const handleRefreshChange = (value) => {
-        setRefreshInterval(value);
-        localStorage.setItem('monitor_refresh_interval', value);
-        toast.success(`Refresh interval set to ${refreshOptions.find(o => o.value === value)?.label}`);
-    };
-
-    return (
-        <div className={styles.section}>
-            <h3>Monitor Configuration</h3>
-
-            <div className={styles.card}>
-                <h4>Threat Display Window</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                    Controls how far back threats are shown on the Monitoring Screen. This affects the threat counts, intercept list, and critical spotlight.
-                </p>
-                <div className={styles.formGroup}>
-                    <label>Show threats from</label>
-                    <select
-                        className={styles.select}
-                        value={threatWindow}
-                        onChange={(e) => handleWindowChange(e.target.value)}
-                    >
-                        {windowOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                    </select>
-                </div>
-                <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(249, 115, 22, 0.08)', borderRadius: '8px', border: '1px solid rgba(249, 115, 22, 0.2)' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#F97316' }}>
-                        ⚡ Changes take effect on the next Monitoring Screen refresh.
-                    </span>
-                </div>
-            </div>
-
-            <div className={styles.card}>
-                <h4>Auto-Refresh Interval</h4>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                    How often the Monitoring Screen automatically fetches new data.
-                </p>
-                <div className={styles.formGroup}>
-                    <label>Refresh every</label>
-                    <select
-                        className={styles.select}
-                        value={refreshInterval}
-                        onChange={(e) => handleRefreshChange(e.target.value)}
-                    >
-                        {refreshOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                    </select>
-                </div>
+                <button className={styles.btnDanger} onClick={async () => {
+                    if (window.confirm("Purge all threat intelligence? This is irreversible.")) {
+                        try { await axios.post('/api/settings/reset'); toast.success("System Reset"); }
+                        catch { toast.error("Action denied"); }
+                    }
+                }}>Reset System Database</button>
             </div>
         </div>
     );

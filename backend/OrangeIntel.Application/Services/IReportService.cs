@@ -4,10 +4,11 @@ namespace OrangeIntel.Application.Services;
 
 public interface IReportService
 {
-    Task<IEnumerable<Report>> GetReportsAsync();
+    Task<IEnumerable<Report>> GetReportsAsync(string userId);
     Task<Report?> GetReportByIdAsync(Guid id);
 
     Task<Report?> GenerateReportAsync(Guid artifactId, string type, string format, string userId);
+    Task<Report> SaveAdvisoryReportAsync(OrangeIntel.Application.DTOs.Reporting.GTBankAdvisoryReportV1 model, string userId);
     Task<byte[]?> GetReportFileAsync(Guid reportId);
     Task<byte[]?> GeneratePreviewAsync(Guid artifactId, string type, string userId);
 }

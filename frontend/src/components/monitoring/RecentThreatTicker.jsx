@@ -1,73 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import { Shield, AlertTriangle } from 'lucide-react';
+import React from 'react';
+import { Shield, Clock } from 'lucide-react';
+import styles from './RecentThreatTicker.module.css';
 
+/**
+ * RecentThreatTicker - Displays a static list of the top 5 latest threats.
+ * Optimized for scannability and high-fidelity design.
+ */
 const RecentThreatTicker = ({ threats }) => {
-    // threats = [{ title, severity, source, updated_at }]
-    const [currentIndex, setCurrentIndex] = useState(0);
-
-    useEffect(() => {
-        if (!threats || threats.length === 0) return;
-        const interval = setInterval(() => {
-            setCurrentIndex(prev => (prev + 1) % threats.length);
-        }, 10000); // 10s rotation as per spec
-        return () => clearInterval(interval);
-    }, [threats]);
-
+    console.log("RecentThreatTicker V2 rendering with threats:", threats?.length);
     if (!threats || threats.length === 0) return (
-        <div style={{ padding: '1rem', color: '#6B7280', textAlign: 'center' }}>No recent threats</div>
+        <div className={styles.emptyContainer}>
+            <span className={styles.emptyText}>No recent intelligence feeds available</span>
+        </div>
     );
 
-    const currentThreat = threats[currentIndex];
+    // Take top 5 latest threats from the feed
+    const topThreats = threats.slice(0, 5);
+
+    // Robust time formatter to prevent "Invalid Date" errors
+    const safeFormatTime = (dateStr) => {
+        try {
+            if (!dateStr) return 'Recently';
+            const date = new Date(dateStr);
+            // Check if the date is actually valid
+            if (isNaN(date.getTime())) {
+                return 'Just now';
+            }
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (err) {
+            console.error("Date parsing error:", err);
+            return 'Just now';
+        }
+    };
 
     return (
-        <div style={{
-            background: 'var(--surface-color)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            marginTop: '1rem',
-            position: 'relative',
-            overflow: 'hidden'
-        }}>
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '4px',
-                height: '100%',
-                background: currentThreat.confidence >= 70 ? '#EF4444' : (currentThreat.confidence >= 40 ? '#F59E0B' : '#3B82F6')
-            }} />
+        <div className={styles.listContainer}>
+            {topThreats.map((threat, idx) => {
+                const score = Math.round(threat.confidence || 0);
+                
+                // Determine accent color based on confidence score
+                const accentColor = score >= 90 ? 'var(--severity-critical-border)' : 
+                                   (score >= 70 ? 'var(--severity-high-border)' : 
+                                   (score >= 40 ? 'var(--severity-medium-border)' : 'var(--severity-low-border)'));
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {currentThreat.title}
-                </h3>
-                <span style={{
-                    fontSize: '0.8rem',
-                    background: 'rgba(255,255,255,0.1)',
-                    padding: '2px 8px',
-                    borderRadius: '4px'
-                }}>
-                    {new Date(currentThreat.updatedAt || currentThreat.createdAt).toLocaleTimeString()}
-                </span>
-            </div>
+                return (
+                    <div key={threat.id || `threat-${idx}`} className={styles.listCard}>
+                        {/* Status Accent Bar */}
+                        <div className={styles.accent} style={{ background: accentColor }} />
+                        
+                        <div className={styles.cardMain}>
+                            <div className={styles.cardHeader}>
+                                <h4 className={styles.threatTitle} title={threat.title}>
+                                    {threat.title}
+                                </h4>
+                                <span className={styles.timeBadge}>
+                                    <Clock size={10} style={{ marginRight: '4px' }}/>
+                                    {safeFormatTime(threat.updatedAt || threat.createdAt || threat.ingestedAt)}
+                                </span>
+                            </div>
 
-            <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <span><Shield size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Score: {Math.round(currentThreat.confidence)}</span>
-                <span>Source: {currentThreat.source?.name || 'Unknown'}</span>
-            </div>
-
-            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '4px' }}>
-                {threats.map((_, idx) => (
-                    <div key={idx} style={{
-                        height: '4px',
-                        flex: 1,
-                        background: idx === currentIndex ? 'var(--primary-color)' : 'var(--border-color)',
-                        borderRadius: '2px',
-                        transition: 'background 0.3s ease'
-                    }} />
-                ))}
-            </div>
+                            <div className={styles.cardMeta}>
+                                <div className={styles.metaItem}>
+                                    <Shield size={12} />
+                                    <span>Score: {score}%</span>
+                                </div>
+                                <div className={styles.metaItem}>
+                                    <span>Source: {threat.source?.name || 'Unknown'}</span>
+                                </div>
+                                {threat.category && (
+                                    <div className={styles.metaItem} style={{ marginLeft: 'auto' }}>
+                                        <span className={styles.categoryTag}>{threat.category}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 };

@@ -303,6 +303,9 @@ namespace OrangeIntel.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("FullName")
+                        .HasColumnType("text");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -341,8 +344,11 @@ namespace OrangeIntel.Infrastructure.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<string>("SignalPhoneNumber")
+                    b.Property<string>("TelegramChatId")
                         .HasColumnType("text");
+
+                    b.Property<int>("TokenVersion")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -505,11 +511,26 @@ namespace OrangeIntel.Infrastructure.Migrations
                     b.Property<DateTime?>("AcceptedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AcknowledgedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AcknowledgementNote")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("AssignedTeam")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("AttackVector")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("text");
 

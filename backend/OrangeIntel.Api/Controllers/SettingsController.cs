@@ -80,7 +80,7 @@ public class SettingsController : ControllerBase
         {
             UiPreferencesJson = user.UiPreferencesJson,
             MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret), // Assuming MfaSecret presence means enabled/setup
-            SignalPhoneNumber = user.SignalPhoneNumber
+            TelegramChatId = user.TelegramChatId
         });
     }
 
@@ -137,5 +137,5 @@ public class UserSettingsDto
 {
     public string? UiPreferencesJson { get; set; }
     public bool MfaEnabled { get; set; }
-    public string? SignalPhoneNumber { get; set; }
+    public string? TelegramChatId { get; set; }
 }

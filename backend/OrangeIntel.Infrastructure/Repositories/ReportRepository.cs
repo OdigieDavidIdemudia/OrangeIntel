@@ -18,6 +18,13 @@ public class ReportRepository : IReportRepository
     {
         return await _context.Reports.ToListAsync();
     }
+    
+    public async Task<IEnumerable<Report>> GetByUserIdAsync(string userId)
+    {
+        return await _context.Reports
+            .Where(r => r.GeneratedById == userId)
+            .ToListAsync();
+    }
 
     public async Task<Report?> GetByIdAsync(Guid id)
     {

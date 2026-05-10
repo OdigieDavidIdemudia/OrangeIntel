@@ -19,8 +19,11 @@ public class UserProfileDto
     [System.Text.Json.Serialization.JsonPropertyName("mfaEnabled")]
     public bool MfaEnabled { get; set; }
     
-    [System.Text.Json.Serialization.JsonPropertyName("signalPhoneNumber")]
-    public string? SignalPhoneNumber { get; set; }
+    [System.Text.Json.Serialization.JsonPropertyName("fullName")]
+    public string? FullName { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("telegramChatId")]
+    public string? TelegramChatId { get; set; }
 
     [System.Text.Json.Serialization.JsonPropertyName("notificationPreferencesJson")]
     public string? NotificationPreferencesJson { get; set; }
@@ -30,10 +33,11 @@ public class UserProfileDto
 }
 
 public class UpdateProfileDto
-{
-    [Phone]
-    public string? SignalPhoneNumber { get; set; }
-}
+    {
+        public string? FullName { get; set; }
+        public string? UserName { get; set; }
+        public string? TelegramChatId { get; set; }
+    }
 
 public class UpdateNotificationSettingsDto
 {
@@ -66,4 +70,10 @@ public class UpdateUserRoleDto
 {
     [Required]
     public string NewRole { get; set; } = string.Empty;
+}
+
+public class AdminResetPasswordDto
+{
+    [Required]
+    public string NewPassword { get; set; } = string.Empty;
 }

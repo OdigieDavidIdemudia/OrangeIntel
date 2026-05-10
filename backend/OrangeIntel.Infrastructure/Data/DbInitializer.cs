@@ -89,6 +89,21 @@ public static class DbInitializer
         // Run Sector Classification Migration
         var threatService = serviceProvider.GetRequiredService<OrangeIntel.Application.Services.IThreatService>();
         await threatService.MigrateExistingThreatsAsync();
+        
+        // Auto-tag Categories for existing uncategorized threats
+        var ingestionService = serviceProvider.GetRequiredService<OrangeIntel.Infrastructure.Services.ThreatIngestionService>();
+        var uncategorizedThreats = await context.ThreatItems.Where(t => t.Category == "" || t.Category == "Uncategorized").ToListAsync();
+        if (uncategorizedThreats.Any())
+        {
+            var categoryLogger = serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ApplicationDbContext>>();
+            categoryLogger.LogInformation($"Auto-tagging {uncategorizedThreats.Count} existing threats with categories.");
+            foreach (var threat in uncategorizedThreats)
+            {
+                var textToAnalyze = $"{threat.Title} {threat.Summary}";
+                threat.Category = ingestionService.DetermineCategory(textToAnalyze);
+            }
+            await context.SaveChangesAsync();
+        }
 
         System.IO.File.AppendAllText("seed_log.txt", "DB Init Completed Successfully\n");
         } catch (Exception ex) {

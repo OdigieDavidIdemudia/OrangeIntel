@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -53,6 +54,23 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
         }
     }, [token, fetchProfile]);
+
+    // Global Axios Interceptor for 401 (Unauthorized) handling
+    useEffect(() => {
+        const interceptor = axios.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                if (error.response?.status === 401) {
+                    console.warn("Session expired or revoked. Logging out...");
+                    toast.error("Session expired or revoked. Please log in again.");
+                    logout();
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        return () => axios.interceptors.response.eject(interceptor);
+    }, [logout]);
 
     return (
         <AuthContext.Provider value={{ user, token, login, logout, loading }}>

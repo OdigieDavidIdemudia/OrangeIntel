@@ -25,9 +25,9 @@ public class ReportService : IReportService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Report>> GetReportsAsync()
+    public async Task<IEnumerable<Report>> GetReportsAsync(string userId)
     {
-        return await _repository.GetAllAsync();
+        return await _repository.GetByUserIdAsync(userId);
     }
 
     public async Task<Report?> GetReportByIdAsync(Guid id)
@@ -39,6 +39,23 @@ public class ReportService : IReportService
     {
         var report = await BuildReportEntity(artifactId, type, userId);
         if (report == null) return null;
+
+        await _repository.AddAsync(report);
+        return report;
+    }
+
+    public async Task<Report> SaveAdvisoryReportAsync(GTBankAdvisoryReportV1 model, string userId)
+    {
+        var report = new Report
+        {
+            ReportType = "ThreatAdvisory",
+            Title = model.Metadata.Title,
+            Classification = model.Metadata.Tlp.StartsWith("TLP:") ? model.Metadata.Tlp : $"TLP:{model.Metadata.Tlp}",
+            ContentJson = JsonSerializer.Serialize(model),
+            Format = "DOCX",
+            GeneratedAt = DateTime.UtcNow,
+            GeneratedById = userId
+        };
 
         await _repository.AddAsync(report);
         return report;

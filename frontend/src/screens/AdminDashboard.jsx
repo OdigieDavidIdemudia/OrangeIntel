@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Users, Shield, Activity, Plus, Filter } from 'lucide-react';
+import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import styles from './AdminDashboard.module.css';
+import Select from '../components/common/Select';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('users'); // 'users' or 'audit'
@@ -21,22 +23,19 @@ const AdminDashboard = () => {
         setLoading(true);
         try {
             if (activeTab === 'users') {
-                const res = await fetch('/api/admin/users', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) setUsers(await res.json());
+                const res = await axios.get('/api/admin/users');
+                setUsers(res.data);
             } else {
-                const res = await fetch('/api/admin/audit-logs', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) setAuditLogs(await res.json());
+                const res = await axios.get('/api/admin/audit-logs');
+                setAuditLogs(res.data);
             }
         } catch (error) {
             console.error(error);
+            toast.error("Failed to load data");
         } finally {
             setLoading(false);
         }
-    }, [activeTab, token]);
+    }, [activeTab]);
 
     useEffect(() => {
         fetchData();
@@ -46,27 +45,15 @@ const AdminDashboard = () => {
         e.preventDefault();
         setCreateLoading(true);
         try {
-            const res = await fetch('/api/admin/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(newUser)
-            });
-
-            if (res.ok) {
-                toast.success('User created successfully!');
-                setShowCreateModal(false);
-                setNewUser({ email: '', password: '', role: 'analyst' });
-                fetchData();
-            } else {
-                const data = await res.json();
-                const errorMsg = data.length > 0 ? data[0].description : 'Failed to create user';
-                toast.error(errorMsg);
-            }
-        } catch {
-            toast.error('Error creating user');
+            await axios.post('/api/admin/users', newUser);
+            toast.success('User created successfully!');
+            setShowCreateModal(false);
+            setNewUser({ email: '', password: '', role: 'analyst' });
+            fetchData();
+        } catch (err) {
+            const data = err.response?.data;
+            const errorMsg = Array.isArray(data) && data.length > 0 ? data[0].description : 'Failed to create user';
+            toast.error(errorMsg);
         } finally {
             setCreateLoading(false);
         }
@@ -126,6 +113,7 @@ const AdminDashboard = () => {
                                 <th>Role</th>
                                 <th>MFA Status</th>
                                 <th>Created At</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -146,6 +134,35 @@ const AdminDashboard = () => {
                                     </td>
                                     <td>{u.mfaEnabled ? 'Enabled' : 'Disabled'}</td>
                                     <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button 
+                                                className={styles.actionBtn} 
+                                                title="Reset MFA"
+                                                onClick={async () => {
+                                                    if (window.confirm(`Reset MFA for ${u.email}?`)) {
+                                                        const res = await axios.post(`/api/admin/users/${u.id}/mfa/reset`);
+                                                        if (res.status === 200) { toast.success("MFA Reset"); fetchData(); }
+                                                    }
+                                                }}
+                                            >
+                                                <Shield size={14} />
+                                            </button>
+                                            <button 
+                                                className={styles.actionBtn} 
+                                                style={{ color: '#EF4444' }}
+                                                title="Delete User"
+                                                onClick={async () => {
+                                                    if (window.confirm(`Delete user ${u.email}?`)) {
+                                                        const res = await axios.delete(`/api/admin/users/${u.id}`);
+                                                        if (res.status === 200) { toast.success("User Deleted"); fetchData(); }
+                                                    }
+                                                }}
+                                            >
+                                                <Users size={14} />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                             {users.length === 0 && <tr><td colSpan={5} className={styles.empty}>No users found.</td></tr>}
@@ -210,15 +227,15 @@ const AdminDashboard = () => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label>Role</label>
-                                <select
+                                <Select
                                     value={newUser.role}
                                     onChange={e => setNewUser({ ...newUser, role: e.target.value })}
-                                    className={styles.select}
-                                >
-                                    <option value="analyst">Analyst</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="super_admin">Super Admin</option>
-                                </select>
+                                    options={[
+                                        { value: 'analyst', label: 'Analyst' },
+                                        { value: 'admin', label: 'Admin' },
+                                        { value: 'super_admin', label: 'Super Admin' }
+                                    ]}
+                                />
                             </div>
                             <div className={styles.modalActions}>
                                 <button

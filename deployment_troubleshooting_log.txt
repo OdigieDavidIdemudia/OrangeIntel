@@ -1,0 +1,17 @@
+OrangeIntel Deployment Troubleshooting Log
+Date: May 9, 2026
+
+Summary of problems identified and fixed to restore the OrangeIntel platform:
+
+### 1. The Axios "Unsupported Protocol" Error
+* The Problem: The most insidious bug was an environment variable formatting issue on Vercel. VITE_API_BASE_URL was somehow injected with literal quotation marks (e.g., '"https://orangeintel.onrender.com"'). When Axios tried to piece together the base URL and the /api/auth/login endpoint, it grabbed the starting quote as part of the protocol ("https: instead of https:). Because "https: isn't a valid protocol, Axios instantly blocked the request before it even left the browser.
+* The Fix: We updated AuthContext.jsx to programmatically strip any leading and trailing quotes using a regular expression (rawBaseUrl.replace(/^"|"$/g, '')), guaranteeing the frontend always sends a clean, valid HTTP request to the backend.
+
+### 2. The Vercel "vite: command not found" Build Failures
+* The Problem: When we pushed the fix, Vercel suddenly refused to build the frontend. Vercel sets NODE_ENV=production by default. When Vercel's package manager runs in production mode, it strictly ignores everything listed under devDependencies to save space. Because vite (the build tool) was a dev dependency, it was skipped entirely during the build process, leaving the terminal unable to find the vite command.
+* The Fix: We moved vite and @vitejs/plugin-react into the main dependencies array in package.json.
+* The Secondary Lockfile Trap: Even after moving it, Vercel still failed. Vercel uses `npm ci` (Clean Install) to ensure deterministic builds. `npm ci` explicitly reads the package-lock.json file and never updates it. Because the lockfile still remembered vite as a dev dependency, it skipped it again. We fixed this by running `npm install` locally to regenerate the package-lock.json and pushing the synced lockfile to GitHub.
+
+### 3. The "401 Unauthorized" Login Error
+* The Problem: With the network requests successfully reaching the Render backend, the server rejected the login attempt with a 401 Unauthorized status. 
+* The Fix: We cross-referenced the C# DbInitializer.cs and discovered the database seeded the SuperAdmin account using the internal .local domain (admin@orangeintel.local), whereas the login attempt was using .com. Switching to the correct domain bypassed the 401 error.

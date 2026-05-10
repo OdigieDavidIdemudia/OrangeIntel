@@ -1,156 +1,199 @@
+/* ============================================
+   ORANGEINTEL THREAT DASHBOARD — PREMIUM REFINED
+   ============================================ */
+
+.container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-6) var(--space-7);
+}
+
 .dashboardHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-7);
+}
+
+.titleBlock {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
 }
 
 .title {
-    font-size: 2rem;
-    font-weight: 800;
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text-primary);
     margin: 0;
 }
 
 .subtitle {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 13px;
+    color: var(--text-muted);
 }
-
-.heroSection {
-    margin-bottom: 2rem;
-}
-
-.overallStateCard {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
-    opacity: 0.2;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    filter: blur(40px);
-}
-
-.stateIcon {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    border-radius: 50%;
-}
-
-.stateLabel {
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.stateValue {
-    font-size: 4rem;
-    font-weight: 900;
-    margin-bottom: 1rem;
-    letter-spacing: -0.02em;
-}
-
-.stateCritical { color: #EF4444; }
-.stateElevated { color: #F59E0B; }
-.stateCalm { color: #10B981; }
 
 .velocityBadge {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 30px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: var(--space-2);
+    padding: 6px 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
 }
 
 .grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 2rem;
+    gap: var(--space-7);
+}
+
+.mainGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.sideGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
 }
 
 .sectionTitle {
-    font-size: 1.1rem;
+    font-size: 11px;
     font-weight: 700;
-    margin-bottom: 1.5rem;
-    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-label);
+    margin-bottom: var(--space-4);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .card {
-     background: var(--bg-panel);
+    background: var(--bg-panel);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 1.5rem;
+    border-radius: 12px;
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
 }
 
+/* Quick Links as Premium Cards */
 .quickLinks {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
 }
 
 .linkItem {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    padding: var(--space-4);
+    background: var(--bg-panel);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 10px;
     text-decoration: none;
     color: var(--text-primary);
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .linkItem:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: var(--primary-color);
-    transform: translateX(5px);
+    transform: translateY(-2px);
+    border-color: var(--color-brand);
+    box-shadow: var(--shadow-md);
+    background: var(--bg-hover);
 }
 
 .linkInfo {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--space-4);
 }
 
 .linkIcon {
-    color: var(--primary-color);
+    color: var(--color-brand);
+    background: rgba(224, 123, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme='dark'] .linkIcon {
+    background: rgba(245, 151, 50, 0.1);
 }
 
 .linkText {
+    font-size: 14px;
     font-weight: 600;
 }
 
+/* System Status List */
+.statusList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.statusRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.statusRow:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.statusLabel {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.statusValue {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.valueSuccess { color: var(--color-success); }
+.valueNormal { color: var(--text-primary); }
+
+/* Footer */
 .footer {
     grid-column: span 2;
-    margin-top: 2rem;
+    margin-top: var(--space-7);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-subtle);
+}
+
+.footerContent {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-6);
+}
+
+.footerItem {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 @media (max-width: 1100px) {

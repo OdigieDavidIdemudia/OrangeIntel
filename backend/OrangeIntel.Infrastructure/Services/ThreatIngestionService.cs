@@ -135,6 +135,7 @@ public class ThreatIngestionService
                      Title = $"{vuln.cveID}: {vuln.vulnerabilityName}",
                      Summary = $"{vuln.shortDescription} (Required Action: {vuln.requiredAction})",
                      ThreatType = "Vulnerability",
+                     Category = DetermineCategory($"{vuln.vulnerabilityName} {vuln.shortDescription}"),
                      AttackVector = "Exploited in Wild",
                      Severity = 9, // KEV is critical
                      Confidence = 100,
@@ -250,6 +251,7 @@ public class ThreatIngestionService
                     Title = title,
                     Summary = originalSummary,
                     ThreatType = "News",
+                    Category = DetermineCategory(combinedText),
                     Severity = severity,
                     Confidence = confidence,
                     FirstSeen = pubDate,
@@ -330,6 +332,7 @@ public class ThreatIngestionService
                     Title = pulse.name?.Length > 200 ? pulse.name.Substring(0, 200) : (pulse.name ?? "Unknown"),
                     Summary = pulse.description ?? "No description provided.",
                     ThreatType = "Threat Intel Pulse",
+                    Category = DetermineCategory((pulse.name ?? "") + " " + (pulse.description ?? "")),
                     Severity = severity,
                     Confidence = confidence,
                     FirstSeen = pulse.created.ToUniversalTime(),
@@ -452,6 +455,49 @@ public class ThreatIngestionService
         // Count french indicators
         int count = FrenchIndicators.Count(k => text.Contains(k));
         return count >= 3; // Threshold to avoid false positives on short strings
+    }
+
+    public string DetermineCategory(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return "Uncategorized";
+        text = text.ToLowerInvariant();
+
+        var keywordMap = new Dictionary<string, string>
+        {
+            { "chrome", "Browsers" },
+            { "edge", "Browsers" },
+            { "firefox", "Browsers" },
+            { "vpn", "Network Infrastructure" },
+            { "cisco", "Network Infrastructure" },
+            { "fortinet", "Network Infrastructure" },
+            { "windows", "Operating Systems" },
+            { "linux", "Operating Systems" },
+            { "macos", "Operating Systems" },
+            { "ransomware", "Malware" },
+            { "trojan", "Malware" },
+            { "mfa", "Identity & Authentication" },
+            { "okta", "Identity & Authentication" },
+            { "office365", "Cloud Services" },
+            { "aws", "Cloud Services" },
+            { "azure", "Cloud Services" },
+            { "phishing", "Email & Phishing" },
+            { "android", "Mobile" },
+            { "ios", "Mobile" },
+            { "banking", "Financial Systems" },
+            { "swift", "Financial Systems" }
+        };
+
+        foreach (var kvp in keywordMap)
+        {
+            if (text.Contains(kvp.Key))
+            {
+                return kvp.Value;
+            }
+        }
+
+        if (text.Contains("cve-")) return "Vulnerability/CVE";
+
+        return "Uncategorized";
     }
 
 
