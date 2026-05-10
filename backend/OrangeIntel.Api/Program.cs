@@ -99,6 +99,7 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ITokenService, Ora
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IOneTimePasswordService, OrangeIntel.Infrastructure.Services.OneTimePasswordService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAuditService, OrangeIntel.Infrastructure.Services.AuditService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ISystemSettingService, OrangeIntel.Infrastructure.Services.SystemSettingService>();
 
 // Threat Ingestion & Security APIs
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Services.ThreatIngestionService>();

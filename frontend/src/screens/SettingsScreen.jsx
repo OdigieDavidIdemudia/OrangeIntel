@@ -424,6 +424,40 @@ const IntegrationSettings = () => {
                 </div>
                 <div className={styles.statusHealthy}><CheckCircle size={14} /> Telegram Ingress Active</div>
             </div>
+
+            <div className={styles.card}>
+                <h4><SettingsIcon size={14} /> Notification Policy</h4>
+                <div className={styles.grid3}>
+                    <div className={styles.formGroup}>
+                        <label>Min Severity (0-10)</label>
+                        <input 
+                            type="number" 
+                            className={styles.input} 
+                            value={settings['notify_min_severity'] || 7} 
+                            onChange={(e) => updateSetting('notify_min_severity', e.target.value)} 
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>Min Confidence (%)</label>
+                        <input 
+                            type="number" 
+                            className={styles.input} 
+                            value={settings['notify_min_confidence'] || 70} 
+                            onChange={(e) => updateSetting('notify_min_confidence', e.target.value)} 
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>Max Alerts / Day</label>
+                        <input 
+                            type="number" 
+                            className={styles.input} 
+                            value={settings['notify_max_per_day'] || 5} 
+                            onChange={(e) => updateSetting('notify_max_per_day', e.target.value)} 
+                        />
+                    </div>
+                </div>
+                <span className={styles.hint}>Thresholds for automated Telegram and Signal alerts.</span>
+            </div>
         </div>
     );
 };

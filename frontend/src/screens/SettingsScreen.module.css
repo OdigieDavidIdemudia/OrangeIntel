@@ -122,6 +122,12 @@
     gap: var(--space-4);
 }
 
+.grid3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-4);
+}
+
 .hint {
     font-size: 11px;
     color: var(--text-muted);

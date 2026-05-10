@@ -17,12 +17,18 @@ public class NotificationService : INotificationService
     private readonly IEnumerable<INotificationProvider> _providers;
     private readonly IConfiguration _config;
     private readonly ILogger<NotificationService> _logger;
+    private readonly ISystemSettingService _settings;
 
-    public NotificationService(IEnumerable<INotificationProvider> providers, IConfiguration config, ILogger<NotificationService> logger)
+    public NotificationService(
+        IEnumerable<INotificationProvider> providers, 
+        IConfiguration config, 
+        ILogger<NotificationService> logger,
+        ISystemSettingService settings)
     {
         _providers = providers;
         _config = config;
         _logger = logger;
+        _settings = settings;
     }
 
     public async Task NotifyPromotionAsync(ThreatItem threat)
@@ -59,7 +65,10 @@ Review the full advisory in OrangeIntel.
 
     private async Task NotifyTelegramThreatAsync(ThreatItem threat)
     {
-        bool isHighSeverity = threat.Severity >= 7 || threat.Confidence >= 70;
+        var minSeverity = await _settings.GetIntSettingAsync("notify_min_severity", 7);
+        var minConfidence = await _settings.GetIntSettingAsync("notify_min_confidence", 70);
+
+        bool isHighSeverity = threat.Severity >= minSeverity || threat.Confidence >= minConfidence;
         bool isFinancial = threat.EnvironmentRelevance == "Financial";
 
         if (!isHighSeverity || !isFinancial)
@@ -89,8 +98,8 @@ Review the full advisory in OrangeIntel.
 
     private async Task NotifySignalAsync(ThreatItem threat)
     {
-        var minSeverity = _config.GetValue<int>("NotificationPolicy:MinSeverity", 7);
-        var minConfidence = _config.GetValue<int>("NotificationPolicy:MinConfidence", 70);
+        var minSeverity = await _settings.GetIntSettingAsync("notify_min_severity", 7);
+        var minConfidence = await _settings.GetIntSettingAsync("notify_min_confidence", 70);
 
         if (threat.Severity < minSeverity && threat.Confidence < minConfidence) return;
 
