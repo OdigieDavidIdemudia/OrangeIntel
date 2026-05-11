@@ -21,19 +21,22 @@ public class ThreatIngestionService
     private readonly ILogger<ThreatIngestionService> _logger;
     private readonly IConfiguration _configuration;
     private readonly INotificationService _notificationService;
+    private readonly IEnumerable<INotificationProvider> _notificationProviders;
 
     public ThreatIngestionService(
         ApplicationDbContext context, 
         HttpClient httpClient, 
         ILogger<ThreatIngestionService> logger, 
         IConfiguration configuration, 
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IEnumerable<INotificationProvider> notificationProviders)
     {
         _context = context;
         _httpClient = httpClient;
         _logger = logger;
         _configuration = configuration;
         _notificationService = notificationService;
+        _notificationProviders = notificationProviders;
     }
 
     private string ComputeStableHash(string input)
