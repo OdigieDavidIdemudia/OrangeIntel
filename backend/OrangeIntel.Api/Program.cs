@@ -106,6 +106,8 @@ builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Services.ThreatIngesti
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
 builder.Services.AddHttpClient<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
 
+builder.Services.AddHostedService<OrangeIntel.Infrastructure.Services.ThreatIngestionWorker>();
+
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_key_change_me_in_prod_12345!"; // Fallback for dev
 builder.Services.AddAuthentication(options =>
