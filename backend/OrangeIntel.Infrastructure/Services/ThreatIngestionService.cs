@@ -19,15 +19,20 @@ public class ThreatIngestionService
     private readonly HttpClient _httpClient;
     private readonly ILogger<ThreatIngestionService> _logger;
     private readonly IConfiguration _configuration;
-    private readonly IEnumerable<INotificationProvider> _notificationProviders;
+    private readonly INotificationService _notificationService;
 
-    public ThreatIngestionService(ApplicationDbContext context, HttpClient httpClient, ILogger<ThreatIngestionService> logger, IConfiguration configuration, IEnumerable<INotificationProvider> notificationProviders)
+    public ThreatIngestionService(
+        ApplicationDbContext context, 
+        HttpClient httpClient, 
+        ILogger<ThreatIngestionService> logger, 
+        IConfiguration configuration, 
+        INotificationService notificationService)
     {
         _context = context;
         _httpClient = httpClient;
         _logger = logger;
         _configuration = configuration;
-        _notificationProviders = notificationProviders;
+        _notificationService = notificationService;
     }
 
     private string ComputeStableHash(string input)
@@ -151,6 +156,7 @@ public class ThreatIngestionService
                  };
                  
                  _context.ThreatItems.Add(item);
+                 await _notificationService.NotifyIngestionAsync(item);
                  count++;
              }
              await _context.SaveChangesAsync();
@@ -267,6 +273,7 @@ public class ThreatIngestionService
                  };
 
                  _context.ThreatItems.Add(threat);
+                 await _notificationService.NotifyIngestionAsync(threat);
                  count++;
              }
              
@@ -347,6 +354,7 @@ public class ThreatIngestionService
                 };
                 
                 _context.ThreatItems.Add(threat);
+                await _notificationService.NotifyIngestionAsync(threat);
                 count++;
             }
 

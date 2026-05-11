@@ -10,6 +10,7 @@ public interface INotificationService
 {
     Task NotifyPromotionAsync(ThreatItem threat);
     Task NotifyAdvisoryPublishedAsync(Advisory advisory);
+    Task NotifyIngestionAsync(ThreatItem threat);
 }
 
 public class NotificationService : INotificationService
@@ -126,5 +127,37 @@ Review and decide if advisory is required.
         {
             await provider.SendAsync(recipient, title, body);
         }
+    }
+    public async Task NotifyIngestionAsync(ThreatItem threat)
+    {
+        // Only notify if it meets the global threshold
+        var minSeverity = await _settings.GetIntSettingAsync("notify_min_severity", 7);
+        var minConfidence = await _settings.GetIntSettingAsync("notify_min_confidence", 70);
+
+        if (threat.Severity >= minSeverity || threat.Confidence >= minConfidence)
+        {
+            var title = $"🆕 New {GetSeverityLabel(threat.Severity)} Threat Ingested";
+            var template = _config["Telegram:MessageTemplate"] ?? "🚨 {severity} Threat Detected\n\nTitle: {title}\nSector: {sector}\nSource: {source}\n\nAction: Review immediately in OrangeIntel";
+            
+            var message = template
+                .Replace("{severity}", GetSeverityLabel(threat.Severity))
+                .Replace("{title}", threat.Title)
+                .Replace("{sector}", threat.EnvironmentRelevance ?? "General")
+                .Replace("{source}", threat.Source?.Name ?? "Unknown");
+
+            var provider = _providers.FirstOrDefault(p => p.Name == "Telegram");
+            if (provider != null)
+            {
+                await provider.SendAsync("", title, message);
+            }
+        }
+    }
+
+    private string GetSeverityLabel(int severity)
+    {
+        if (severity >= 9) return "Critical";
+        if (severity >= 7) return "High";
+        if (severity >= 4) return "Medium";
+        return "Low";
     }
 }
