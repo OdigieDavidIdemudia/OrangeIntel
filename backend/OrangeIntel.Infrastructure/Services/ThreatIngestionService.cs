@@ -10,6 +10,7 @@ using OrangeIntel.Infrastructure.Data;
 using System.Security.Cryptography;
 using System.Text;
 using OrangeIntel.Application.Interfaces;
+using OrangeIntel.Application.Services;
 
 namespace OrangeIntel.Infrastructure.Services;
 
