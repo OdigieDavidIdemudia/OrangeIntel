@@ -699,9 +699,27 @@ const SecuritySettings = () => {
 };
 
 const SystemSettings = () => {
+    const { settings, updateSetting, loading } = useSettings('system');
+    if (loading) return <div className={styles.loading}>Accessing Core...</div>;
+
     return (
         <div className={styles.section}>
             <h3>System Controls</h3>
+            
+            <div className={styles.card}>
+                <h4><Clock size={14} /> Response Governance</h4>
+                <div className={styles.formGroup}>
+                    <label>Threat Response SLA (Hours)</label>
+                    <input 
+                        type="number" 
+                        className={styles.input} 
+                        value={settings['sla_threshold_hours'] || 48} 
+                        onChange={(e) => updateSetting('sla_threshold_hours', e.target.value)} 
+                    />
+                    <span className={styles.hint}>Threshold for the "SLA BREACH" warning on pending threat topics.</span>
+                </div>
+            </div>
+
             <div className={`${styles.card} ${styles.dangerZone}`}>
                 <h4>Emergency Protocol</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
