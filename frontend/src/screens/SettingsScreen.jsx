@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Brain, Network, Shield, Settings as SettingsIcon, Monitor, CheckCircle, AlertTriangle, Lock } from 'lucide-react';
+import { User, Brain, Network, Shield, Settings as SettingsIcon, Monitor, CheckCircle, AlertTriangle, Lock, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import styles from './SettingsScreen.module.css';
 import axios from 'axios';
@@ -42,7 +42,7 @@ const SettingsScreen = () => {
                 {activeTab === 'monitor' && <MonitorSettings />}
                 {activeTab === 'intelligence' && <IntelligenceSettings />}
                 {activeTab === 'integration' && <IntegrationSettings />}
-                {activeTab === 'security' && <SecuritySettings />}
+                {activeTab === 'security' && <SecuritySettings currentUser={user} />}
                 {activeTab === 'system' && <SystemSettings />}
             </main>
         </div>
@@ -496,7 +496,8 @@ const IntegrationSettings = () => {
     );
 };
 
-const SecuritySettings = () => {
+const SecuritySettings = ({ currentUser }) => {
+    const isSuperAdmin = currentUser?.roles?.includes('super_admin');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -507,6 +508,17 @@ const SecuritySettings = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newUser, setNewUser] = useState({ email: '', userName: '', password: '', role: 'analyst' });
     const [createLoading, setCreateLoading] = useState(false);
+
+    // Role options based on caller's privileges
+    const roleOptions = isSuperAdmin
+        ? [
+            { value: 'analyst', label: 'Analyst' },
+            { value: 'admin', label: 'Admin' },
+            { value: 'super_admin', label: 'Super Admin' },
+          ]
+        : [
+            { value: 'analyst', label: 'Analyst' },
+          ];
 
     const fetchUsers = async () => {
         try {
@@ -583,7 +595,7 @@ const SecuritySettings = () => {
                     style={{ height: '32px', padding: '0 12px' }}
                     onClick={() => setIsCreateModalOpen(true)}
                 >
-                    Add Analyst
+                    {isSuperAdmin ? 'Add User' : 'Add Analyst'}
                 </button>
             </div>
             
@@ -680,11 +692,7 @@ const SecuritySettings = () => {
                         <Select 
                             value={newUser.role}
                             onChange={e => setNewUser({...newUser, role: e.target.value})}
-                            options={[
-                                { value: 'analyst', label: 'Analyst' },
-                                { value: 'admin', label: 'Admin' },
-                                { value: 'super_admin', label: 'Super Admin' }
-                            ]}
+                            options={roleOptions}
                         />
                     </div>
                     <button type="submit" className={styles.btnPrimary} disabled={createLoading}>
@@ -720,13 +728,89 @@ const SecuritySettings = () => {
 };
 
 const SystemSettings = () => {
-    const { settings, updateSetting, loading } = useSettings('system');
-    if (loading) return <div className={styles.loading}>Accessing Core...</div>;
+    const [slaHours, setSlaHours] = useState(48);
+    const [health, setHealth] = useState(null);
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [healthRes, statsRes, slaRes] = await Promise.all([
+                    axios.get('/api/health').catch(() => ({ data: { status: 'Unknown' } })),
+                    axios.get('/api/admin/users'),
+                    axios.get('/api/settings/sla_threshold_hours').catch(() => ({ data: { value: '48' } })),
+                ]);
+                setHealth(healthRes.data?.status || 'Healthy');
+                const users = statsRes.data || [];
+                setStats({
+                    total: users.length,
+                    superAdmins: users.filter(u => u.roles?.includes('super_admin')).length,
+                    admins: users.filter(u => u.roles?.includes('admin')).length,
+                    analysts: users.filter(u => u.roles?.includes('analyst')).length,
+                    mfaSecured: users.filter(u => u.mfaEnabled).length,
+                });
+                setSlaHours(parseInt(slaRes.data?.value || '48', 10));
+            } catch { setHealth('Degraded'); }
+            finally { setLoading(false); }
+        };
+        fetchData();
+    }, []);
+
+    const saveSla = async (val) => {
+        setSlaHours(val);
+        try {
+            await axios.put('/api/settings/sla_threshold_hours', { value: String(val) });
+        } catch { toast.error('Failed to save SLA setting'); }
+    };
+
+    if (loading) return <div className={styles.loading}>Accessing Core Systems...</div>;
+
+    const healthColor = health === 'Healthy' ? 'var(--success)' : 'var(--warning)';
 
     return (
         <div className={styles.section}>
-            <h3>System Controls</h3>
-            
+            <h3>System Administration</h3>
+
+            {/* Platform Health */}
+            <div className={styles.card}>
+                <h4><Monitor size={14} /> Platform Health</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: healthColor, boxShadow: `0 0 8px ${healthColor}` }} />
+                    <span style={{ fontWeight: 600, color: healthColor }}>{health}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>Backend API · Database · Ingestion Worker</span>
+                </div>
+                {stats && (
+                    <div className={styles.grid3}>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue}>{stats.total}</span>
+                            <span className={styles.statLabel}>Total Users</span>
+                        </div>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue}>{stats.mfaSecured}</span>
+                            <span className={styles.statLabel}>MFA Secured</span>
+                        </div>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue}>{stats.total - stats.mfaSecured}</span>
+                            <span className={styles.statLabel}>MFA Unprotected</span>
+                        </div>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue}>{stats.superAdmins}</span>
+                            <span className={styles.statLabel}>Super Admins</span>
+                        </div>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue}>{stats.admins}</span>
+                            <span className={styles.statLabel}>Admins</span>
+                        </div>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue}>{stats.analysts}</span>
+                            <span className={styles.statLabel}>Analysts</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Response Governance */}
             <div className={styles.card}>
                 <h4><Clock size={14} /> Response Governance</h4>
                 <div className={styles.formGroup}>
@@ -734,24 +818,25 @@ const SystemSettings = () => {
                     <input 
                         type="number" 
                         className={styles.input} 
-                        value={settings['sla_threshold_hours'] || 48} 
-                        onChange={(e) => updateSetting('sla_threshold_hours', e.target.value)} 
+                        value={slaHours} 
+                        onChange={(e) => saveSla(parseInt(e.target.value, 10))} 
                     />
-                    <span className={styles.hint}>Threshold for the "SLA BREACH" warning on pending threat topics.</span>
+                    <span className={styles.hint}>Threshold for the "SLA BREACH" warning on pending threat cards.</span>
                 </div>
             </div>
 
+            {/* Danger Zone */}
             <div className={`${styles.card} ${styles.dangerZone}`}>
                 <h4>Emergency Protocol</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                    Destructive actions. Use with extreme caution.
+                    Destructive actions. Use with extreme caution. These cannot be undone.
                 </p>
                 <button className={styles.btnDanger} onClick={async () => {
-                    if (window.confirm("Purge all threat intelligence? This is irreversible.")) {
-                        try { await axios.post('/api/settings/reset'); toast.success("System Reset"); }
-                        catch { toast.error("Action denied"); }
+                    if (window.confirm("Purge ALL threat intelligence from the database? This is irreversible.")) {
+                        try { await axios.post('/api/settings/reset'); toast.success("System database reset successfully."); }
+                        catch { toast.error("Reset denied — check permissions."); }
                     }
-                }}>Reset System Database</button>
+                }}>🗑️ Reset Threat Database</button>
             </div>
         </div>
     );

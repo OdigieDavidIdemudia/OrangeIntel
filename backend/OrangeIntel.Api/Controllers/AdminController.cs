@@ -25,12 +25,18 @@ public class AdminController : ControllerBase
     [HttpGet("users")]
     public async Task<ActionResult<List<UserProfileDto>>> ListUsers()
     {
+        var callerIsSuperAdmin = User.IsInRole("super_admin");
         var users = await _userManager.Users.ToListAsync();
         var userDtos = new List<UserProfileDto>();
 
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+
+            // Admins cannot see super_admin accounts
+            if (!callerIsSuperAdmin && roles.Contains("super_admin"))
+                continue;
+
             userDtos.Add(new UserProfileDto
             {
                 Id = user.Id,
@@ -52,6 +58,10 @@ public class AdminController : ControllerBase
     {
         // Normalize role to lowercase to match seeded role names
         var role = !string.IsNullOrEmpty(model.Role) ? model.Role.ToLower() : "analyst";
+
+        // Admins can only create analysts — only super_admins can elevate roles
+        if (!User.IsInRole("super_admin") && role != "analyst")
+            return Forbid();
 
         // Validate role exists
         var validRoles = new[] { "super_admin", "admin", "analyst" };

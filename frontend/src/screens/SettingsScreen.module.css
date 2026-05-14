@@ -385,3 +385,32 @@ input:checked + .slider:before {
 [data-theme='dark'] .dangerZone {
     background: rgba(220, 38, 38, 0.05);
 }
+
+/* System Health Stat Boxes */
+.statBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px 12px;
+    text-align: center;
+    gap: 4px;
+}
+
+.statValue {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-brand);
+    line-height: 1;
+}
+
+.statLabel {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+}
