@@ -505,12 +505,12 @@ const SecuritySettings = () => {
     
     // Create User State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [newUser, setNewUser] = useState({ email: '', password: '', role: 'analyst' });
+    const [newUser, setNewUser] = useState({ email: '', userName: '', password: '', role: 'analyst' });
     const [createLoading, setCreateLoading] = useState(false);
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get('/api/users');
+            const res = await axios.get('/api/admin/users');
             setUsers(res.data);
         } catch { toast.error("Access list unavailable"); }
         finally { setLoading(false); }
@@ -521,11 +521,18 @@ const SecuritySettings = () => {
     const handleCreateUser = async (e) => {
         e.preventDefault();
         setCreateLoading(true);
+        
+        // Ensure userName is set (fallback to email)
+        const payload = {
+            ...newUser,
+            userName: newUser.userName || newUser.email
+        };
+
         try {
-            await axios.post('/api/admin/users', newUser);
+            await axios.post('/api/admin/users', payload);
             toast.success('User created successfully');
             setIsCreateModalOpen(false);
-            setNewUser({ email: '', password: '', role: 'analyst' });
+            setNewUser({ email: '', userName: '', password: '', role: 'analyst' });
             fetchUsers();
         } catch (error) {
             toast.error(error.response?.data?.[0]?.description || 'Failed to create user');
@@ -642,6 +649,16 @@ const SecuritySettings = () => {
                             value={newUser.email}
                             onChange={e => setNewUser({...newUser, email: e.target.value})}
                             required
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>Analyst Username (Optional)</label>
+                        <input 
+                            type="text" 
+                            className={styles.input} 
+                            value={newUser.userName}
+                            onChange={e => setNewUser({...newUser, userName: e.target.value})}
+                            placeholder="Defaults to email"
                         />
                     </div>
                     <div className={styles.formGroup}>
