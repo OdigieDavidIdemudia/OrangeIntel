@@ -535,7 +535,11 @@ const SecuritySettings = () => {
             setNewUser({ email: '', userName: '', password: '', role: 'analyst' });
             fetchUsers();
         } catch (error) {
-            toast.error(error.response?.data?.[0]?.description || 'Failed to create user');
+            const msg = error.response?.data?.message 
+                || error.response?.data?.errors?.[0]?.message
+                || error.response?.data?.[0]?.description
+                || 'Failed to create user';
+            toast.error(msg);
         } finally {
             setCreateLoading(false);
         }

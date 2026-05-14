@@ -50,24 +50,35 @@ public class AdminController : ControllerBase
     [HttpPost("users")]
     public async Task<ActionResult> CreateUser([FromBody] CreateUserDto model)
     {
+        // Normalize role to lowercase to match seeded role names
+        var role = !string.IsNullOrEmpty(model.Role) ? model.Role.ToLower() : "analyst";
+
+        // Validate role exists
+        var validRoles = new[] { "super_admin", "admin", "analyst" };
+        if (!validRoles.Contains(role))
+            return BadRequest(new { message = $"Invalid role '{role}'. Must be one of: {string.Join(", ", validRoles)}" });
+
         var user = new AppUser
         {
-            UserName = model.UserName,
+            UserName = string.IsNullOrWhiteSpace(model.UserName) ? model.Email : model.UserName,
             Email = model.Email,
-            EmailConfirmed = true 
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
-        if (!result.Succeeded) return BadRequest(result.Errors);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => new { message = e.Description }).ToList();
+            return BadRequest(new { message = string.Join(" ", result.Errors.Select(e => e.Description)), errors });
+        }
 
-        // Assign role
-        var role = !string.IsNullOrEmpty(model.Role) ? model.Role : "analyst";
         await _userManager.AddToRoleAsync(user, role);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
         await _auditService.LogAsync(currentUserId, "create_user", $"Created user {user.UserName} with role {role}");
 
-        return Ok(new { Message = "User created successfully" });
+        return Ok(new { message = "User created successfully" });
     }
 
     [HttpPut("users/{id}/role")]
