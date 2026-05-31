@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OrangeIntel.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b57d2c3c94c6cd9b5af3876e1388e1a9447f636")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb6ba8e416028343c201a9280fcdd5911216c758")]
 [assembly: System.Reflection.AssemblyProductAttribute("OrangeIntel.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OrangeIntel.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -111,9 +111,12 @@ builder.Services.AddHttpClient<OrangeIntel.Application.Interfaces.IHibpService, 
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.VirusTotalProvider>();
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.AbuseIpDbProvider>();
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.AlienVaultOtxProvider>();
+builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.NvdCveProvider>();
+
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.VirusTotalProvider>());
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.AbuseIpDbProvider>());
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.AlienVaultOtxProvider>());
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.NvdCveProvider>());
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocEnrichmentService, OrangeIntel.Infrastructure.Services.IocEnrichmentService>();
 
 builder.Services.AddHostedService<OrangeIntel.Infrastructure.Services.ThreatIngestionWorker>();
