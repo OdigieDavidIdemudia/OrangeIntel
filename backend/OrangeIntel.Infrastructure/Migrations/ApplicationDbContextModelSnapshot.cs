@@ -306,11 +306,17 @@ namespace OrangeIntel.Infrastructure.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LastPasswordChangeDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("MfaEnforced")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("MfaSecret")
                         .HasColumnType("text");
@@ -340,6 +346,9 @@ namespace OrangeIntel.Infrastructure.Migrations
 
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("RequiresPasswordChange")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -431,6 +440,45 @@ namespace OrangeIntel.Infrastructure.Migrations
                     b.HasIndex("ThreatId");
 
                     b.ToTable("indicators", (string)null);
+                });
+
+            modelBuilder.Entity("OrangeIntel.Domain.Entities.IocAuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("IndicatorType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("IndicatorValue")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("QueriedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("QueriedByUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RawResultJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("RiskScore")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QueriedByUserId");
+
+                    b.ToTable("IocAuditLogs");
                 });
 
             modelBuilder.Entity("OrangeIntel.Domain.Entities.Report", b =>
@@ -705,6 +753,17 @@ namespace OrangeIntel.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Threat");
+                });
+
+            modelBuilder.Entity("OrangeIntel.Domain.Entities.IocAuditLog", b =>
+                {
+                    b.HasOne("OrangeIntel.Domain.Entities.AppUser", "QueriedByUser")
+                        .WithMany()
+                        .HasForeignKey("QueriedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("QueriedByUser");
                 });
 
             modelBuilder.Entity("OrangeIntel.Domain.Entities.ThreatItem", b =>

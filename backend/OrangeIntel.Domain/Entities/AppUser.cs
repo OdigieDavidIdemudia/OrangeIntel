@@ -25,5 +25,10 @@ public class AppUser : IdentityUser
     // Security Versioning
     public int TokenVersion { get; set; } = 0;
 
+    // Advanced Security Enforcement
+    public bool RequiresPasswordChange { get; set; } = false;
+    public bool MfaEnforced { get; set; } = false;
+    public DateTime? LastPasswordChangeDate { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

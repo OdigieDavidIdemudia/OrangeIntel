@@ -30,6 +30,12 @@ public class UserProfileDto
 
     [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("mfaEnforced")]
+    public bool MfaEnforced { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("requiresPasswordChange")]
+    public bool RequiresPasswordChange { get; set; }
 }
 
 public class UpdateProfileDto

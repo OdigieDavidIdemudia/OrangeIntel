@@ -13,9 +13,10 @@ const SettingsScreen = () => {
 
     const tabs = [
         { id: 'personal', label: 'Account', icon: User, hidden: false },
+        { id: 'mykeys', label: 'My API Keys', icon: Network, hidden: false },
         { id: 'monitor', label: 'Monitor', icon: Monitor, hidden: false },
         { id: 'intelligence', label: 'Intelligence', icon: Brain, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
-        { id: 'integration', label: 'Integrations', icon: Network, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
+        { id: 'integration', label: 'Global Integrations', icon: Network, hidden: !user?.roles?.some(r => ['admin', 'super_admin'].includes(r)) },
         { id: 'security', label: 'Security', icon: Shield, hidden: !user?.roles?.includes('super_admin') },
         { id: 'system', label: 'System', icon: SettingsIcon, hidden: !user?.roles?.includes('super_admin') },
     ];
@@ -39,6 +40,7 @@ const SettingsScreen = () => {
             </aside>
             <main className={styles.content}>
                 {activeTab === 'personal' && <PersonalSettings user={user} />}
+                {activeTab === 'mykeys' && <MyApiKeysSettings />}
                 {activeTab === 'monitor' && <MonitorSettings />}
                 {activeTab === 'intelligence' && <IntelligenceSettings />}
                 {activeTab === 'integration' && <IntegrationSettings />}
@@ -400,59 +402,301 @@ const MonitorSettings = () => {
     );
 };
 
+/* ── Per-User API Keys (all users) ── */
+const MyApiKeysSettings = () => {
+    const { token } = useAuth();
+    const [draft, setDraft] = useState({ vt_api_key: '', abuseipdb_api_key: '', alienvault_api_key: '' });
+    const [savedKeys, setSavedKeys] = useState([]);
+    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        axios.get('/api/user/api-keys', { headers: { Authorization: `Bearer ${token}` } })
+            .then(res => {
+                setSavedKeys(res.data || []);
+                // Pre-fill draft with masked values so user knows what's saved
+                const init = {};
+                (res.data || []).forEach(k => { init[k.keyName] = k.keyValue; });
+                setDraft(prev => ({ ...prev, ...init }));
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, [token]);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const payload = [
+                { keyName: 'vt_api_key', keyValue: draft.vt_api_key },
+                { keyName: 'abuseipdb_api_key', keyValue: draft.abuseipdb_api_key },
+                { keyName: 'alienvault_api_key', keyValue: draft.alienvault_api_key },
+            ].filter(k => k.keyValue && !k.keyValue.startsWith('••'));
+            await axios.put('/api/user/api-keys', payload, { headers: { Authorization: `Bearer ${token}` } });
+            toast.success('Your personal API keys have been saved!');
+        } catch {
+            toast.error('Failed to save your API keys.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const isSaved = (keyName) => savedKeys.some(k => k.keyName === keyName);
+
+    if (loading) return <div className={styles.loading}>Loading your keys...</div>;
+
+    return (
+        <div className={styles.section}>
+            <h3>My API Keys</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '14px' }}>
+                Add your own free-tier API keys to enable IOC enrichment. Your personal keys take priority over any admin-configured global keys.
+            </p>
+
+            <div className={styles.card}>
+                <div className={styles.formGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        VirusTotal API Key
+                        {isSaved('vt_api_key') && <span style={{ fontSize: '11px', color: 'var(--color-success)', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>✓ Saved</span>}
+                    </label>
+                    <input
+                        id="my-vt-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your VirusTotal v3 API key…"
+                        value={draft.vt_api_key}
+                        onChange={e => setDraft(p => ({ ...p, vt_api_key: e.target.value }))}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Free tier: 4 lookups/min · 500/day · <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" rel="noreferrer">Get free key ↗</a></span>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        AbuseIPDB API Key
+                        {isSaved('abuseipdb_api_key') && <span style={{ fontSize: '11px', color: 'var(--color-success)', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>✓ Saved</span>}
+                    </label>
+                    <input
+                        id="my-abuseipdb-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your AbuseIPDB API key…"
+                        value={draft.abuseipdb_api_key}
+                        onChange={e => setDraft(p => ({ ...p, abuseipdb_api_key: e.target.value }))}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Free tier: 1,000 checks/day · <a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noreferrer">Get free key ↗</a></span>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        AlienVault OTX API Key
+                        {isSaved('alienvault_api_key') && <span style={{ fontSize: '11px', color: 'var(--color-success)', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>✓ Saved</span>}
+                    </label>
+                    <input
+                        id="my-otx-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your AlienVault OTX key…"
+                        value={draft.alienvault_api_key}
+                        onChange={e => setDraft(p => ({ ...p, alienvault_api_key: e.target.value }))}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Completely free · No rate limits · <a href="https://otx.alienvault.com/api" target="_blank" rel="noreferrer">Get free key ↗</a></span>
+                </div>
+
+                <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>
+                    {saving ? 'Saving...' : 'Save My API Keys'}
+                </button>
+            </div>
+
+            <div className={styles.card} style={{ marginTop: '16px', background: 'rgba(251,191,36,0.05)', borderColor: 'rgba(251,191,36,0.2)' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                    <strong style={{ color: 'var(--color-warning)' }}>How this works:</strong> When you run an IOC lookup, the system first checks if <em>you</em> have a key saved here. If not, it falls back to the organisation-wide key configured by your admin. If neither is set, that provider is skipped.
+                </p>
+            </div>
+        </div>
+    );
+};
+
 const IntegrationSettings = () => {
-    const { settings, updateSetting, loading } = useSettings('integration');
+
+    const { settings, loading } = useSettings('integration');
+    const { token } = useAuth();
+
+    // Draft state — only persisted when the user clicks Save
+    const [draft, setDraft] = useState({});
+    const [saving, setSaving] = useState(false);
+    const [savedAt, setSavedAt] = useState(null);
+
+    // Initialise draft from loaded settings
+    useEffect(() => {
+        if (!loading) {
+            setDraft({
+                vt_api_key: settings['vt_api_key'] || '',
+                abuseipdb_api_key: settings['abuseipdb_api_key'] || '',
+                alienvault_api_key: settings['alienvault_api_key'] || '',
+                telegram_bot_token: settings['telegram_bot_token'] || '',
+                telegram_chat_id: settings['telegram_chat_id'] || '',
+                notify_min_severity: settings['notify_min_severity'] || '7',
+                notify_min_confidence: settings['notify_min_confidence'] || '70',
+                notify_max_per_day: settings['notify_max_per_day'] || '5',
+            });
+        }
+    }, [loading]);
+
+    const handleSaveApiKeys = async () => {
+        setSaving(true);
+        try {
+            const payload = [
+                { key: 'vt_api_key',         value: draft.vt_api_key,         category: 'integration' },
+                { key: 'abuseipdb_api_key',  value: draft.abuseipdb_api_key,  category: 'integration' },
+                { key: 'alienvault_api_key', value: draft.alienvault_api_key, category: 'integration' },
+            ];
+            await axios.put('/api/settings', payload);
+            setSavedAt(new Date());
+            toast.success('API keys saved — providers will use the new keys immediately.');
+        } catch {
+            toast.error('Failed to save API keys.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSaveNotifications = async () => {
+        setSaving(true);
+        try {
+            const payload = [
+                { key: 'telegram_bot_token',    value: draft.telegram_bot_token,    category: 'integration' },
+                { key: 'telegram_chat_id',       value: draft.telegram_chat_id,       category: 'integration' },
+                { key: 'notify_min_severity',    value: draft.notify_min_severity,    category: 'integration' },
+                { key: 'notify_min_confidence',  value: draft.notify_min_confidence,  category: 'integration' },
+                { key: 'notify_max_per_day',     value: draft.notify_max_per_day,     category: 'integration' },
+            ];
+            await axios.put('/api/settings', payload);
+            toast.success('Notification settings saved.');
+        } catch {
+            toast.error('Failed to save notification settings.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const set = (key) => (e) => setDraft(prev => ({ ...prev, [key]: e.target.value }));
+
     if (loading) return <div className={styles.loading}>Linking Nodes...</div>;
 
     return (
         <div className={styles.section}>
             <h3>Global Integrations</h3>
+
+            {/* ── IOC / Threat Intel API Keys ── */}
             <div className={styles.card}>
-                <h4><Network size={14} /> Threat Intelligence Providers</h4>
-                <div className={styles.formGroup}>
-                    <label>VirusTotal API Gateway</label>
-                    <input type="password" className={styles.input} placeholder="••••••••••••••••" value={settings['vt_api_key'] || ''} onChange={(e) => updateSetting('vt_api_key', e.target.value)} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <h4 style={{ margin: 0 }}><Network size={14} /> IOC Enrichment API Keys</h4>
+                    {savedAt && (
+                        <span style={{ fontSize: '12px', color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <CheckCircle size={13} /> Saved {savedAt.toLocaleTimeString()}
+                        </span>
+                    )}
                 </div>
-                <div className={styles.statusHealthy}><CheckCircle size={14} /> CISA KEV Feed Active</div>
-                <div className={styles.statusHealthy} style={{ marginTop: '8px' }}><CheckCircle size={14} /> NVD Database Synced</div>
+
+                <div className={styles.formGroup}>
+                    <label>VirusTotal API Key</label>
+                    <input
+                        id="vt-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your VirusTotal v3 API key…"
+                        value={draft.vt_api_key || ''}
+                        onChange={set('vt_api_key')}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Free tier: 4 lookups/min · 500/day · <a href="https://www.virustotal.com/gui/my-apikey" target="_blank" rel="noreferrer">Get key ↗</a></span>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label>AbuseIPDB API Key</label>
+                    <input
+                        id="abuseipdb-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your AbuseIPDB API key…"
+                        value={draft.abuseipdb_api_key || ''}
+                        onChange={set('abuseipdb_api_key')}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Free tier: 1,000 checks/day · <a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noreferrer">Get key ↗</a></span>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label>AlienVault OTX API Key</label>
+                    <input
+                        id="otx-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your OTX API key…"
+                        value={draft.alienvault_api_key || ''}
+                        onChange={set('alienvault_api_key')}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Free · No limits · <a href="https://otx.alienvault.com/api" target="_blank" rel="noreferrer">Get key ↗</a></span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                    <button
+                        className={styles.btnPrimary}
+                        onClick={handleSaveApiKeys}
+                        disabled={saving}
+                        id="save-api-keys-btn"
+                    >
+                        {saving ? 'Saving…' : 'Save API Keys'}
+                    </button>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Keys are stored encrypted in the database.</span>
+                </div>
+
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+                    <div className={styles.statusHealthy}><CheckCircle size={14} /> CISA KEV Feed Active</div>
+                    <div className={styles.statusHealthy} style={{ marginTop: '8px' }}><CheckCircle size={14} /> NVD Database Synced</div>
+                </div>
             </div>
 
+            {/* ── Telegram / Notifications ── */}
             <div className={styles.card}>
                 <h4><Shield size={14} /> Notification Integration</h4>
                 <div className={styles.formGroup}>
                     <label>Telegram Bot Token</label>
-                    <input 
-                        type="password" 
-                        className={styles.input} 
-                        placeholder="Telegram Bot Token" 
-                        value={settings['telegram_bot_token'] || ''} 
-                        onChange={(e) => updateSetting('telegram_bot_token', e.target.value)} 
+                    <input
+                        type="password"
+                        className={styles.input}
+                        placeholder="Telegram Bot Token"
+                        value={draft.telegram_bot_token || ''}
+                        onChange={set('telegram_bot_token')}
+                        autoComplete="off"
                     />
                 </div>
                 <div className={styles.formGroup}>
                     <label>Default Telegram Chat ID</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                        <input 
-                            type="text" 
-                            className={styles.input} 
+                        <input
+                            type="text"
+                            className={styles.input}
                             style={{ flex: 1 }}
-                            placeholder="Default Chat ID" 
-                            value={settings['telegram_chat_id'] || ''} 
-                            onChange={(e) => updateSetting('telegram_chat_id', e.target.value)} 
+                            placeholder="Default Chat ID"
+                            value={draft.telegram_chat_id || ''}
+                            onChange={set('telegram_chat_id')}
                         />
-                        <button 
+                        <button
                             className={styles.btnSecondary}
                             style={{ height: '38px', padding: '0 12px', whiteSpace: 'nowrap' }}
                             onClick={async () => {
                                 try {
-                                    await axios.post(`/api/users/profile/test-telegram?chatId=${settings['telegram_chat_id']}`);
-                                    toast.success("Global test message sent!");
+                                    await axios.post(`/api/users/profile/test-telegram?chatId=${draft.telegram_chat_id}`);
+                                    toast.success('Global test message sent!');
                                 } catch (err) {
-                                    toast.error(err.response?.data || "Global test failed");
+                                    toast.error(err.response?.data || 'Global test failed');
                                 }
                             }}
                         >
-                            Test Global
+                            Test
                         </button>
                     </div>
                 </div>
@@ -464,33 +708,23 @@ const IntegrationSettings = () => {
                 <div className={styles.grid3}>
                     <div className={styles.formGroup}>
                         <label>Min Severity (0-10)</label>
-                        <input 
-                            type="number" 
-                            className={styles.input} 
-                            value={settings['notify_min_severity'] || 7} 
-                            onChange={(e) => updateSetting('notify_min_severity', e.target.value)} 
-                        />
+                        <input type="number" className={styles.input} value={draft.notify_min_severity || '7'} onChange={set('notify_min_severity')} />
                     </div>
                     <div className={styles.formGroup}>
                         <label>Min Confidence (%)</label>
-                        <input 
-                            type="number" 
-                            className={styles.input} 
-                            value={settings['notify_min_confidence'] || 70} 
-                            onChange={(e) => updateSetting('notify_min_confidence', e.target.value)} 
-                        />
+                        <input type="number" className={styles.input} value={draft.notify_min_confidence || '70'} onChange={set('notify_min_confidence')} />
                     </div>
                     <div className={styles.formGroup}>
                         <label>Max Alerts / Day</label>
-                        <input 
-                            type="number" 
-                            className={styles.input} 
-                            value={settings['notify_max_per_day'] || 5} 
-                            onChange={(e) => updateSetting('notify_max_per_day', e.target.value)} 
-                        />
+                        <input type="number" className={styles.input} value={draft.notify_max_per_day || '5'} onChange={set('notify_max_per_day')} />
                     </div>
                 </div>
-                <span className={styles.hint}>Thresholds for automated Telegram and Signal alerts.</span>
+                <span className={styles.hint}>Thresholds for automated Telegram alerts.</span>
+                <div style={{ marginTop: '12px' }}>
+                    <button className={styles.btnPrimary} onClick={handleSaveNotifications} disabled={saving} id="save-notifications-btn">
+                        {saving ? 'Saving…' : 'Save Notification Settings'}
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -633,6 +867,21 @@ const SecuritySettings = ({ currentUser }) => {
                                             </button>
                                             <button 
                                                 className={styles.actionBtn} 
+                                                onClick={async () => {
+                                                    if (window.confirm("Enforce MFA setup for this user?")) {
+                                                        try {
+                                                            await axios.post(`/api/admin/users/${u.id}/mfa/enforce`);
+                                                            toast.success("MFA Enforced");
+                                                            fetchUsers();
+                                                        } catch { toast.error("Failed to enforce MFA"); }
+                                                    }
+                                                }}
+                                                title="Enforce 2FA"
+                                            >
+                                                <Shield size={14} color="var(--warning)" />
+                                            </button>
+                                            <button 
+                                                className={styles.actionBtn} 
                                                 onClick={() => handleResetMfa(u.id)}
                                                 title="Reset MFA"
                                             >
@@ -731,15 +980,17 @@ const SystemSettings = () => {
     const [slaHours, setSlaHours] = useState(48);
     const [health, setHealth] = useState(null);
     const [stats, setStats] = useState(null);
+    const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [healthRes, statsRes, slaRes] = await Promise.all([
+                const [healthRes, statsRes, slaRes, logsRes] = await Promise.all([
                     axios.get('/api/health').catch(() => ({ data: { status: 'Unknown' } })),
                     axios.get('/api/admin/users'),
                     axios.get('/api/settings/sla_threshold_hours').catch(() => ({ data: { value: '48' } })),
+                    axios.get('/api/admin/audit-logs').catch(() => ({ data: [] }))
                 ]);
                 setHealth(healthRes.data?.status || 'Healthy');
                 const users = statsRes.data || [];
@@ -749,7 +1000,9 @@ const SystemSettings = () => {
                     admins: users.filter(u => u.roles?.includes('admin')).length,
                     analysts: users.filter(u => u.roles?.includes('analyst')).length,
                     mfaSecured: users.filter(u => u.mfaEnabled).length,
+                    weakPasswords: users.filter(u => u.requiresPasswordChange || u.mfaEnforced).length,
                 });
+                setAuditLogs(logsRes.data || []);
                 setSlaHours(parseInt(slaRes.data?.value || '48', 10));
             } catch { setHealth('Degraded'); }
             finally { setLoading(false); }
@@ -806,6 +1059,10 @@ const SystemSettings = () => {
                             <span className={styles.statValue}>{stats.analysts}</span>
                             <span className={styles.statLabel}>Analysts</span>
                         </div>
+                        <div className={styles.statBox}>
+                            <span className={styles.statValue} style={{ color: stats.weakPasswords > 0 ? 'var(--color-danger)' : 'var(--success)' }}>{stats.weakPasswords}</span>
+                            <span className={styles.statLabel}>Weak Security Setup</span>
+                        </div>
                     </div>
                 )}
             </div>
@@ -822,6 +1079,29 @@ const SystemSettings = () => {
                         onChange={(e) => saveSla(parseInt(e.target.value, 10))} 
                     />
                     <span className={styles.hint}>Threshold for the "SLA BREACH" warning on pending threat cards.</span>
+                </div>
+            </div>
+
+            {/* Audit Logs */}
+            <div className={styles.card}>
+                <h4><Lock size={14} /> System Audit Logs</h4>
+                <div className={styles.tableWrapper} style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <table className={styles.userTable}>
+                        <thead>
+                            <tr><th>Time</th><th>Action</th><th>Details</th></tr>
+                        </thead>
+                        <tbody>
+                            {auditLogs.length > 0 ? auditLogs.map(log => (
+                                <tr key={log.id}>
+                                    <td style={{ fontSize: '12px' }}>{new Date(log.timestamp).toLocaleString()}</td>
+                                    <td><span className={styles.badge}>{log.action}</span></td>
+                                    <td style={{ fontSize: '13px' }}>{log.details}</td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan="3" style={{ textAlign: 'center' }}>No audit logs available.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

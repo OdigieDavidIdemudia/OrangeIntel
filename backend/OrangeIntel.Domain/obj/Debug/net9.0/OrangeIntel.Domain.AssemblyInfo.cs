@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OrangeIntel.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2fe3bafc0ac35d3f715de29f4783d5ca7fc99937")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6fc164b0f8477fe40dde51d90283318b395e9c3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("OrangeIntel.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OrangeIntel.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

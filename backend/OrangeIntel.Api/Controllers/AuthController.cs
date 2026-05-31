@@ -138,7 +138,9 @@ public class AuthController : ControllerBase
             accessToken = tokenResponse.AccessToken,
             refreshToken = tokenResponse.RefreshToken,
             isPasswordPwned = isPwned,
-            message = isPwned ? "Warning: Your password was found in a known data breach. We recommend changing it." : null 
+            message = isPwned ? "Warning: Your password was found in a known data breach. We recommend changing it." : null,
+            requiresPasswordChange = user.RequiresPasswordChange,
+            requiresMfaSetup = user.MfaEnforced && string.IsNullOrEmpty(user.MfaSecret)
         });
     }
 

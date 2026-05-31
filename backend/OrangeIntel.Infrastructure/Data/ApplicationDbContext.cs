@@ -16,12 +16,15 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
 
     public DbSet<ThreatSource> ThreatSources { get; set; }
     public DbSet<ThreatItem> ThreatItems { get; set; }
-    public DbSet<Indicator> Indicators { get; set; }
+    public DbSet<AppUser> Users { get; set; }
     public DbSet<Advisory> Advisories { get; set; }
+    public DbSet<AdvisoryDraft> AdvisoryDrafts { get; set; }
+    public DbSet<Indicator> Indicators { get; set; }
     public DbSet<Report> Reports { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<AdvisoryDraft> AdvisoryDrafts { get; set; }
+    public DbSet<IocAuditLog> IocAuditLogs { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
+    public DbSet<UserApiKey> UserApiKeys { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -102,6 +105,12 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         // System Settings Config
         builder.Entity<SystemSetting>()
             .HasIndex(s => s.Key)
+            .IsUnique();
+
+        // UserApiKey Config
+        builder.Entity<UserApiKey>().ToTable("user_api_keys");
+        builder.Entity<UserApiKey>()
+            .HasIndex(k => new { k.UserId, k.KeyName })
             .IsUnique();
     }
 }

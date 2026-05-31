@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, AlertTriangle, FileText, FileBarChart, Settings, Shield, LogOut, Monitor, Activity } from 'lucide-react';
+import { LayoutDashboard, AlertTriangle, FileText, FileBarChart, Settings, Shield, LogOut, Monitor, Activity, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
 import BrandLogo from '../common/BrandLogo';
@@ -46,6 +46,11 @@ const Sidebar = () => {
         <NavLink to="/reports" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
           <FileText size={20} />
           <span>Reports</span>
+        </NavLink>
+
+        <NavLink to="/ioc" className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}>
+          <ShieldAlert size={20} />
+          <span>IOC Lookup</span>
         </NavLink>
 
         <a

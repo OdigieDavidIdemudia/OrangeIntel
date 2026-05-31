@@ -46,7 +46,9 @@ public class AdminController : ControllerBase
                 MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
                 FullName = user.FullName,
                 TelegramChatId = user.TelegramChatId,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                MfaEnforced = user.MfaEnforced,
+                RequiresPasswordChange = user.RequiresPasswordChange
             });
         }
 
@@ -158,24 +160,68 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("users/{id}/password/reset")]
-    [Authorize(Roles = "super_admin")]
     public async Task<ActionResult> ResetPassword(string id, [FromBody] AdminResetPasswordDto model)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
+
+        var callerIsSuperAdmin = User.IsInRole("super_admin");
+        var targetRoles = await _userManager.GetRolesAsync(user);
+
+        // Admins can only reset Analyst passwords
+        if (!callerIsSuperAdmin && (targetRoles.Contains("admin") || targetRoles.Contains("super_admin")))
+            return Forbid();
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
         
         if (!result.Succeeded) return BadRequest(result.Errors);
 
-        // Security requirement: Revoke all existing sessions on password reset
+        // Security requirement: Revoke all existing sessions and enforce change
         user.TokenVersion++;
+        user.RequiresPasswordChange = true;
         await _userManager.UpdateAsync(user);
 
         var currentUserId = _userManager.GetUserId(User) ?? "unknown";
         await _auditService.LogAsync(currentUserId, "admin_reset_password", $"Admin reset password for user {user.UserName ?? user.Email}");
 
         return Ok("Password reset successfully and sessions revoked.");
+    }
+
+    [HttpPost("users/{id}/mfa/enforce")]
+    public async Task<ActionResult> EnforceMfa(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var callerIsSuperAdmin = User.IsInRole("super_admin");
+        var targetRoles = await _userManager.GetRolesAsync(user);
+
+        // Admins can only enforce MFA for Analysts
+        if (!callerIsSuperAdmin && (targetRoles.Contains("admin") || targetRoles.Contains("super_admin")))
+            return Forbid();
+
+        user.MfaEnforced = true;
+        await _userManager.UpdateAsync(user);
+
+        var currentUserId = _userManager.GetUserId(User) ?? "unknown";
+        await _auditService.LogAsync(currentUserId, "enforce_mfa", $"Enforced 2FA for user {user.UserName ?? user.Email}");
+
+        return Ok("2FA enforced successfully.");
+    }
+
+    [HttpGet("audit-logs")]
+    public async Task<ActionResult<List<AuditLog>>> GetAuditLogs()
+    {
+        var logs = await _auditService.GetLogsAsync(200);
+        var callerIsSuperAdmin = User.IsInRole("super_admin");
+
+        if (callerIsSuperAdmin)
+            return logs;
+
+        // Admins only see logs where they are the actor, or logs that don't involve super_admins/admins (filtering target logs is harder since AuditLog doesn't have target user ID structured)
+        // A simple approach: Admins only see their own logs for now, or logs where action was 'create_user' / 'admin_reset_password' and they were the actor.
+        var currentUserId = _userManager.GetUserId(User);
+        return logs.Where(l => l.UserId == currentUserId).ToList();
     }
 }

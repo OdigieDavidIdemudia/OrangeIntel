@@ -22,6 +22,7 @@ public class ThreatIngestionService
     private readonly IConfiguration _configuration;
     private readonly INotificationService _notificationService;
     private readonly IEnumerable<INotificationProvider> _notificationProviders;
+    private readonly ReputationService _reputationService;
 
     public ThreatIngestionService(
         ApplicationDbContext context, 
@@ -29,7 +30,8 @@ public class ThreatIngestionService
         ILogger<ThreatIngestionService> logger, 
         IConfiguration configuration, 
         INotificationService notificationService,
-        IEnumerable<INotificationProvider> notificationProviders)
+        IEnumerable<INotificationProvider> notificationProviders,
+        ReputationService reputationService)
     {
         _context = context;
         _httpClient = httpClient;
@@ -37,6 +39,7 @@ public class ThreatIngestionService
         _configuration = configuration;
         _notificationService = notificationService;
         _notificationProviders = notificationProviders;
+        _reputationService = reputationService;
     }
 
     private string ComputeStableHash(string input)
@@ -159,6 +162,8 @@ public class ThreatIngestionService
                      MetadataJson = JsonSerializer.Serialize(vuln)
                  };
                  
+                 await EnrichWithReputationAsync(item);
+                 
                  _context.ThreatItems.Add(item);
                  await _notificationService.NotifyIngestionAsync(item);
                  count++;
@@ -276,6 +281,8 @@ public class ThreatIngestionService
                     Language = "en"
                  };
 
+                 await EnrichWithReputationAsync(threat);
+
                  _context.ThreatItems.Add(threat);
                  await _notificationService.NotifyIngestionAsync(threat);
                  count++;
@@ -357,6 +364,8 @@ public class ThreatIngestionService
                     SourceId = source.Id
                 };
                 
+                await EnrichWithReputationAsync(threat);
+                
                 _context.ThreatItems.Add(threat);
                 await _notificationService.NotifyIngestionAsync(threat);
                 count++;
@@ -369,6 +378,65 @@ public class ThreatIngestionService
         {
             _logger.LogError(ex, "Failed to ingest AlienVault Pulses");
             return (-1, ex.Message);
+        }
+    }
+
+    private async Task EnrichWithReputationAsync(ThreatItem item)
+    {
+        var textToScan = item.Title + " " + item.Summary;
+        
+        var ips = _reputationService.ExtractIps(textToScan).Take(2).ToList();
+        var hashes = _reputationService.ExtractHashes(textToScan).Take(2).ToList();
+        
+        bool isMalicious = false;
+        var details = new List<string>();
+
+        item.Indicators ??= new List<Indicator>();
+
+        foreach (var ip in ips)
+        {
+            var score = await _reputationService.CheckAbuseIPDBAsync(ip);
+            item.Indicators.Add(new Indicator
+            {
+                IndicatorType = "IP",
+                IndicatorValue = ip,
+                Confidence = score ?? 50
+            });
+            if (score.HasValue)
+            {
+                details.Add($"AbuseIPDB ({ip}): {score.Value}% malicious");
+                if (score.Value > 80) isMalicious = true;
+            }
+        }
+
+        foreach (var hash in hashes)
+        {
+            var maliciousCount = await _reputationService.CheckVirusTotalHashAsync(hash);
+            int vtScore = maliciousCount ?? 0;
+            int confidence = Math.Min(vtScore * 15, 100);
+            item.Indicators.Add(new Indicator
+            {
+                IndicatorType = "Hash",
+                IndicatorValue = hash,
+                Confidence = confidence > 0 ? confidence : 50
+            });
+            if (maliciousCount.HasValue)
+            {
+                details.Add($"VirusTotal ({hash}): {maliciousCount.Value} engines flagged");
+                if (maliciousCount.Value >= 5) isMalicious = true;
+            }
+        }
+
+        if (details.Count > 0)
+        {
+            item.Summary += $"\n\n[Reputation Checks]\n- {string.Join("\n- ", details)}";
+        }
+
+        if (isMalicious)
+        {
+            item.Title = $"[Malicious IoC] {item.Title}";
+            item.Severity = 10;
+            item.Confidence = 100;
         }
     }
     public async Task<int> PurgeIrrelevantThreatsAsync()

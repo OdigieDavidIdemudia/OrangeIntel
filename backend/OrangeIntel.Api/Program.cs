@@ -98,6 +98,7 @@ builder.Services.AddSingleton<OrangeIntel.Infrastructure.Services.EncryptionServ
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ITokenService, OrangeIntel.Infrastructure.Services.JwtTokenService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IOneTimePasswordService, OrangeIntel.Infrastructure.Services.OneTimePasswordService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAuditService, OrangeIntel.Infrastructure.Services.AuditService>();
+builder.Services.AddScoped<OrangeIntel.Infrastructure.Services.ReputationService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ISystemSettingService, OrangeIntel.Infrastructure.Services.SystemSettingService>();
 
@@ -105,6 +106,15 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ISystemSettingServ
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Services.ThreatIngestionService>();
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
 builder.Services.AddHttpClient<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
+
+// IOC Enrichment Engine
+builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.VirusTotalProvider>();
+builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.AbuseIpDbProvider>();
+builder.Services.AddHttpClient<OrangeIntel.Infrastructure.External.AlienVaultOtxProvider>();
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.VirusTotalProvider>());
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.AbuseIpDbProvider>());
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.External.AlienVaultOtxProvider>());
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IIocEnrichmentService, OrangeIntel.Infrastructure.Services.IocEnrichmentService>();
 
 builder.Services.AddHostedService<OrangeIntel.Infrastructure.Services.ThreatIngestionWorker>();
 

@@ -14,6 +14,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import MonitoringScreen from './screens/MonitoringScreen';
 import ThreatDashboard from './screens/ThreatDashboard';
 import AdminDashboard from './screens/AdminDashboard';
+import IocLookupScreen from './screens/IocLookupScreen';
 
 const RequireAuth = ({ children }) => {
   const { token, loading } = useAuth();
@@ -65,6 +66,8 @@ function App() {
               <Route path="advisories/:id" element={<AdvisoryBuilder />} />
 
               <Route path="reports" element={<ReportBuilder />} />
+
+              <Route path="ioc" element={<IocLookupScreen />} />
 
               <Route path="settings" element={<SettingsScreen />} />
 
