@@ -73,8 +73,7 @@ public class ThreatIngestionService
             ("https://cert.gov.ng/feed/", "CERT Nigeria", "NGC-"),
             ("https://nigeriacommunicationsweek.com.ng/feed/", "Nigeria CommWeek", "NCW-"),
             ("https://techcabal.com/feed/", "TechCabal Africa", "TC-"),
-            ("https://nitda.gov.ng/feed/", "NITDA Nigeria", "NIT-"),
-            ("https://www.itweb.co.za/static/rss/news.xml", "ITWeb Africa", "ITW-")
+            ("https://nitda.gov.ng/feed/", "NITDA Nigeria", "NIT-")
         };
 
         foreach (var (url, sourceName, prefix) in rssFeeds)
@@ -187,8 +186,13 @@ public class ThreatIngestionService
          {
              // Use a browser-like user agent to avoid 403s
              _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
              
              var rssContent = await _httpClient.GetStringAsync(rssUrl);
+
+             // Sanitize raw XML to fix unescaped ampersands (e.g. IT News Africa) which cause EntityName errors
+             rssContent = System.Text.RegularExpressions.Regex.Replace(rssContent, "&(?!(?:[a-zA-Z]+|#\\d+|#x[a-fA-F0-9]+);)", "&amp;");
+             
              var xdoc = System.Xml.Linq.XDocument.Parse(rssContent);
              
              // Simple interaction: Descendants("item")
