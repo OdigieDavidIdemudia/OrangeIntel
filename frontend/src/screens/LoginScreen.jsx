@@ -181,7 +181,10 @@ const LoginScreen = () => {
 
                 <div className={styles.footerDetails}>
                     <div className={styles.line}></div>
-                    <span>Secured Connection</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <span>Secured Connection</span>
+                        <a href="/privacy" style={{ fontSize: '12px', color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Privacy Policy</a>
+                    </div>
                     <div className={styles.line}></div>
                 </div>
             </main>
