@@ -15,6 +15,7 @@ import MonitoringScreen from './screens/MonitoringScreen';
 import ThreatDashboard from './screens/ThreatDashboard';
 import AdminDashboard from './screens/AdminDashboard';
 import IocLookupScreen from './screens/IocLookupScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 
 const RequireAuth = ({ children }) => {
   const { token, loading } = useAuth();
@@ -51,6 +52,7 @@ function App() {
       <ThemeProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/privacy" element={<PrivacyPolicyScreen />} />
             <Route path="/login" element={<LoginScreen />} />
 
             <Route path="/" element={
