@@ -75,7 +75,12 @@ public class IocEnrichmentService : IIocEnrichmentService
                 }
                 catch { }
             }
-            return cachedResponse;
+            
+            // If we added a new provider recently, ignore the cache if the provider count doesn't match
+            if (cachedResponse.ProviderResults?.Count >= _providers.Count())
+            {
+                return cachedResponse;
+            }
         }
 
         // 2. Query Providers sequentially (EF Core DbContext is not thread-safe;
