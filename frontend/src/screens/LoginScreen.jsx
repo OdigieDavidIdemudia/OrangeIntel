@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Eye, EyeOff, Sun, Moon, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -179,13 +179,20 @@ const LoginScreen = () => {
                     </button>
                 </form>
 
-                <div className={styles.footerDetails}>
-                    <div className={styles.line}></div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                        <span>Secured Connection</span>
-                        <a href="/privacy" style={{ fontSize: '12px', color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Privacy Policy</a>
+                <div className={styles.footerContainer}>
+                    <div className={styles.securedRow}>
+                        <div className={styles.line}></div>
+                        <div className={styles.securedBadge}>
+                            <Lock size={12} />
+                            <span>SECURED CONNECTION</span>
+                        </div>
+                        <div className={styles.line}></div>
                     </div>
-                    <div className={styles.line}></div>
+                    <div className={styles.legalLinks}>
+                        <a href="/privacy">Privacy Policy</a>
+                        <span className={styles.dot}>&bull;</span>
+                        <a href="/terms">Terms of Service</a>
+                    </div>
                 </div>
             </main>
         </div>
