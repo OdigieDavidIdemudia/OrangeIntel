@@ -47,6 +47,8 @@ public class UsersController : ControllerBase
             UserName = user.UserName!,
             Roles = roles.ToList(),
             MfaEnabled = !string.IsNullOrEmpty(user.MfaSecret),
+            MfaEnforced = user.MfaEnforced,
+            RequiresPasswordChange = user.RequiresPasswordChange,
             FullName = user.FullName,
             TelegramChatId = user.TelegramChatId,
             NotificationPreferencesJson = user.NotificationPreferencesJson

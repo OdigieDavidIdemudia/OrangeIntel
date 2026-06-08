@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OrangeIntel.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb6ba8e416028343c201a9280fcdd5911216c758")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a40f118be449708ee42d3d8d71a8bef404c7e6d")]
 [assembly: System.Reflection.AssemblyProductAttribute("OrangeIntel.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OrangeIntel.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

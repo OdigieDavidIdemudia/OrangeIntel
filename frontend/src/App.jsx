@@ -17,8 +17,10 @@ import AdminDashboard from './screens/AdminDashboard';
 import IocLookupScreen from './screens/IocLookupScreen';
 import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 
+import ForceMfaSetup from './screens/ForceMfaSetup';
+
 const RequireAuth = ({ children }) => {
-  const { token, loading } = useAuth();
+  const { token, user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -27,6 +29,10 @@ const RequireAuth = ({ children }) => {
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user?.mfaEnforced && !user?.mfaEnabled) {
+    return <ForceMfaSetup />;
   }
 
   return children;
