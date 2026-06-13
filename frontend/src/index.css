@@ -200,3 +200,62 @@ select option {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Global Skeleton Loader System ── */
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.sk-bone {
+  background: var(--border-subtle, #2A2A27);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sk-bone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.05) 40%,
+    rgba(255,255,255,0.10) 60%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: skeleton-shimmer 1.8s infinite;
+}
+
+[data-theme='light'] .sk-bone::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0.03) 40%,
+    rgba(0,0,0,0.07) 60%,
+    rgba(0,0,0,0) 100%
+  );
+}
+
+/* Bone size helpers */
+.sk-h-xs  { height: 10px; }
+.sk-h-sm  { height: 14px; }
+.sk-h-md  { height: 18px; }
+.sk-h-lg  { height: 24px; }
+.sk-h-xl  { height: 40px; }
+.sk-h-2xl { height: 60px; }
+.sk-h-3xl { height: 80px; }
+.sk-h-4xl { height: 120px; }
+
+.sk-w-20  { width: 20%; }
+.sk-w-30  { width: 30%; }
+.sk-w-40  { width: 40%; }
+.sk-w-50  { width: 50%; }
+.sk-w-60  { width: 60%; }
+.sk-w-70  { width: 70%; }
+.sk-w-80  { width: 80%; }
+.sk-w-full { width: 100%; }
+
+.sk-circle { border-radius: 50%; }
+.sk-pill   { border-radius: 999px; }

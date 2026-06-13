@@ -32,7 +32,94 @@ const ThreatDashboard = () => {
     }, []);
 
     if (loading || !metrics) {
-        return <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--text-muted)', fontSize: '13px' }}>Initializing Platform Intelligence...</div>;
+        return (
+            <div className={styles.container}>
+                {/* Header skeleton */}
+                <header className={styles.dashboardHeader} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px' }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                        <div className="sk-bone sk-h-lg sk-w-40" style={{ width:220 }}/>
+                        <div className="sk-bone sk-h-sm sk-w-60" style={{ width:300 }}/>
+                    </div>
+                    <div className="sk-bone sk-h-lg sk-pill" style={{ width:140 }}/>
+                </header>
+
+                {/* Two-column grid skeleton */}
+                <div className={styles.grid}>
+                    {/* Main left col */}
+                    <div className={styles.mainGroup}>
+                        {/* Threat Counters section */}
+                        <div>
+                            <div className="sk-bone sk-h-sm" style={{ width:120, marginBottom:12 }}/>
+                            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
+                                {[1,2,3].map(i => (
+                                    <div key={i} style={{ background:'var(--bg-panel)', border:'1px solid var(--border-color)', borderRadius:10, padding:16, display:'flex', flexDirection:'column', gap:8 }}>
+                                        <div className="sk-bone sk-h-xs sk-pill" style={{ width:60 }}/>
+                                        <div className="sk-bone sk-h-2xl" style={{ width:48, borderRadius:8 }}/>
+                                        <div className="sk-bone sk-h-xs" style={{ width:80 }}/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Recent Intel ticker section */}
+                        <div style={{ marginTop:24 }}>
+                            <div className="sk-bone sk-h-sm" style={{ width:150, marginBottom:12 }}/>
+                            <div style={{ background:'var(--bg-panel)', border:'1px solid var(--border-color)', borderRadius:10, overflow:'hidden' }}>
+                                {[1,2,3,4,5].map(i => (
+                                    <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderBottom:'1px solid var(--border-color)' }}>
+                                        <div className="sk-bone sk-circle" style={{ width:28, height:28, flexShrink:0 }}/>
+                                        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:6 }}>
+                                            <div className="sk-bone sk-h-sm sk-w-70"/>
+                                            <div className="sk-bone sk-h-xs sk-w-40"/>
+                                        </div>
+                                        <div className="sk-bone sk-h-sm sk-pill" style={{ width:50 }}/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right side col */}
+                    <div className={styles.sideGroup}>
+                        {/* Navigation links skeleton */}
+                        <div>
+                            <div className="sk-bone sk-h-sm" style={{ width:90, marginBottom:12 }}/>
+                            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                                {[1,2,3].map(i => (
+                                    <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'var(--bg-panel)', border:'1px solid var(--border-color)', borderRadius:8, padding:'10px 14px' }}>
+                                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                            <div className="sk-bone sk-circle" style={{ width:32, height:32 }}/>
+                                            <div className="sk-bone sk-h-sm" style={{ width:110 }}/>
+                                        </div>
+                                        <div className="sk-bone sk-h-sm" style={{ width:14 }}/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* System Integrity card skeleton */}
+                        <div className={styles.card} style={{ marginTop:24 }}>
+                            <div className="sk-bone sk-h-sm" style={{ width:120, marginBottom:16 }}/>
+                            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                                {[1,2,3].map(i => (
+                                    <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                                        <div className="sk-bone sk-h-sm" style={{ width:110 }}/>
+                                        <div className="sk-bone sk-h-sm sk-pill" style={{ width:60 }}/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer strip skeleton */}
+                <div style={{ display:'flex', gap:20, marginTop:24 }}>
+                    {[1,2,3].map(i => (
+                        <div key={i} className="sk-bone sk-h-sm sk-pill" style={{ width:100 }}/>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     return (

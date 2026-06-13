@@ -18,6 +18,7 @@ const ReportBuilder = () => {
         format: 'DOCX'
     });
     const [generating, setGenerating] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const fetchData = useCallback(async () => {
         try {
@@ -65,6 +66,8 @@ const ReportBuilder = () => {
             setReports(sortedReports);
         } catch (error) {
             console.error("Error in report builder fetch", error);
+        } finally {
+            setLoading(false);
         }
     }, []);
 
@@ -119,6 +122,66 @@ const ReportBuilder = () => {
             toast.error("Preview failed");
         }
     };
+
+    if (loading) return (
+        <div className={styles.container}>
+            {/* Header skeleton */}
+            <header className={styles.header}>
+                <div className="sk-bone sk-h-lg" style={{ width: 200, marginBottom: 6 }}/>
+                <div className="sk-bone sk-h-sm" style={{ width: 340 }}/>
+            </header>
+
+            {/* Generator panel skeleton */}
+            <section className={styles.generator}>
+                <div className={styles.panelHeader} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+                    <div className="sk-bone sk-circle" style={{ width:36, height:36 }}/>
+                    <div className="sk-bone sk-h-md" style={{ width:150 }}/>
+                </div>
+                <div className={styles.grid}>
+                    <div className={styles.field}>
+                        <div className="sk-bone sk-h-sm" style={{ width:160, marginBottom:8 }}/>
+                        <div className="sk-bone sk-h-xl sk-w-full" style={{ borderRadius:6 }}/>
+                        <div className="sk-bone sk-h-xs" style={{ width:240, marginTop:6 }}/>
+                    </div>
+                    <div className={styles.field}>
+                        <div className="sk-bone sk-h-sm" style={{ width:140, marginBottom:8 }}/>
+                        <div className="sk-bone sk-h-xl sk-w-full" style={{ borderRadius:6 }}/>
+                    </div>
+                </div>
+                <div className={styles.generateAction} style={{ display:'flex', gap:10, marginTop:16 }}>
+                    <div className="sk-bone sk-h-xl sk-pill" style={{ width:110 }}/>
+                    <div className="sk-bone sk-h-xl sk-pill" style={{ width:160 }}/>
+                </div>
+            </section>
+
+            {/* Production history table skeleton */}
+            <section className={styles.history}>
+                <div className={styles.historyHeader} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                    <div className="sk-bone sk-h-md" style={{ width:160 }}/>
+                    <div className="sk-bone sk-h-xl sk-pill" style={{ width:220 }}/>
+                </div>
+                <div className={styles.tableWrapper}>
+                    {/* Table header */}
+                    <div style={{ display:'grid', gridTemplateColumns:'40px 2fr 1fr 1fr 1fr 80px', gap:12, padding:'10px 14px', borderBottom:'1px solid var(--border-color)' }}>
+                        {[30,0,80,100,90,50].map((w, i) => (
+                            <div key={i} className="sk-bone sk-h-xs sk-pill" style={{ width: w || '100%' }}/>
+                        ))}
+                    </div>
+                    {/* Table rows */}
+                    {[1,2,3,4,5].map(i => (
+                        <div key={i} style={{ display:'grid', gridTemplateColumns:'40px 2fr 1fr 1fr 1fr 80px', gap:12, padding:'12px 14px', borderBottom:'1px solid var(--border-color)', alignItems:'center' }}>
+                            <div className="sk-bone sk-h-sm sk-pill" style={{ width:20 }}/>
+                            <div className="sk-bone sk-h-sm" style={{ width:`${60 + (i * 8) % 30}%` }}/>
+                            <div className="sk-bone sk-h-sm sk-pill" style={{ width:80 }}/>
+                            <div className="sk-bone sk-h-md sk-pill" style={{ width:90 }}/>
+                            <div className="sk-bone sk-h-sm" style={{ width:90 }}/>
+                            <div className="sk-bone sk-circle" style={{ width:30, height:30, marginLeft:'auto' }}/>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
+    );
 
     return (
         <div className={styles.container}>

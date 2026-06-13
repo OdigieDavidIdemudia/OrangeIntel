@@ -331,7 +331,92 @@ const ThreatsView = () => {
         catch { toast.error('Purge failed', { id: tid }); }
     };
 
-    if (loading) return <div className={styles.loading}>Initializing threat intelligence queue...</div>;
+    if (loading) return (
+        <div className={styles.container}>
+            {/* Header skeleton */}
+            <header className={styles.header}>
+                <div className={styles.headerTitleRow}>
+                    <div className={styles.titleBlock}>
+                        <div className="sk-bone sk-h-lg" style={{ width: 260, marginBottom: 8 }}/>
+                        <div className="sk-bone sk-h-sm" style={{ width: 380 }}/>
+                    </div>
+                    <div style={{ display:'flex', gap:8 }}>
+                        <div className="sk-bone sk-h-xl sk-circle" style={{ width:36, height:36 }}/>
+                        <div className="sk-bone sk-h-xl sk-circle" style={{ width:36, height:36 }}/>
+                        <div className="sk-bone sk-h-xl sk-pill" style={{ width:120 }}/>
+                    </div>
+                </div>
+
+                {/* Metric cards */}
+                <div className={styles.metricCardsRow}>
+                    {[1,2,3].map(i => (
+                        <div key={i} className={styles.metricCard} style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                            <div className="sk-bone sk-h-2xl" style={{ width:48, borderRadius:8 }}/>
+                            <div className="sk-bone sk-h-xs sk-pill" style={{ width:56 }}/>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tabs + filters */}
+                <div className={styles.toolbarRow}>
+                    <div className={styles.tabGroup}>
+                        <div className="sk-bone sk-h-lg sk-pill" style={{ width:80 }}/>
+                        <div className="sk-bone sk-h-lg sk-pill" style={{ width:110 }}/>
+                    </div>
+                    <div style={{ flex:1 }}/>
+                    <div className="sk-bone sk-h-lg sk-pill" style={{ width:110 }}/>
+                    <div className="sk-bone sk-h-lg sk-pill" style={{ width:90 }}/>
+                </div>
+            </header>
+
+            {/* Threat card skeletons — mirrors ThreatCard structure */}
+            <div className={styles.list}>
+                {[1,2,3].map(i => (
+                    <div key={i} className={styles.card} style={{ padding:'18px 20px' }}>
+                        {/* Top row: badges + source chip */}
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                                <div className="sk-bone sk-h-sm sk-pill" style={{ width:120 }}/>
+                                <div className="sk-bone sk-h-sm sk-pill" style={{ width:70 }}/>
+                                <div className="sk-bone sk-h-sm sk-pill" style={{ width:100 }}/>
+                                <div className="sk-bone sk-h-sm sk-pill" style={{ width:60 }}/>
+                            </div>
+                            <div className="sk-bone sk-h-lg sk-pill" style={{ width:90 }}/>
+                        </div>
+
+                        {/* Title */}
+                        <div className="sk-bone sk-h-md" style={{ width:'75%', marginBottom:10 }}/>
+
+                        {/* Body text */}
+                        <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:14 }}>
+                            <div className="sk-bone sk-h-sm sk-w-full"/>
+                            <div className="sk-bone sk-h-sm sk-w-80"/>
+                        </div>
+
+                        {/* Metadata row */}
+                        <div style={{ display:'flex', gap:20, marginBottom:14 }}>
+                            {[1,2,3].map(j => (
+                                <div key={j} style={{ display:'flex', flexDirection:'column', gap:5 }}>
+                                    <div className="sk-bone sk-h-xs" style={{ width:60 }}/>
+                                    <div className="sk-bone sk-h-sm" style={{ width:80 }}/>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ height:1, background:'var(--border-color)', margin:'10px 0' }}/>
+
+                        {/* Action buttons */}
+                        <div style={{ display:'flex', gap:8 }}>
+                            <div className="sk-bone sk-h-lg sk-pill" style={{ width:70 }}/>
+                            <div className="sk-bone sk-h-lg sk-pill" style={{ width:100 }}/>
+                            <div style={{ flex:1 }}/>
+                            <div className="sk-bone sk-h-lg sk-pill" style={{ width:80 }}/>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
     if (error) return <div className={styles.error}>Error: {error}</div>;
 
     const safeThreats = Array.isArray(threats) ? threats : [];

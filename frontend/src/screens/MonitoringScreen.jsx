@@ -113,7 +113,108 @@ const MonitoringScreen = () => {
         }
     };
 
-    if (loading || !dashboard) return <div className={styles.container}><div style={{padding: '20px'}}>Syncing Wallboard...</div></div>;
+    if (loading || !dashboard) return (
+        <div className={styles.container}>
+            {/* Header skeleton */}
+            <header className={styles.header}>
+                <div className="sk-bone sk-h-xl sk-pill" style={{ width: 180 }}/>
+                <div className={styles.headerActions} style={{ display:'flex', gap:10, alignItems:'center' }}>
+                    <div className="sk-bone sk-h-lg sk-pill" style={{ width:70 }}/>
+                    <div className="sk-bone sk-h-lg sk-pill" style={{ width:110 }}/>
+                    <div className="sk-bone sk-h-lg sk-pill" style={{ width:90 }}/>
+                    <div className="sk-bone sk-h-xl sk-pill" style={{ width:90 }}/>
+                </div>
+            </header>
+
+            {/* Metrics strip skeleton */}
+            <div className={styles.metricsStrip}>
+                {[1,2,3,4,5,6].map(i => (
+                    <React.Fragment key={i}>
+                        <div style={{ display:'flex', flexDirection:'column', gap:5, padding:'0 16px' }}>
+                            <div className="sk-bone sk-h-xs sk-pill" style={{ width:70 }}/>
+                            <div className="sk-bone sk-h-md sk-pill" style={{ width:50 }}/>
+                        </div>
+                        {i < 6 && <div className={styles.metricDivider}/>}
+                    </React.Fragment>
+                ))}
+            </div>
+
+            {/* Main 3-column grid skeleton */}
+            <main className={styles.mainGrid}>
+                {/* Col 1: Live Feed */}
+                <section className={styles.liveFeedCol}>
+                    <div className={styles.feedHeader}>
+                        <div className="sk-bone sk-h-sm" style={{ width:70 }}/>
+                        <div className="sk-bone sk-h-lg sk-circle" style={{ width:28, height:28 }}/>
+                    </div>
+                    <div className={styles.feedList}>
+                        {[1,2,3,4,5,6].map(i => (
+                            <div key={i} className={styles.feedItem} style={{ borderLeftColor:'var(--border-color)' }}>
+                                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                                    <div className="sk-bone sk-h-sm sk-pill" style={{ width:60 }}/>
+                                    <div className="sk-bone sk-h-sm sk-pill" style={{ width:30 }}/>
+                                </div>
+                                <div className="sk-bone sk-h-sm" style={{ width:'90%', marginBottom:5 }}/>
+                                <div className="sk-bone sk-h-xs" style={{ width:'60%' }}/>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Col 2: Hero / spotlight */}
+                <section className={styles.mainCenterCol}>
+                    {/* Spotlight card */}
+                    <div className={styles.criticalSpotlight} style={{ marginBottom:16 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                            <div className="sk-bone sk-h-lg sk-pill" style={{ width:110 }}/>
+                            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                                <div className="sk-bone sk-h-lg sk-pill" style={{ width:40 }}/>
+                                <div className="sk-bone sk-h-lg sk-pill" style={{ width:50 }}/>
+                            </div>
+                        </div>
+                        <div className="sk-bone sk-h-lg" style={{ width:'80%', marginBottom:10 }}/>
+                        <div className="sk-bone sk-h-lg" style={{ width:'95%', marginBottom:6 }}/>
+                        <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:14 }}>
+                            <div className="sk-bone sk-h-sm sk-w-full"/>
+                            <div className="sk-bone sk-h-sm sk-w-70"/>
+                        </div>
+                        <div style={{ display:'flex', gap:10 }}>
+                            <div className="sk-bone sk-h-xl sk-pill" style={{ width:100 }}/>
+                            <div className="sk-bone sk-h-xl sk-pill" style={{ width:100 }}/>
+                            <div className="sk-bone sk-h-xl sk-pill" style={{ width:70 }}/>
+                        </div>
+                    </div>
+
+                    {/* Top threats list */}
+                    <div className="sk-bone sk-h-sm" style={{ width:140, marginBottom:10 }}/>
+                    <div className={styles.topThreatList}>
+                        {[1,2,3,4].map(i => (
+                            <div key={i} className={styles.topThreatRow}>
+                                <div className="sk-bone sk-h-md sk-pill" style={{ width:36 }}/>
+                                <div className="sk-bone sk-h-sm" style={{ flex:1 }}/>
+                                <div className="sk-bone sk-h-sm" style={{ width:60 }}/>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Col 3: Stats sidebar */}
+                <section className={styles.statsCol}>
+                    <div className={styles.slaBreachCard}>
+                        <div className="sk-bone sk-h-sm" style={{ width:80, marginBottom:8 }}/>
+                        <div className="sk-bone sk-h-4xl" style={{ width:60, borderRadius:8 }}/>
+                        <div className="sk-bone sk-h-xs" style={{ width:100, marginTop:6 }}/>
+                    </div>
+                    {[1,2,3].map(i => (
+                        <div key={i} className={styles.statCard}>
+                            <div className="sk-bone sk-h-xs" style={{ width:80, marginBottom:8 }}/>
+                            <div className="sk-bone sk-h-md sk-pill" style={{ width:70 }}/>
+                        </div>
+                    ))}
+                </section>
+            </main>
+        </div>
+    );
 
     const activeThreats = dashboard.recentThreats || [];
     const criticalThreats = activeThreats.filter(t => t.confidence >= 70).sort((a,b) => new Date(b.ingestedAt) - new Date(a.ingestedAt));

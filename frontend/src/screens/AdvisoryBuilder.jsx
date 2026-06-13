@@ -299,7 +299,100 @@ const AdvisoryBuilder = () => {
         finally { setGenerating(false); }
     };
 
-    if (loading) return <div className={styles.loading}>Initializing Analyst Environment...</div>;
+    if (loading) return (
+        <div className={styles.container}>
+            {/* Header skeleton */}
+            <header className={styles.header}>
+                <div>
+                    <div className="sk-bone sk-h-xs sk-pill" style={{ width:140, marginBottom:8 }}/>
+                    <div className="sk-bone sk-h-lg" style={{ width:280, marginBottom:6 }}/>
+                    <div className="sk-bone sk-h-sm" style={{ width:200 }}/>
+                </div>
+                <div className={styles.actions} style={{ display:'flex', gap:8 }}>
+                    {[120, 80, 130, 100, 90].map((w, i) => (
+                        <div key={i} className="sk-bone sk-h-xl sk-pill" style={{ width: w }}/>
+                    ))}
+                </div>
+            </header>
+
+            {/* Progress bar skeleton */}
+            <div className={styles.progressContainer}>
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                    <div className="sk-bone sk-h-sm" style={{ width:140 }}/>
+                    <div className="sk-bone sk-h-sm sk-pill" style={{ width:36 }}/>
+                </div>
+                <div className="sk-bone" style={{ height:6, width:'100%', borderRadius:3 }}/>
+            </div>
+
+            {/* Form sections skeleton */}
+            <div className={styles.form}>
+                {/* Section 1: Metadata */}
+                <div className={styles.section}>
+                    <div className="sk-bone sk-h-md" style={{ width:200, marginBottom:16 }}/>
+                    <div style={{ display:'flex', gap:16 }}>
+                        <div style={{ flex:3, display:'flex', flexDirection:'column', gap:6 }}>
+                            <div className="sk-bone sk-h-sm" style={{ width:100 }}/>
+                            <div className="sk-bone sk-h-xl sk-w-full" style={{ borderRadius:6 }}/>
+                        </div>
+                        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:6 }}>
+                            <div className="sk-bone sk-h-sm" style={{ width:70 }}/>
+                            <div className="sk-bone sk-h-xl sk-w-full" style={{ borderRadius:6 }}/>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 2: Executive Summary */}
+                <div className={styles.section}>
+                    <div className="sk-bone sk-h-md" style={{ width:240, marginBottom:16 }}/>
+                    <div className="sk-bone" style={{ height:76, width:'100%', borderRadius:6 }}/>
+                </div>
+
+                {/* Section 3: Threat Analysis */}
+                <div className={styles.section}>
+                    <div className="sk-bone sk-h-md" style={{ width:200, marginBottom:16 }}/>
+                    <div className="sk-bone sk-h-sm" style={{ width:130, marginBottom:8 }}/>
+                    <div className="sk-bone" style={{ height:76, width:'100%', borderRadius:6, marginBottom:16 }}/>
+                    <div className="sk-bone sk-h-sm" style={{ width:150, marginBottom:8 }}/>
+                    {[1,2].map(i => (
+                        <div key={i} style={{ display:'flex', gap:8, marginBottom:6 }}>
+                            <div className="sk-bone sk-h-xl" style={{ width:50, borderRadius:6 }}/>
+                            <div className="sk-bone sk-h-xl" style={{ flex:1, borderRadius:6 }}/>
+                            <div className="sk-bone sk-h-xl" style={{ flex:2, borderRadius:6 }}/>
+                            <div className="sk-bone sk-circle" style={{ width:32, height:32 }}/>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Section 4: IOCs */}
+                <div className={styles.section}>
+                    <div className="sk-bone sk-h-md" style={{ width:260, marginBottom:16 }}/>
+                    {[1,2,3].map(i => (
+                        <div key={i} style={{ display:'flex', gap:8, marginBottom:6 }}>
+                            <div className="sk-bone sk-h-xl" style={{ width:100, borderRadius:6 }}/>
+                            <div className="sk-bone sk-h-xl" style={{ flex:1, borderRadius:6 }}/>
+                            <div className="sk-bone sk-h-xl" style={{ flex:1, borderRadius:6 }}/>
+                            <div className="sk-bone sk-circle" style={{ width:32, height:32 }}/>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Section 5: Risk Assessment */}
+                <div className={styles.section}>
+                    <div className="sk-bone sk-h-md" style={{ width:200, marginBottom:16 }}/>
+                    <div style={{ display:'flex', gap:16 }}>
+                        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:6 }}>
+                            <div className="sk-bone sk-h-sm" style={{ width:120 }}/>
+                            <div className="sk-bone sk-h-xl sk-w-full" style={{ borderRadius:6 }}/>
+                        </div>
+                        <div style={{ flex:2, display:'flex', flexDirection:'column', gap:6 }}>
+                            <div className="sk-bone sk-h-sm" style={{ width:110 }}/>
+                            <div className="sk-bone sk-h-xl sk-w-full" style={{ borderRadius:6 }}/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     const completion = Math.round((
         (advisory.metadata.title ? 1 : 0) + (advisory.executive_summary.body ? 1 : 0) +
