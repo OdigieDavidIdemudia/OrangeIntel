@@ -75,8 +75,20 @@ const LoginScreen = () => {
                     console.warn("Security Warning: Compromised password detected.");
                 }
             } else {
-                const message = err.response?.data?.message || err.message || "Invalid credentials. Please try again.";
-                setError(`Error: ${message}`);
+                let friendlyMessage = "An unexpected error occurred. Please try again.";
+                const status = err.response?.status;
+                
+                if (status === 401 || status === 400 || status === 404) {
+                    friendlyMessage = "Invalid username or password.";
+                } else if (status >= 500) {
+                    friendlyMessage = "Server error. Please try again later.";
+                } else if (err.code === 'ERR_NETWORK') {
+                    friendlyMessage = "Network error. Please check your connection.";
+                } else if (err.response?.data?.message) {
+                    friendlyMessage = err.response.data.message;
+                }
+                
+                setError(friendlyMessage);
             }
         } finally {
             setLoading(false);

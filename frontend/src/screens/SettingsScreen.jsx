@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { User, Brain, Network, Shield, Settings as SettingsIcon, Monitor, CheckCircle, AlertTriangle, Lock, Clock } from 'lucide-react';
+
+const SkeletonLoader = () => (
+    <div className={styles.skeletonContainer}>
+        <div className={styles.skeletonCard}>
+            <div className={styles.skeletonLine} style={{ width: '80%' }}></div>
+            <div className={styles.skeletonLine} style={{ width: '60%' }}></div>
+        </div>
+        <div className={styles.skeletonCard}>
+            <div className={styles.skeletonLine} style={{ width: '40%' }}></div>
+            <div className={styles.skeletonLine} style={{ width: '70%' }}></div>
+            <div className={styles.skeletonLine} style={{ width: '50%' }}></div>
+        </div>
+    </div>
+);
+
 import { useAuth } from '../context/AuthContext';
 import styles from './SettingsScreen.module.css';
 import axios from 'axios';
@@ -187,7 +202,7 @@ const PersonalSettings = ({ user }) => {
         }
     };
 
-    if (loading) return <div className={styles.loading}>Accessing Profile...</div>;
+    if (loading) return <SkeletonLoader />;
 
     return (
         <div className={styles.section}>
@@ -351,7 +366,7 @@ const PersonalSettings = ({ user }) => {
 
 const IntelligenceSettings = () => {
     const { settings, updateSetting, loading } = useSettings('intelligence');
-    if (loading) return <div className={styles.loading}>Synchronizing Policies...</div>;
+    if (loading) return <SkeletonLoader />;
 
     return (
         <div className={styles.section}>
@@ -443,7 +458,7 @@ const MyApiKeysSettings = () => {
 
     const isSaved = (keyName) => savedKeys.some(k => k.keyName === keyName);
 
-    if (loading) return <div className={styles.loading}>Loading your keys...</div>;
+    if (loading) return <SkeletonLoader />;
 
     return (
         <div className={styles.section}>
@@ -602,7 +617,7 @@ const IntegrationSettings = () => {
 
     const set = (key) => (e) => setDraft(prev => ({ ...prev, [key]: e.target.value }));
 
-    if (loading) return <div className={styles.loading}>Linking Nodes...</div>;
+    if (loading) return <SkeletonLoader />;
 
     return (
         <div className={styles.section}>
@@ -852,7 +867,7 @@ const SecuritySettings = ({ currentUser }) => {
         } catch { toast.error("Failed to reset password"); }
     };
 
-    if (loading) return <div className={styles.loading}>Scanning Directories...</div>;
+    if (loading) return <SkeletonLoader />;
 
     return (
         <div className={styles.section}>
@@ -1051,7 +1066,7 @@ const SystemSettings = () => {
         } catch { toast.error('Failed to save SLA setting'); }
     };
 
-    if (loading) return <div className={styles.loading}>Accessing Core Systems...</div>;
+    if (loading) return <SkeletonLoader />;
 
     const healthColor = health === 'Healthy' ? 'var(--success)' : 'var(--warning)';
 
