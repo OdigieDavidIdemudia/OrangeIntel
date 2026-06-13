@@ -1031,6 +1031,7 @@ const SystemSettings = () => {
     const [stats, setStats] = useState(null);
     const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isSavingSla, setIsSavingSla] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -1059,11 +1060,13 @@ const SystemSettings = () => {
         fetchData();
     }, []);
 
-    const saveSla = async (val) => {
-        setSlaHours(val);
+    const saveSla = async () => {
+        setIsSavingSla(true);
         try {
-            await axios.put('/api/settings/sla_threshold_hours', { value: String(val) });
+            await axios.put('/api/settings/sla_threshold_hours', { value: String(slaHours) });
+            toast.success('Response SLA updated');
         } catch { toast.error('Failed to save SLA setting'); }
+        finally { setIsSavingSla(false); }
     };
 
     if (loading) return <SkeletonLoader />;
@@ -1125,9 +1128,14 @@ const SystemSettings = () => {
                         type="number" 
                         className={styles.input} 
                         value={slaHours} 
-                        onChange={(e) => saveSla(parseInt(e.target.value, 10))} 
+                        onChange={(e) => setSlaHours(parseInt(e.target.value, 10))} 
                     />
                     <span className={styles.hint}>Threshold for the "SLA BREACH" warning on pending threat cards.</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                    <button className={styles.btnPrimary} onClick={saveSla} disabled={isSavingSla}>
+                        {isSavingSla ? 'Saving...' : 'Save Changes'}
+                    </button>
                 </div>
             </div>
 
