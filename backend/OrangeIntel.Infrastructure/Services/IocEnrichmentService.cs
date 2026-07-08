@@ -192,6 +192,10 @@ public class IocEnrichmentService : IIocEnrichmentService
         if (value.StartsWith("http://") || value.StartsWith("https://")) return "URL";
         if (Regex.IsMatch(value, @"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$", RegexOptions.IgnoreCase)) return "Domain";
         if (Regex.IsMatch(value, @"^CVE-\d{4}-\d{4,7}$", RegexOptions.IgnoreCase)) return "CVE";
+        
+        // Fallback for Application Names and Filenames (e.g., "Google Chrome", "vlc.exe")
+        if (Regex.IsMatch(value, @"^[a-zA-Z0-9\s\.\-_]+$")) return "FileName";
+
         return "Unknown";
     }
 }

@@ -16,7 +16,7 @@ const getRiskLabel = (score) => {
 };
 
 const getTypeIcon = (type) => {
-  const icons = { IP: '🌐', Domain: '🔗', Hash: '#️⃣', URL: '📎', CVE: '🛡️', Unknown: '❓' };
+  const icons = { IP: '🌐', Domain: '🔗', Hash: '#️⃣', URL: '📎', CVE: '🛡️', FileName: '💻', Unknown: '❓' };
   return icons[type] || '❓';
 };
 
@@ -230,7 +230,7 @@ const IocLookupScreen = () => {
           <ShieldAlert size={22} className={styles.titleIcon} />
           <div>
             <h1>IOC Enrichment Engine</h1>
-            <p className={styles.subtitle}>Look up IPs, domains, hashes, URLs, and CVEs across VirusTotal, AbuseIPDB, and AlienVault OTX</p>
+            <p className={styles.subtitle}>Look up IPs, domains, hashes, URLs, CVEs, and Application Names across VirusTotal, AbuseIPDB, AlienVault OTX, and WinGet</p>
           </div>
         </div>
 
@@ -264,7 +264,7 @@ const IocLookupScreen = () => {
               id="ioc-single-input"
               className={styles.searchInput}
               type="text"
-              placeholder="Enter IP, domain, MD5/SHA1/SHA256 hash, URL, or CVE-ID…"
+              placeholder="Enter IP, domain, hash, URL, CVE, or Application Name…"
               value={singleInput}
               onChange={e => setSingleInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSingleLookup()}
@@ -286,7 +286,7 @@ const IocLookupScreen = () => {
             <textarea
               id="ioc-bulk-input"
               className={styles.bulkTextarea}
-              placeholder={"8.8.8.8\nexample.com\n44d88612fea8a8f36de82e1278abb02f\nhttps://malware.example/payload.exe\nCVE-2021-44228"}
+              placeholder={"8.8.8.8\nexample.com\n44d88612fea8a8f36de82e1278abb02f\nGoogle Chrome\nCVE-2021-44228"}
               value={bulkInput}
               onChange={e => setBulkInput(e.target.value)}
               rows={8}
@@ -385,6 +385,7 @@ const IocLookupScreen = () => {
             <span className={styles.provBadge}>🟢 VirusTotal</span>
             <span className={styles.provBadge}>🟡 AbuseIPDB</span>
             <span className={styles.provBadge}>🔵 AlienVault OTX</span>
+            <span className={styles.provBadge}>📦 WinGet</span>
           </div>
         </div>
       )}
