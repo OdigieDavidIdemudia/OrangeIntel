@@ -194,8 +194,19 @@ const IocLookupScreen = () => {
 
   const exportCsv = () => {
     if (results.length === 0) return;
-    const rows = [['Indicator', 'Type', 'Risk Score', 'Risk Level', 'Cached', 'Queried At']];
+    const rows = [['Indicator', 'Type', 'Risk Score', 'Risk Level', 'Cached', 'Queried At', 'Application Hash']];
     results.forEach(r => {
+      let hash = '';
+      if (r.providerResults) {
+        const hashProvider = r.providerResults.find(p => p.providerName === 'WinGetManifest' || p.providerName === 'ScoopManifest');
+        if (hashProvider && hashProvider.rawData) {
+          hash = hashProvider.rawData.InstallerSha256 || hashProvider.rawData.Hash || '';
+        }
+        if (!hash && hashProvider && hashProvider.message && hashProvider.message.includes('Hash:')) {
+          hash = hashProvider.message.replace('Hash:', '').trim();
+        }
+      }
+
       rows.push([
         r.indicatorValue,
         r.indicatorType,
@@ -203,6 +214,7 @@ const IocLookupScreen = () => {
         getRiskLabel(r.unifiedRiskScore).label,
         r.isCached ? 'Yes' : 'No',
         new Date(r.queriedAt).toISOString(),
+        hash
       ]);
     });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
