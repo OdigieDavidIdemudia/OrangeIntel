@@ -420,7 +420,7 @@ const MonitorSettings = () => {
 /* ── Per-User API Keys (all users) ── */
 const MyApiKeysSettings = () => {
     const { token } = useAuth();
-    const [draft, setDraft] = useState({ vt_api_key: '', abuseipdb_api_key: '', alienvault_api_key: '', nvd_api_key: '' });
+    const [draft, setDraft] = useState({ vt_api_key: '', abuseipdb_api_key: '', alienvault_api_key: '', nvd_api_key: '', github_api_key: '' });
     const [savedKeys, setSavedKeys] = useState([]);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -446,6 +446,7 @@ const MyApiKeysSettings = () => {
                 { keyName: 'abuseipdb_api_key', keyValue: draft.abuseipdb_api_key },
                 { keyName: 'alienvault_api_key', keyValue: draft.alienvault_api_key },
                 { keyName: 'nvd_api_key', keyValue: draft.nvd_api_key },
+                { keyName: 'github_api_key', keyValue: draft.github_api_key },
             ].filter(k => k.keyValue && !k.keyValue.startsWith('••'));
             await axios.put('/api/user/api-keys', payload, { headers: { Authorization: `Bearer ${token}` } });
             toast.success('Your personal API keys have been saved!');
@@ -536,6 +537,23 @@ const MyApiKeysSettings = () => {
                     <span className={styles.hint}>Increases limit from 5 to 50 requests/min · <a href="https://nvd.nist.gov/developers/request-an-api-key" target="_blank" rel="noreferrer">Get free key ↗</a></span>
                 </div>
 
+                <div className={styles.formGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        GitHub API Key (for WinGet)
+                        {isSaved('github_api_key') && <span style={{ fontSize: '11px', color: 'var(--color-success)', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>✓ Saved</span>}
+                    </label>
+                    <input
+                        id="my-github-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your GitHub Personal Access Token…"
+                        value={draft.github_api_key}
+                        onChange={e => setDraft(p => ({ ...p, github_api_key: e.target.value }))}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=OrangeIntel&scopes=" target="_blank" rel="noreferrer">Get free PAT ↗</a></span>
+                </div>
+
                 <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>
                     {saving ? 'Saving...' : 'Save My API Keys'}
                 </button>
@@ -568,6 +586,7 @@ const IntegrationSettings = () => {
                 abuseipdb_api_key: settings['abuseipdb_api_key'] || '',
                 alienvault_api_key: settings['alienvault_api_key'] || '',
                 nvd_api_key: settings['nvd_api_key'] || '',
+                github_api_key: settings['github_api_key'] || '',
                 telegram_bot_token: settings['telegram_bot_token'] || '',
                 telegram_chat_id: settings['telegram_chat_id'] || '',
                 notify_min_severity: settings['notify_min_severity'] || '7',
@@ -585,6 +604,7 @@ const IntegrationSettings = () => {
                 { key: 'abuseipdb_api_key',  value: draft.abuseipdb_api_key,  category: 'integration' },
                 { key: 'alienvault_api_key', value: draft.alienvault_api_key, category: 'integration' },
                 { key: 'nvd_api_key',        value: draft.nvd_api_key,        category: 'integration' },
+                { key: 'github_api_key',     value: draft.github_api_key,     category: 'integration' },
             ];
             await axios.put('/api/settings', payload);
             setSavedAt(new Date());
@@ -688,6 +708,20 @@ const IntegrationSettings = () => {
                         autoComplete="off"
                     />
                     <span className={styles.hint}>Increases limit from 5 to 50 requests/min · <a href="https://nvd.nist.gov/developers/request-an-api-key" target="_blank" rel="noreferrer">Get key ↗</a></span>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label>GitHub API Key (for WinGet)</label>
+                    <input
+                        id="github-api-key"
+                        type="password"
+                        className={styles.input}
+                        placeholder="Enter your GitHub PAT…"
+                        value={draft.github_api_key || ''}
+                        onChange={set('github_api_key')}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=OrangeIntel&scopes=" target="_blank" rel="noreferrer">Get key ↗</a></span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>

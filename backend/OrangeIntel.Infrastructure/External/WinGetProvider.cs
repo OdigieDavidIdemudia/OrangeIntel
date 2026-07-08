@@ -8,17 +8,24 @@ using Microsoft.Extensions.Logging;
 using OrangeIntel.Application.DTOs;
 using OrangeIntel.Application.Interfaces;
 
+using Microsoft.EntityFrameworkCore;
+using OrangeIntel.Infrastructure.Data;
+
 namespace OrangeIntel.Infrastructure.External;
 
 public class WinGetProvider : IIocProvider
 {
     public string Name => "WinGetManifest";
     private readonly HttpClient _httpClient;
+    private readonly ISystemSettingService _settings;
+    private readonly ApplicationDbContext _db;
     private readonly ILogger<WinGetProvider> _logger;
 
-    public WinGetProvider(HttpClient httpClient, ILogger<WinGetProvider> logger)
+    public WinGetProvider(HttpClient httpClient, ISystemSettingService settings, ApplicationDbContext db, ILogger<WinGetProvider> logger)
     {
         _httpClient = httpClient;
+        _settings = settings;
+        _db = db;
         _logger = logger;
     }
 
@@ -33,6 +40,18 @@ public class WinGetProvider : IIocProvider
             return (0, result);
         }
 
+        // 1. Fetch GitHub API Key (optional but recommended for rate limits)
+        string? apiKey = null;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var userKey = await _db.UserApiKeys
+                .FirstOrDefaultAsync(k => k.UserId == userId && k.KeyName == "github_api_key");
+            if (userKey != null && !string.IsNullOrEmpty(userKey.KeyValue))
+                apiKey = userKey.KeyValue;
+        }
+        if (string.IsNullOrEmpty(apiKey))
+            apiKey = await _settings.GetSettingAsync("github_api_key", string.Empty);
+
         try
         {
             // Remove extensions for better search
@@ -44,6 +63,10 @@ public class WinGetProvider : IIocProvider
             
             var request = new HttpRequestMessage(HttpMethod.Get, searchUrl);
             request.Headers.Add("User-Agent", "OrangeIntel-AppControl-Enrichment");
+            if (!string.IsNullOrEmpty(apiKey) && apiKey != "<GITHUB_API_KEY>")
+            {
+                request.Headers.Add("Authorization", $"Bearer {apiKey}");
+            }
 
             var response = await _httpClient.SendAsync(request);
 
