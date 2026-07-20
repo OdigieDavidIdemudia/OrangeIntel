@@ -36,7 +36,7 @@ public class SettingsController : ControllerBase
     }
 
     [HttpPut]
-    [Authorize(Roles = "super_admin")]
+    [Authorize(Roles = "admin,super_admin")]
     public async Task<ActionResult> UpdateSettings([FromBody] List<SystemSettingDto> settings)
     {
         var user = await _userManager.GetUserAsync(User);

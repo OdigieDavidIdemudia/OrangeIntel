@@ -13,21 +13,22 @@ public class TelegramNotificationProvider : INotificationProvider
     private readonly IConfiguration _config;
     private readonly ILogger<TelegramNotificationProvider> _logger;
     private readonly HttpClient _httpClient;
+    private readonly ISystemSettingService _settings;
 
-    public TelegramNotificationProvider(IConfiguration config, ILogger<TelegramNotificationProvider> logger, HttpClient httpClient)
+    public TelegramNotificationProvider(IConfiguration config, ILogger<TelegramNotificationProvider> logger, HttpClient httpClient, ISystemSettingService settings)
     {
         _config = config;
         _logger = logger;
         _httpClient = httpClient;
+        _settings = settings;
     }
 
     public async Task<bool> SendAsync(string recipient, string title, string body)
     {
-        var enabled = _config.GetValue<bool>("Telegram:Enabled", false);
-        if (!enabled) return false;
-
-        var botToken = _config["Telegram:BotToken"];
-        var chatId = _config["Telegram:ChatId"];
+        // Read bot token from DB first, then fall back to IConfiguration
+        var botToken = await _settings.GetSettingAsync("telegram_bot_token", string.Empty);
+        if (string.IsNullOrEmpty(botToken))
+            botToken = _config["Telegram:BotToken"] ?? string.Empty;
 
         if (string.IsNullOrEmpty(botToken) || botToken == "<BOT_TOKEN>")
         {
@@ -35,8 +36,13 @@ public class TelegramNotificationProvider : INotificationProvider
             return false;
         }
 
-        // Use the recipient as chatId if provided, otherwise fallback to config
-        var targetChatId = string.IsNullOrEmpty(recipient) ? chatId : recipient;
+        // Read default chat ID from DB first, then fall back to IConfiguration
+        var defaultChatId = await _settings.GetSettingAsync("telegram_chat_id", string.Empty);
+        if (string.IsNullOrEmpty(defaultChatId))
+            defaultChatId = _config["Telegram:ChatId"] ?? string.Empty;
+
+        // Use the recipient (per-user chat ID) if provided, otherwise use the global default
+        var targetChatId = string.IsNullOrEmpty(recipient) ? defaultChatId : recipient;
         if (string.IsNullOrEmpty(targetChatId) || targetChatId == "<CHAT_ID>")
         {
             _logger.LogWarning("Telegram ChatId is not configured.");
@@ -75,3 +81,4 @@ public class TelegramNotificationProvider : INotificationProvider
         }
     }
 }
+

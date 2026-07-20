@@ -43,7 +43,9 @@ public class NotificationService : INotificationService
 
     public async Task NotifyAdvisoryPublishedAsync(Advisory advisory)
     {
-        var botToken = _config["Telegram:BotToken"];
+        // Check bot token in DB first, fall back to config
+        var botToken = await _settings.GetSettingAsync("telegram_bot_token", string.Empty);
+        if (string.IsNullOrEmpty(botToken)) botToken = _config["Telegram:BotToken"] ?? string.Empty;
         if (string.IsNullOrEmpty(botToken) || botToken == "<BOT_TOKEN>") return;
 
         var title = "📄 OrangeIntel | Advisory Published";
