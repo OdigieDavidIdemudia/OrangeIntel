@@ -191,13 +191,19 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost("profile/test-telegram")]
-    public async Task<ActionResult> TestTelegram([FromQuery] string? chatId)
+    public async Task<ActionResult> TestTelegram([FromQuery] string? chatId, [FromServices] ISystemSettingService settingService, [FromServices] Microsoft.Extensions.Configuration.IConfiguration config)
     {
         var user = await _userManager.GetUserAsync(User);
         var targetChatId = chatId ?? user?.TelegramChatId;
 
         if (string.IsNullOrEmpty(targetChatId))
-            return BadRequest("No Chat ID provided or configured.");
+            return BadRequest("No Chat ID provided. Enter your Telegram Chat ID first.");
+
+        // Pre-flight: check bot token is configured
+        var botToken = await settingService.GetSettingAsync("telegram_bot_token", string.Empty);
+        if (string.IsNullOrEmpty(botToken)) botToken = config["Telegram:BotToken"] ?? string.Empty;
+        if (string.IsNullOrEmpty(botToken) || botToken == "<BOT_TOKEN>")
+            return BadRequest("Telegram Bot Token is not configured. Ask your administrator to set it in Global Integrations.");
 
         var provider = _notificationProviders.FirstOrDefault(p => p.Name == "Telegram");
         if (provider == null) return BadRequest("Telegram provider not available.");
@@ -207,6 +213,6 @@ public class UsersController : ControllerBase
 
         var result = await provider.SendAsync(targetChatId, title, body);
         if (result) return Ok("Test message sent successfully.");
-        return BadRequest("Failed to send test message. Please check your Chat ID and Bot permissions.");
+        return BadRequest("Message delivery failed. Your Bot Token may be invalid, or the bot has not been started in your Telegram chat. Send /start to the bot first.");
     }
 }

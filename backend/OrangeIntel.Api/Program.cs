@@ -86,7 +86,7 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IAdvisoryRepositor
 builder.Services.AddScoped<OrangeIntel.Application.Services.IThreatService, OrangeIntel.Application.Services.ThreatService>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IAdvisoryService, OrangeIntel.Application.Services.AdvisoryService>();
 
-builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider, OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
+// TelegramNotificationProvider is registered below via AddHttpClient so it gets a proper HttpClient
 builder.Services.AddScoped<OrangeIntel.Application.Services.INotificationService, OrangeIntel.Application.Services.NotificationService>();
 builder.Services.AddScoped<OrangeIntel.Application.Interfaces.IReportRepository, OrangeIntel.Infrastructure.Repositories.ReportRepository>();
 builder.Services.AddScoped<OrangeIntel.Application.Services.IReportService, OrangeIntel.Application.Services.ReportService>();
@@ -105,6 +105,7 @@ builder.Services.AddScoped<OrangeIntel.Application.Interfaces.ISystemSettingServ
 // Threat Ingestion & Security APIs
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Services.ThreatIngestionService>();
 builder.Services.AddHttpClient<OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>();
+builder.Services.AddScoped<OrangeIntel.Application.Interfaces.INotificationProvider>(sp => sp.GetRequiredService<OrangeIntel.Infrastructure.Notifications.TelegramNotificationProvider>());
 builder.Services.AddHttpClient<OrangeIntel.Application.Interfaces.IHibpService, OrangeIntel.Infrastructure.Services.HibpService>();
 
 // IOC Enrichment Engine
