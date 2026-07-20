@@ -420,7 +420,7 @@ const MonitorSettings = () => {
 /* ── Per-User API Keys (all users) ── */
 const MyApiKeysSettings = () => {
     const { token } = useAuth();
-    const [draft, setDraft] = useState({ vt_api_key: '', abuseipdb_api_key: '', alienvault_api_key: '', nvd_api_key: '', github_api_key: '' });
+    const [draft, setDraft] = useState({ vt_api_key: '', abuseipdb_api_key: '', alienvault_api_key: '', nvd_api_key: '', github_api_key: '', telegram_bot_token: '' });
     const [savedKeys, setSavedKeys] = useState([]);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -447,6 +447,7 @@ const MyApiKeysSettings = () => {
                 { keyName: 'alienvault_api_key', keyValue: draft.alienvault_api_key },
                 { keyName: 'nvd_api_key', keyValue: draft.nvd_api_key },
                 { keyName: 'github_api_key', keyValue: draft.github_api_key },
+                { keyName: 'telegram_bot_token', keyValue: draft.telegram_bot_token },
             ].filter(k => k.keyValue && !k.keyValue.startsWith('••'));
             await axios.put('/api/user/api-keys', payload, { headers: { Authorization: `Bearer ${token}` } });
             toast.success('Your personal API keys have been saved!');
@@ -552,6 +553,23 @@ const MyApiKeysSettings = () => {
                         autoComplete="off"
                     />
                     <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=OrangeIntel&scopes=" target="_blank" rel="noreferrer">Get free PAT ↗</a></span>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        Telegram Bot Token
+                        {isSaved('telegram_bot_token') && <span style={{ fontSize: '11px', color: 'var(--color-success)', background: 'rgba(34,197,94,0.1)', padding: '2px 8px', borderRadius: '10px' }}>✓ Saved</span>}
+                    </label>
+                    <input
+                        id="my-telegram-bot-token"
+                        type="password"
+                        className={styles.input}
+                        placeholder="e.g. 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                        value={draft.telegram_bot_token}
+                        onChange={e => setDraft(p => ({ ...p, telegram_bot_token: e.target.value }))}
+                        autoComplete="off"
+                    />
+                    <span className={styles.hint}>Create a bot via <a href="https://t.me/BotFather" target="_blank" rel="noreferrer">@BotFather ↗</a> · Send <strong>/start</strong> to your bot before testing</span>
                 </div>
 
                 <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>

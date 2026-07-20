@@ -197,22 +197,53 @@ public class UsersController : ControllerBase
         var targetChatId = chatId ?? user?.TelegramChatId;
 
         if (string.IsNullOrEmpty(targetChatId))
-            return BadRequest("No Chat ID provided. Enter your Telegram Chat ID first.");
+            return BadRequest("No Chat ID provided. Enter your Telegram Chat ID in Account settings first.");
 
-        // Pre-flight: check bot token is configured
-        var botToken = await settingService.GetSettingAsync("telegram_bot_token", string.Empty);
-        if (string.IsNullOrEmpty(botToken)) botToken = config["Telegram:BotToken"] ?? string.Empty;
-        if (string.IsNullOrEmpty(botToken) || botToken == "<BOT_TOKEN>")
-            return BadRequest("Telegram Bot Token is not configured. Ask your administrator to set it in Global Integrations.");
+        // 1. Check user's personal bot token from UserApiKeys
+        var userBotToken = string.Empty;
+        if (user != null)
+        {
+            var userKey = await _context.UserApiKeys
+                .FirstOrDefaultAsync(k => k.UserId == user.Id && k.KeyName == "telegram_bot_token");
+            if (userKey != null && !string.IsNullOrEmpty(userKey.KeyValue))
+                userBotToken = userKey.KeyValue;
+        }
 
-        var provider = _notificationProviders.FirstOrDefault(p => p.Name == "Telegram");
-        if (provider == null) return BadRequest("Telegram provider not available.");
+        // 2. Fall back to global system setting (admin-configured)
+        if (string.IsNullOrEmpty(userBotToken))
+            userBotToken = await settingService.GetSettingAsync("telegram_bot_token", string.Empty);
 
+        // 3. Fall back to IConfiguration (env vars / appsettings)
+        if (string.IsNullOrEmpty(userBotToken))
+            userBotToken = config["Telegram:BotToken"] ?? string.Empty;
+
+        if (string.IsNullOrEmpty(userBotToken) || userBotToken == "<BOT_TOKEN>")
+            return BadRequest("No Telegram Bot Token configured. Add your bot token in 'My API Keys' settings.");
+
+        // Send directly — bypass the provider so we use the resolved token above
         var title = "🛡️ OrangeIntel | Connection Test";
-        var body = $"Hello {user?.FullName ?? "Analyst"},\n\nThis is a test notification to confirm your Chat ID is correctly linked to the OrangeIntel Threat Intelligence Platform.\n\nTime: {DateTime.Now:f}";
+        var body = $"Hello {user?.FullName ?? "Analyst"},\n\nThis is a test notification confirming your Chat ID is correctly linked to OrangeIntel.\n\nTime: {DateTime.Now:f}";
+        var message = $"{title}\n\n{body}";
+        var url = $"https://api.telegram.org/bot{userBotToken}/sendMessage";
+        var payload = new { chat_id = targetChatId, text = message, parse_mode = "Markdown" };
 
-        var result = await provider.SendAsync(targetChatId, title, body);
-        if (result) return Ok("Test message sent successfully.");
-        return BadRequest("Message delivery failed. Your Bot Token may be invalid, or the bot has not been started in your Telegram chat. Send /start to the bot first.");
+        try
+        {
+            using var http = new System.Net.Http.HttpClient();
+            var content = new System.Net.Http.StringContent(
+                System.Text.Json.JsonSerializer.Serialize(payload),
+                System.Text.Encoding.UTF8, "application/json");
+            var response = await http.PostAsync(url, content);
+            if (response.IsSuccessStatusCode)
+                return Ok("Test message sent successfully! Check your Telegram.");
+
+            var error = await response.Content.ReadAsStringAsync();
+            return BadRequest($"Telegram API rejected the request: {error}. Check your Bot Token is correct and you have sent /start to the bot.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Connection failed: {ex.Message}");
+        }
     }
 }
+
