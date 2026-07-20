@@ -75,7 +75,8 @@ public class AdminController : ControllerBase
             UserName = string.IsNullOrWhiteSpace(model.UserName) ? model.Email : model.UserName,
             Email = model.Email,
             EmailConfirmed = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            RequiresPasswordChange = true  // Force password change on first login
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);

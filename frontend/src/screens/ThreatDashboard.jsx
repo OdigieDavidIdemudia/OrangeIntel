@@ -126,7 +126,7 @@ const ThreatDashboard = () => {
         <div className={styles.container}>
             <header className={styles.dashboardHeader}>
                 <div className={styles.titleBlock}>
-                    <h1 className={styles.title}>Analyst Commander</h1>
+                    <h1 className={styles.title}>Threat Commander</h1>
                     <p className={styles.subtitle}>Unified threat intelligence and platform operations</p>
                 </div>
                 <div className={styles.velocityBadge}>

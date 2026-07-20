@@ -102,9 +102,14 @@ public class UsersController : ControllerBase
             return BadRequest(result.Errors);
         }
 
+        // Clear the forced-change flag and record the date
+        user.RequiresPasswordChange = false;
+        user.LastPasswordChangeDate = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
         await _auditService.LogAsync(user.Id, "change_password", "Changed password successfully");
 
-            return Ok("Password changed successfully");
+        return Ok("Password changed successfully");
     }
 
     [HttpGet]

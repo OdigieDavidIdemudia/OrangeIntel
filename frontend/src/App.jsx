@@ -18,6 +18,7 @@ import IocLookupScreen from './screens/IocLookupScreen';
 import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 
 import ForceMfaSetup from './screens/ForceMfaSetup';
+import ForcePasswordChange from './screens/ForcePasswordChange';
 
 const RequireAuth = ({ children }) => {
   const { token, user, loading } = useAuth();
@@ -29,6 +30,10 @@ const RequireAuth = ({ children }) => {
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user?.requiresPasswordChange) {
+    return <ForcePasswordChange />;
   }
 
   if (user?.mfaEnforced && !user?.mfaEnabled) {
