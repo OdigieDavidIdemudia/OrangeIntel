@@ -266,7 +266,7 @@
 .feedScore {
     font-size: 9px;
     color: #4A4A47;
-    font-family: monospace;
+    font-family: var(--font-mono);
 }
 
 .feedItemTitle {

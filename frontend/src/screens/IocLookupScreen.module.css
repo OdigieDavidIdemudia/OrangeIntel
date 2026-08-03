@@ -101,7 +101,7 @@
   border-radius: 8px;
   background: var(--bg-app);
   color: var(--text-primary);
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   transition: border-color 0.15s;
   outline: none;
 }
@@ -129,7 +129,7 @@
   width: 100%;
   padding: var(--space-3) var(--space-4);
   font-size: 13px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--bg-app);
@@ -386,7 +386,7 @@
 .indicatorValue {
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;

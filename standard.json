@@ -1,0 +1,246 @@
+{
+  "$schema": "personal-design-standard-v1",
+  "meta": {
+    "name": "Personal Design Standard",
+    "version": "1.0.0",
+    "description": "Master design specification. Pick one 'styleVariant' per project. Everything under 'core' applies no matter which variant is chosen.",
+    "howToUse": [
+      "1. Copy this file into every new project as /design/standard.json",
+      "2. Choose ONE key from styleVariants (neobrutalism | claymorphism | minimalism)",
+      "3. Merge core.* with styleVariants.<chosen>.* — the variant overrides core where they conflict",
+      "4. Pick light or dark from colorSystem.modes as the default, but both must always be implemented",
+      "5. Pick one pairing from typography.pairings based on project tone"
+    ]
+  },
+
+  "core": {
+    "principles": [
+      "Consistency over novelty — reuse tokens, never hand-pick one-off values",
+      "Accessible by default — never ship a contrast ratio below WCAG AA",
+      "Hierarchy through scale and weight, not just color",
+      "Every interactive element has a visible focus, hover, and active state",
+      "Whitespace is a design element, not leftover space",
+      "Dark mode is not an inverted afterthought — it is designed, not auto-generated"
+    ],
+
+    "spacingScale": {
+      "unit": "px",
+      "base": 4,
+      "scale": {
+        "xxs": 4,
+        "xs": 8,
+        "sm": 12,
+        "md": 16,
+        "lg": 24,
+        "xl": 32,
+        "2xl": 48,
+        "3xl": 64,
+        "4xl": 96
+      }
+    },
+
+    "grid": {
+      "columns": 12,
+      "gutter": "24px",
+      "maxContentWidth": "1200px",
+      "breakpoints": {
+        "sm": "480px",
+        "md": "768px",
+        "lg": "1024px",
+        "xl": "1440px"
+      }
+    },
+
+    "elevationPrinciple": "Elevation communicates interactivity/hierarchy, not decoration. Shadow direction and softness change per styleVariant.",
+
+    "motion": {
+      "philosophy": "Motion confirms cause and effect. Nothing animates without a reason.",
+      "durations": {
+        "instant": "80ms",
+        "fast": "150ms",
+        "base": "220ms",
+        "slow": "400ms"
+      },
+      "easing": {
+        "standard": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "enter": "cubic-bezier(0, 0, 0.2, 1)",
+        "exit": "cubic-bezier(0.4, 0, 1, 1)",
+        "playful": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+      }
+    },
+
+    "accessibility": {
+      "minContrastText": "4.5:1",
+      "minContrastLargeText": "3:1",
+      "minTouchTarget": "44px",
+      "focusRing": {
+        "width": "2px",
+        "offset": "2px",
+        "style": "solid"
+      },
+      "neverConveyMeaningByColorAlone": true
+    },
+
+    "namingConvention": {
+      "tokens": "kebab-case, e.g. color-accent-500, radius-lg",
+      "components": "PascalCase, e.g. PrimaryButton, CardClay",
+      "files": "kebab-case"
+    }
+  },
+
+  "colorSystem": {
+    "structure": "neutral scale + single accent color, always shipped in both light and dark",
+    "neutralScale": {
+      "description": "10-step neutral ramp, 50 lightest to 900 darkest",
+      "50": "#FAFAFA",
+      "100": "#F1F1F1",
+      "200": "#E4E4E4",
+      "300": "#D1D1D1",
+      "400": "#A8A8A8",
+      "500": "#7A7A7A",
+      "600": "#565656",
+      "700": "#3A3A3A",
+      "800": "#242424",
+      "900": "#141414"
+    },
+    "accent": {
+      "description": "Single accent color per project — swap the hex, keep the ramp math (base ±tint/shade)",
+      "placeholderBase": "#4F46E5",
+      "usage": "Reserve accent for primary actions, key highlights, and focus states only. Never use accent for large background fills."
+    },
+    "modes": {
+      "light": {
+        "background": "neutral-50",
+        "surface": "neutral-100",
+        "surfaceRaised": "#FFFFFF",
+        "border": "neutral-300",
+        "textPrimary": "neutral-900",
+        "textSecondary": "neutral-600",
+        "accent": "accent.placeholderBase"
+      },
+      "dark": {
+        "background": "neutral-900",
+        "surface": "neutral-800",
+        "surfaceRaised": "neutral-700",
+        "border": "neutral-700",
+        "textPrimary": "neutral-50",
+        "textSecondary": "neutral-400",
+        "accent": "accent.placeholderBase (lighten 10% for AA contrast on dark)"
+      }
+    }
+  },
+
+  "typography": {
+    "philosophy": "Elegant by default; pick the pairing that matches project seriousness.",
+    "scale": {
+      "ratio": 1.25,
+      "base": "16px",
+      "steps": {
+        "xs": "12.8px",
+        "sm": "14.4px",
+        "base": "16px",
+        "lg": "20px",
+        "xl": "25px",
+        "2xl": "31px",
+        "3xl": "39px",
+        "4xl": "49px"
+      }
+    },
+    "lineHeight": {
+      "tight": 1.2,
+      "body": 1.5,
+      "relaxed": 1.7
+    },
+    "pairings": {
+      "editorialElegant": {
+        "heading": "Playfair Display",
+        "body": "Inter",
+        "useWhen": "warm, editorial, high-craft feel"
+      },
+      "modernElegant": {
+        "heading": "Fraunces",
+        "body": "Söhne / Inter",
+        "useWhen": "premium product, refined minimalism"
+      },
+      "cleanNeutral": {
+        "heading": "Inter",
+        "body": "Inter",
+        "useWhen": "utility-first, dashboards, tools"
+      },
+      "technicalMono": {
+        "heading": "Space Grotesk",
+        "body": "JetBrains Mono / Inter",
+        "useWhen": "brutalist or dev-tool projects"
+      }
+    }
+  },
+
+  "styleVariants": {
+    "neobrutalism": {
+      "description": "Raw, high-contrast, unapologetically visible structure",
+      "border": {
+        "width": "2px–3px",
+        "color": "textPrimary (always solid, never soft grey)",
+        "radius": "4px–8px only, mostly sharp"
+      },
+      "shadow": {
+        "style": "hard offset shadow, no blur",
+        "example": "4px 4px 0px var(--text-primary)",
+        "onHover": "shadow shifts to 2px 2px 0px + element translates 2px,2px"
+      },
+      "color": "high contrast neutrals + one loud accent, large flat fills allowed",
+      "typographyWeight": "bold/black headings, medium body",
+      "components": "visible thick borders, blocky buttons, sticker-like tags"
+    },
+
+    "claymorphism": {
+      "description": "Soft, tactile, inflated 3D feel",
+      "border": {
+        "width": "0px, borders implied by shadow/light not lines",
+        "radius": "24px–40px, always heavily rounded"
+      },
+      "shadow": {
+        "style": "dual shadow: soft light highlight (top-left) + soft dark shadow (bottom-right)",
+        "example": "-6px -6px 12px rgba(255,255,255,0.7), 6px 6px 16px rgba(0,0,0,0.15)",
+        "onHover": "shadow depth increases slightly, no hard edges"
+      },
+      "color": "pastel/muted fills, low-contrast gradients within same hue",
+      "typographyWeight": "medium/semibold headings, regular body, rounded font preferred",
+      "components": "pill buttons, puffy cards, no sharp corners anywhere"
+    },
+
+    "minimalism": {
+      "description": "Maximum restraint, content-first, structure via whitespace",
+      "border": {
+        "width": "1px or none",
+        "color": "neutral-200/700 hairline only",
+        "radius": "0px–6px, subtle only"
+      },
+      "shadow": {
+        "style": "near-none; use 1 soft ambient shadow max for elevation",
+        "example": "0px 1px 3px rgba(0,0,0,0.08)"
+      },
+      "color": "near-monochrome, accent used extremely sparingly (single CTA)",
+      "typographyWeight": "light/regular headings, generous line-height, type IS the hierarchy",
+      "components": "no visible containers where possible, dividers over boxes, generous whitespace over borders"
+    }
+  },
+
+  "componentDefaults": {
+    "button": {
+      "paddingX": "spacing.lg",
+      "paddingY": "spacing.sm",
+      "states": ["default", "hover", "active", "focus-visible", "disabled"],
+      "disabledOpacity": 0.5
+    },
+    "card": {
+      "padding": "spacing.lg",
+      "gap": "spacing.md"
+    },
+    "input": {
+      "height": "44px",
+      "paddingX": "spacing.md",
+      "errorColor": "must not rely on red alone — pair with icon/text"
+    }
+  }
+}

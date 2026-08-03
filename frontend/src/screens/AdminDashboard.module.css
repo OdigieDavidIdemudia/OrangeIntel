@@ -95,7 +95,7 @@
 }
 
 .mono {
-    font-family: monospace;
+    font-family: var(--font-mono);
     opacity: 0.8;
 }
 
