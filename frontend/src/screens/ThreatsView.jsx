@@ -11,14 +11,14 @@ import styles from './TopicsView.module.css';
 
 const SOURCE_THEMES = {
     'alienvault otx': '#10B981', 'the hacker news': '#EF4444', 'cisa kev': '#3B82F6',
-    'bleepingcomputer': '#0284C7', 'techpoint africa': '#F97316', 'it news africa': '#E11D48',
+    'bleepingcomputer': '#0284C7', 'techpoint africa': '#0D9488', 'it news africa': '#E11D48',
     'cert nigeria': '#16A34A', 'ngcert': '#16A34A',
 };
 
 const CATEGORY_COLORS = {
     'Browsers': '#6366F1', 'Network Infrastructure': '#0EA5E9', 'Operating Systems': '#8B5CF6',
     'Identity & Authentication': '#F59E0B', 'Email & Phishing': '#EF4444', 'Cloud Services': '#06B6D4',
-    'Endpoints': '#84CC16', 'Web Applications': '#F97316', 'Mobile': '#EC4899',
+    'Endpoints': '#84CC16', 'Web Applications': '#0D9488', 'Mobile': '#EC4899',
     'Financial Systems': '#10B981', 'Vulnerability/CVE': '#DC2626', 'Malware': '#B91C1C',
     'Threat Actor Activity': '#7C3AED', 'Uncategorized': '#6B7280',
 };

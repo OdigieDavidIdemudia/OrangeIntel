@@ -35,7 +35,7 @@ const ForcePasswordChange = () => {
                 currentPassword: form.currentPassword,
                 newPassword: form.newPassword,
             });
-            toast.success('Password updated successfully. Welcome to OrangeIntel!');
+            toast.success('Password updated successfully. Welcome to TealHunt!');
             // Re-fetch profile — RequiresPasswordChange is now false, gate will lift
             await fetchProfile();
         } catch (err) {
@@ -59,7 +59,7 @@ const ForcePasswordChange = () => {
 
                 <h1 className={styles.title}>Set Your Password</h1>
                 <p className={styles.subtitle}>
-                    Your account was provisioned with a temporary password. You must set a new personal password before accessing OrangeIntel.
+                    Your account was provisioned with a temporary password. You must set a new personal password before accessing TealHunt.
                 </p>
 
                 <form onSubmit={handleSubmit} className={styles.form}>

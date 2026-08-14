@@ -552,7 +552,7 @@ const MyApiKeysSettings = () => {
                         onChange={e => setDraft(p => ({ ...p, github_api_key: e.target.value }))}
                         autoComplete="off"
                     />
-                    <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=OrangeIntel&scopes=" target="_blank" rel="noreferrer">Get free PAT ↗</a></span>
+                    <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=TealHunt&scopes=" target="_blank" rel="noreferrer">Get free PAT ↗</a></span>
                 </div>
 
                 <div className={styles.formGroup}>
@@ -739,7 +739,7 @@ const IntegrationSettings = () => {
                         onChange={set('github_api_key')}
                         autoComplete="off"
                     />
-                    <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=OrangeIntel&scopes=" target="_blank" rel="noreferrer">Get key ↗</a></span>
+                    <span className={styles.hint}>Avoids rate limits for Application Hash Lookup · <a href="https://github.com/settings/tokens/new?description=TealHunt&scopes=" target="_blank" rel="noreferrer">Get key ↗</a></span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>

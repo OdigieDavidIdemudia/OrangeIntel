@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TealHunt | Premium Threat Intelligence Assessment</title>
+    <meta name="description" content="Threat Intelligence that writes its own advisories. TealHunt aggregates feeds, enriches IOCs, and exports deployment-ready DOCX files.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Three.js for 3D Models -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body class="theme-light">
+    <!-- Navigation -->
+    <nav class="nav-bar animate-on-scroll is-visible">
+        <div class="nav-container">
+            <a href="index.html" class="logo"><span class="brand-teal">Teal</span>Hunt</a>
+            <div class="nav-links">
+                <a href="#problem">The Disconnect</a>
+                <a href="#how-it-works">The Pipeline</a>
+                <a href="#features">Specs</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div class="nav-actions">
+                <button id="theme-toggle" class="btn btn-secondary icon-btn" aria-label="Toggle Theme">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <a href="login.html" class="login-link">Login</a>
+                <a href="signup.html" class="btn btn-primary">Let's Hunt</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-section">
+        <div class="container hero-container animate-on-scroll">
+            <div class="hero-content">
+                <h1 class="hero-headline">Threat Intelligence that writes its own advisories.</h1>
+                <p class="hero-subheadline">TealHunt aggregates global feeds, automatically enriches IOCs via VirusTotal and AbuseIPDB, validates reports with AI, and generates deployment-ready DOCX advisories in one click.</p>
+                <div class="hero-actions">
+                    <a href="signup.html" class="btn btn-primary btn-large">Let's Hunt</a>
+                    <a href="#how-it-works" class="btn btn-secondary">Examine the pipeline</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div id="three-canvas-container"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section id="stats" class="stats-section section-padding">
+        <div class="container split-container animate-on-scroll">
+            <div class="section-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-value">2.4M+</span>
+                        <span class="stat-label">IOCs Parsed Monthly</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">99.8%</span>
+                        <span class="stat-label">AI Validation Accuracy</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">0s</span>
+                        <span class="stat-label">Formatting Time</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-visual">
+                <div id="three-stats-container" style="width:100%; height:100%; position:absolute; top:0; left:0;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem & Value Section -->
+    <section id="problem" class="problem-section section-padding">
+        <div class="container">
+            <div class="content-block animate-on-scroll">
+                <h2 class="section-title">Analysts are acting as data routers.</h2>
+                <p class="section-text">The current workflow is fundamentally broken. You discover a threat on CISA KEV or OTX, manually query VirusTotal, paste the IPs into a spreadsheet, draft an email, and format a Word document. By the time leadership reads the advisory, the campaign has moved on. TealHunt connects the ingestion engine directly to the reporting engine, automating the entire middle layer.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works-section section-padding bg-surface">
+        <div class="container split-container">
+            <div class="section-visual">
+                <div id="three-pipeline-container" style="width:100%; height:100%; position:absolute; top:0; left:0;"></div>
+            </div>
+            <div class="section-content">
+                <h2 class="section-title text-left animate-on-scroll">The Automated Intel Pipeline</h2>
+                <div class="steps-grid">
+                    <div class="step-card animate-on-scroll">
+                        <span class="step-number">01</span>
+                        <h3 class="step-title">Ingest & Score</h3>
+                        <p class="step-desc">Pull from CISA, OTX, and custom RSS feeds. We automatically score severity to drop low-tier noise instantly.</p>
+                    </div>
+                    <div class="step-card animate-on-scroll">
+                        <span class="step-number">02</span>
+                        <h3 class="step-title">Contextual Enrichment</h3>
+                        <p class="step-desc">IPs and hashes are extracted and run through VirusTotal and AbuseIPDB to inject malicious flags.</p>
+                    </div>
+                    <div class="step-card animate-on-scroll">
+                        <span class="step-number">03</span>
+                        <h3 class="step-title">Multi-Channel Alerting</h3>
+                        <p class="step-desc">Severity 8+ threats trigger instant Telegram broadcasts and targeted Email chains.</p>
+                    </div>
+                    <div class="step-card animate-on-scroll">
+                        <span class="step-number">04</span>
+                        <h3 class="step-title">AI-Validated Export</h3>
+                        <p class="step-desc">AI silently validates formatting and tone, exporting a pixel-perfect DOCX file.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Highlights Section -->
+    <section id="features" class="features-section section-padding">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Technical Specifications</h2>
+            <div class="features-grid expanded-grid">
+                <div class="feature-item animate-on-scroll">
+                    <h3 class="feature-title">Have I Been Pwned (HIBP) Interop</h3>
+                    <p class="feature-desc">Built-in credential exposure tools allow analysts to rapidly verify organizational breaches directly from the threat explorer dashboard.</p>
+                </div>
+                <div class="feature-item animate-on-scroll">
+                    <h3 class="feature-title">Role-Based Auditing</h3>
+                    <p class="feature-desc">Granular access control separates Admins from standard Analysts. Every IOC queried or modified is logged to an immutable audit trail.</p>
+                </div>
+                <div class="feature-item animate-on-scroll">
+                    <h3 class="feature-title">Local Data Supremacy</h3>
+                    <p class="feature-desc">Your intelligence remains yours. The backend relies on an AES-256 encrypted local SQLite database, ensuring sensitive investigations aren't leaked to cloud providers.</p>
+                </div>
+                <div class="feature-item animate-on-scroll">
+                    <h3 class="feature-title">Zero-Trust Identity</h3>
+                    <p class="feature-desc">Hardened user management enforces mandatory Multi-Factor Authentication (MFA) and strict password rotation policies out of the box.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="specs" class="marketing-section section-padding">
+        <div class="container split-container">
+            <div class="section-content">
+                <h2 class="section-title text-left animate-on-scroll">Platform Capabilities</h2>
+                <div class="features-grid">
+                    <div class="feature-item animate-on-scroll">
+                        <h3>Automated Triage</h3>
+                        <p>Heuristic rules instantly drop low-tier noise, ensuring analysts only focus on verified, high-confidence threats.</p>
+                    </div>
+                    <div class="feature-item animate-on-scroll">
+                        <h3>AI-Validated Output</h3>
+                        <p>AI silently corrects JSON formatting, tone, and syntax errors before the report is ever generated.</p>
+                    </div>
+                    <div class="feature-item animate-on-scroll">
+                        <h3>Zero-Delay Alerting</h3>
+                        <p>Severity 8+ threats bypass manual review to instantly broadcast via Telegram and target email chains.</p>
+                    </div>
+                    <div class="feature-item animate-on-scroll">
+                        <h3>One-Click Export</h3>
+                        <p>Stop fighting with formatting. Export pixel-perfect DOCX advisories customized to your client's exact branding.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="section-visual">
+                <div id="three-specs-container" style="width:100%; height:100%; position:absolute; top:0; left:0;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing-section section-padding bg-surface">
+        <div class="container">
+            <h2 class="section-title text-center animate-on-scroll">Transparent Pricing</h2>
+            <p class="section-text text-center mx-auto animate-on-scroll" style="margin-bottom: var(--space-2xl);">Predictable costs for threat intelligence teams of any size.</p>
+            <div class="pricing-grid">
+                <div class="pricing-card animate-on-scroll">
+                    <h3 class="pricing-tier">Analyst Pro</h3>
+                    <p class="pricing-price">$49<span>/mo</span></p>
+                    <p class="pricing-desc">For individual researchers and independent threat hunters.</p>
+                    <ul class="pricing-features">
+                        <li>1 User Account</li>
+                        <li>Automated RSS & OTX Ingestion</li>
+                        <li>Standard DOCX Export</li>
+                        <li>Basic IOC Enrichment (Up to 500/day)</li>
+                    </ul>
+                    <a href="signup.html" class="btn btn-secondary pricing-btn">Let's Hunt</a>
+                </div>
+                <div class="pricing-card animate-on-scroll">
+                    <h3 class="pricing-tier">Enterprise Team</h3>
+                    <p class="pricing-price">$249<span>/mo per user</span></p>
+                    <p class="pricing-desc">For dedicated SOCs requiring high-volume automation.</p>
+                    <ul class="pricing-features">
+                        <li>Unlimited User Accounts (Billed Active)</li>
+                        <li>AI Validation Pipeline</li>
+                        <li>Email & Telegram Alerting</li>
+                        <li>Unlimited IOC Background Checks</li>
+                        <li>Custom DOCX Templates</li>
+                    </ul>
+                    <a href="signup.html" class="btn btn-primary pricing-btn">Provision Account</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section section-padding">
+        <div class="container text-center animate-on-scroll">
+            <h2 class="section-title">Built by analysts, for analysts.</h2>
+            <p class="section-text mx-auto">TealHunt was forged out of frustration. We were tired of spending hours fighting with formatting, copy-pasting IPs from VirusTotal, and dealing with disparate threat feeds that didn't talk to each other. We built this platform so that intelligence teams can spend 100% of their time hunting threats, and 0% of their time doing data entry.</p>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section section-padding bg-surface">
+        <div class="container animate-on-scroll">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary>Where is my intelligence data stored?</summary>
+                    <div class="faq-content">
+                        <p>All of your data—from ingested feeds to completed advisory reports—is stored in a local, AES-256 encrypted SQLite database. We do not sync your active investigations to any cloud provider.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>How does the AI integration work?</summary>
+                    <div class="faq-content">
+                        <p>When you initiate a DOCX export, the raw JSON of your report is sent directly to an advanced AI model for strict formatting, typo correction, and tone adjustment. This happens silently and returns a validated payload.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I add custom feeds?</summary>
+                    <div class="faq-content">
+                        <p>Yes. The platform natively supports ingestion from any standard RSS feed, alongside deep API integrations with CISA KEV and AlienVault OTX.</p>
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>What is required for the automated email alerts?</summary>
+                    <div class="faq-content">
+                        <p>To enable automated advisory emails for high-severity threats, simply input your own API keys for your preferred Email provider in the Settings dashboard. TealHunt will handle the formatting and attachment delivery.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="final-cta-section section-padding">
+        <div class="container text-center animate-on-scroll">
+            <h2 class="hero-headline">Stop routing data. Start hunting threats.</h2>
+            <p class="hero-subheadline mx-auto">Your next advisory report is already half-written.</p>
+            <div class="hero-actions justify-center mt-xl">
+                <a href="signup.html" class="btn btn-primary btn-large">Let's Hunt</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container animate-on-scroll">
+            <div class="footer-brand">
+                <a href="index.html" class="logo"><span class="brand-teal">Teal</span>Hunt</a>
+                <p class="copyright">&copy; 2026 TealHunt. All rights reserved.</p>
+            </div>
+            <div class="footer-links">
+                <div class="link-column">
+                    <h4>Platform</h4>
+                    <a href="#how-it-works">The Pipeline</a>
+                    <a href="#features">Specs</a>
+                    <a href="#pricing">Pricing</a>
+                </div>
+                <div class="link-column">
+                    <h4>Company</h4>
+                    <a href="#">About</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+                <div class="link-column">
+                    <h4>Legal</h4>
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="cookies.html">Cookie Policy</a>
+                </div>
+                <div class="link-column">
+                    <h4>Access</h4>
+                    <a href="login.html">Analyst Login</a>
+                    <a href="signup.html">Provision Account</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Compliance Banner -->
+    <div id="compliance-banner" class="compliance-banner">
+        <div class="container banner-container">
+            <p>We use local storage and strictly necessary diagnostic analytics to improve your experience. See our <a href="privacy.html" style="text-decoration: underline;">Privacy Policy</a>.</p>
+            <div class="banner-actions">
+                <button id="btn-decline" class="btn btn-secondary">Decline Optional</button>
+                <button id="btn-accept" class="btn btn-primary">Accept All</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,8 +8,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Target Path: ../OrangeIntel.Api/Templates/Reports/
-        var basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../OrangeIntel.Api/Templates/Reports"));
+        // Target Path: ../TealHunt.Api/Templates/Reports/
+        var basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../TealHunt.Api/Templates/Reports"));
         Directory.CreateDirectory(basePath);
         
         Console.WriteLine($"Generating templates in: {basePath}");
@@ -27,7 +27,7 @@ class Program
         mainPart.Document = new Document();
         var body = mainPart.Document.AppendChild(new Body());
 
-        AddParagraph(body, "OrangeIntel Threat Advisory", "32", true, "E05206", JustificationValues.Center);
+        AddParagraph(body, "TealHunt Threat Advisory", "32", true, "E05206", JustificationValues.Center);
         AddParagraph(body, "Title: {{ReportTitle}}", "48", true, "000000", JustificationValues.Center);
         AddParagraph(body, "ID: {{ReportIdentifier}} | Date: {{Date}}", "24", false, "666666", JustificationValues.Center);
         AddParagraph(body, "TLP: {{Classification}}", "24", true, "E05206", JustificationValues.Center);

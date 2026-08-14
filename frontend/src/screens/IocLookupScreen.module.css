@@ -235,7 +235,7 @@
 }
 
 .statCritical .statNum { color: var(--color-danger); }
-.statHigh .statNum { color: #EA580C; }
+.statHigh .statNum { color: #0F766E; }
 .statClean .statNum { color: var(--color-success); }
 
 /* ── Results ── */
@@ -357,7 +357,7 @@
 
 .resultRow:last-child { border-bottom: none; }
 .row_critical { border-left: 3px solid var(--color-danger); }
-.row_high     { border-left: 3px solid #EA580C; }
+.row_high     { border-left: 3px solid #0F766E; }
 .row_medium   { border-left: 3px solid var(--color-warning); }
 .row_low      { border-left: 3px solid #9CA3AF; }
 .row_clean    { border-left: 3px solid var(--color-success); }

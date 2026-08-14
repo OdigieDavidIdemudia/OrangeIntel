@@ -23,9 +23,9 @@
   --topbar-background: #FFFFFF;
   --card-border: var(--neutral-200);
   
-  /* Brand - Orange/Amber Base */
-  --color-brand: #F97316;
-  --color-brand-hover: #EA580C;
+  /* Brand - Teal Base */
+  --color-brand: #0D9488;
+  --color-brand-hover: #0F766E;
   --color-brand-contrast: #FFFFFF;
 
   /* Semantic - Light Mode */
@@ -52,7 +52,7 @@
   
   --severity-high-bg: #FFF7ED;
   --severity-high-text: #9A3412;
-  --severity-high-border: #EA580C;
+  --severity-high-border: #0F766E;
   
   --severity-medium-bg: #FEFCE8;
   --severity-medium-text: #854D0E;
@@ -117,8 +117,8 @@
   --text-danger: #F87171;
 
   /* Brand - Lightened Accent for contrast on Dark Mode */
-  --color-brand: #FB923C;
-  --color-brand-hover: #FDBA74;
+  --color-brand: #2DD4BF;
+  --color-brand-hover: #0D9488;
 
   /* Background mappings - Dark Mode */
   --bg-app: var(--page-canvas-background);
@@ -136,7 +136,7 @@
 
   /* Tags/Labels - Dark Mode */
   --tag-tlp-amber-bg: #2B1605;
-  --tag-tlp-amber-text: #FDBA74;
+  --tag-tlp-amber-text: #0D9488;
   --tag-tlp-red-bg: #2E0B0B;
   --tag-tlp-red-text: #F87171;
   --tag-tlp-green-bg: #062F16;
@@ -153,8 +153,8 @@
   /* Severity specific colors - Dark Mode Override */
   --severity-critical-bg: rgba(220, 38, 38, 0.12);
   --severity-critical-border: #EF4444;
-  --severity-high-bg: rgba(249, 115, 22, 0.12);
-  --severity-high-border: #F97316;
+  --severity-high-bg: rgba(13, 148, 136, 0.12);
+  --severity-high-border: #0D9488;
   --severity-medium-bg: rgba(234, 179, 8, 0.12);
   --severity-medium-border: #FACC15;
   --severity-low-bg: rgba(156, 163, 175, 0.12);

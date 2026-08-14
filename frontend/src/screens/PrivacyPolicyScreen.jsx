@@ -12,7 +12,7 @@ const PrivacyPolicyScreen = () => {
                     <ShieldAlert size={22} className={styles.titleIcon} />
                     <div>
                         <h1>Privacy Policy</h1>
-                        <p className={styles.subtitle}>OrangeIntel Data Protection and Privacy Guidelines</p>
+                        <p className={styles.subtitle}>TealHunt Data Protection and Privacy Guidelines</p>
                     </div>
                 </div>
             </div>

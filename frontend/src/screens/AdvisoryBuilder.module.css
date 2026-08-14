@@ -1,5 +1,5 @@
 /* ============================================
-   ORANGEINTEL ADVISORY BUILDER — PREMIUM COMPACT
+   TEALHUNT ADVISORY BUILDER — PREMIUM COMPACT
    Aesthetics: Efficient, Structured, Precise
    ============================================ */
 
@@ -222,7 +222,7 @@
 .textarea:focus {
     outline: none;
     border-color: var(--color-brand);
-    box-shadow: 0 0 0 2px rgba(224, 123, 0, 0.1);
+    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.1);
     background: var(--bg-panel);
 }
 

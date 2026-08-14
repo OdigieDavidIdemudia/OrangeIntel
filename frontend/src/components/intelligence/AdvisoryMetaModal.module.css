@@ -36,7 +36,7 @@
 .field input:focus {
     outline: none;
     border-color: var(--color-brand);
-    box-shadow: 0 0 0 2px rgba(224, 92, 26, 0.2);
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
 }
 
 .actions {

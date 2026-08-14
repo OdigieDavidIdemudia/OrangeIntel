@@ -8,8 +8,8 @@ const BrandLogo = ({ size = 44, hideText = false, subtitle = '', className = '' 
                 <svg viewBox="0 0 68 79" className={styles.svg}>
                     <defs>
                         <linearGradient id="brandLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#EB4D00" />
-                            <stop offset="100%" stopColor="#A83800" />
+                            <stop offset="0%" stopColor="#0D9488" />
+                            <stop offset="100%" stopColor="#0F766E" />
                         </linearGradient>
                     </defs>
                     <polygon points="34,0 68,19.6 68,58.8 34,78.4 0,58.8 0,19.6" fill="url(#brandLogoGrad)" />
@@ -24,8 +24,8 @@ const BrandLogo = ({ size = 44, hideText = false, subtitle = '', className = '' 
             {!hideText && (
                 <div className={styles.textColumn}>
                     <div className={styles.textBlock}>
-                        <span className={styles.orange}>Orange</span>
-                        <span className={styles.white}>Intel</span>
+                        <span className={styles.teal}>Teal</span>
+                        <span className={styles.white}>Hunt</span>
                     </div>
                     {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
                 </div>

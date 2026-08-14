@@ -1,0 +1,69 @@
+{
+  "legal_standard": {
+    "version": "1.0",
+    "name": "Legal Compliance and Policy Baseline",
+    "description": "Standardized requirements for legal documents, privacy notices, cookie policies, and data processing terms across corporate platforms.",
+    "company_details": {
+      "owner": "David Idemudia Odigie",
+      "brand_name": "AssetPulse",
+      "registered_country": "Nigeria",
+      "registered_address": "Post Army Estate, Amac, Federal Capital Territory 900001",
+      "contact_phone": "09013274980",
+      "contact_email": "hello@assetpulse.com.ng",
+      "privacy_email": "privacy@assetpulse.com.ng"
+    },
+    "documents": {
+      "terms_of_service": {
+        "required_sections": [
+          "Our Services",
+          "Intellectual Property Rights",
+          "User Representations",
+          "User Registration",
+          "Purchases and Payment",
+          "Subscriptions",
+          "Prohibited Activities",
+          "Customer Data and Content",
+          "Services Management",
+          "Privacy Policy Reference",
+          "Term and Termination",
+          "Governing Law (Nigeria)",
+          "Dispute Resolution",
+          "Disclaimer and Limitations of Liability"
+        ],
+        "scope": "Centralized SaaS endpoint compliance reconciliation platform (integrating Cortex XDR, Qualys, CrowdStrike)."
+      },
+      "privacy_policy": {
+        "required_sections": [
+          "What Information We Collect",
+          "How We Process Your Information",
+          "When and With Whom We Share Personal Information",
+          "Use of Cookies and Tracking Technologies",
+          "International Data Transfers (Vercel & Neon in US/Global)",
+          "Data Retention Policies",
+          "Data Security Measures",
+          "Privacy Rights & Controls",
+          "Contact Information"
+        ],
+        "collected_personal_data": [
+          "names",
+          "email addresses",
+          "job titles",
+          "passwords",
+          "usernames",
+          "IP addresses & usage data",
+          "endpoint logs & asset details"
+        ]
+      },
+      "cookie_policy": {
+        "required_sections": [
+          "Definition of Cookies",
+          "First-Party vs Third-Party Cookies",
+          "Strictly Necessary Cookies (Session, Auth, security checks)",
+          "Analytics Cookies (Google Analytics)",
+          "Browser Cookie Controls"
+        ],
+        "consent_mechanism": "Must present users with an active cookie banner allowing Accept/Decline before optional tracking occurs."
+      }
+    }
+  }
+}

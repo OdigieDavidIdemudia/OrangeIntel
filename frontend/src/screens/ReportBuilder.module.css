@@ -1,5 +1,5 @@
 /* ============================================
-   ORANGEINTEL REPORT BUILDER — PREMIUM REFINED
+   TEALHUNT REPORT BUILDER — PREMIUM REFINED
    Aesthetics: Document-centric, Clean, Precise
    ============================================ */
 
@@ -51,7 +51,7 @@
 }
 
 .panelIcon {
-    background-color: rgba(224, 123, 0, 0.1);
+    background-color: rgba(13, 148, 136, 0.1);
     width: 36px;
     height: 36px;
     border-radius: 8px;
@@ -120,7 +120,7 @@
 
 .generateButton:hover {
     background-color: var(--color-brand-hover);
-    box-shadow: 0 4px 12px rgba(224, 123, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
 }
 
 .previewButton {

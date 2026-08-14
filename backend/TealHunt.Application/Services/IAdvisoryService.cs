@@ -1,0 +1,13 @@
+using TealHunt.Domain.Entities;
+
+namespace TealHunt.Application.Services;
+
+public interface IAdvisoryService
+{
+    Task<IEnumerable<Advisory>> GetAdvisoriesAsync();
+    Task<Advisory?> GetAdvisoryByIdAsync(Guid id);
+    Task UpdateAdvisoryAsync(Advisory advisory);
+    Task AddAdvisoryAsync(Advisory advisory);
+    Task SaveDraftAsync(AdvisoryDraft draft);
+    Task<AdvisoryDraft?> GetDraftByIdAsync(Guid id);
+}

@@ -1,0 +1,62 @@
+Starting DB Init at 5/9/2026 11:18:30 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/10/2026 11:48:17 AM
+Connection String: ConnectionString present (hidden password)
+DB Init Failed: System.InvalidOperationException: An error was generated for warning 'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The model for context 'ApplicationDbContext' has pending changes. Add a new migration before updating the database. This exception can be suppressed or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 'AddDbContext'.
+   at Microsoft.EntityFrameworkCore.Diagnostics.EventDefinition`1.Log[TLoggerCategory](IDiagnosticsLogger`1 logger, TParam arg)
+   at Microsoft.EntityFrameworkCore.Diagnostics.RelationalLoggerExtensions.PendingModelChangesWarning(IDiagnosticsLogger`1 diagnostics, Type contextType)
+   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.MigrateAsync(String targetMigration, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal.NpgsqlMigrator.MigrateAsync(String targetMigration, CancellationToken cancellationToken)
+   at TealHunt.Infrastructure.Data.DbInitializer.Initialize(IServiceProvider serviceProvider, Boolean resetDb) in C:\Users\DELL\.gemini\antigravity\scratch\TealHunt\backend\TealHunt.Infrastructure\Data\DbInitializer.cs:line 33
+Starting DB Init at 5/10/2026 11:54:36 AM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/10/2026 1:15:37 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/10/2026 2:13:26 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/10/2026 2:47:25 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/10/2026 5:54:20 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/10/2026 5:55:12 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/14/2026 8:43:08 AM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/14/2026 10:12:54 AM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/17/2026 10:47:10 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/17/2026 11:44:50 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/17/2026 11:46:04 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/17/2026 11:51:51 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/31/2026 7:01:44 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/31/2026 7:38:37 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/31/2026 7:46:18 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/31/2026 7:47:19 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully
+Starting DB Init at 5/31/2026 7:51:05 PM
+Connection String: ConnectionString present (hidden password)
+DB Init Completed Successfully

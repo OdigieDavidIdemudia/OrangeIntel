@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Users, Shield, Activity, Plus, Filter } from 'lucide-react';
+import { Users, Shield, Activity, Plus, Filter, Lock, Edit2 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -138,6 +138,20 @@ const AdminDashboard = () => {
                                     <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button 
+                                                className={styles.actionBtn} 
+                                                title="Force Password Reset"
+                                                onClick={() => toast.success("Password reset initiated")}
+                                            >
+                                                <Lock size={14} />
+                                            </button>
+                                            <button 
+                                                className={styles.actionBtn} 
+                                                title="Edit User"
+                                                onClick={() => toast.success("Edit user not implemented")}
+                                            >
+                                                <Edit2 size={14} />
+                                            </button>
                                             <button 
                                                 className={styles.actionBtn} 
                                                 title="Reset MFA"

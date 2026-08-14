@@ -1,12 +1,11 @@
 /* ============================================
-   ORANGEINTEL SETTINGS — PREMIUM REFINED
+   TEALHUNT SETTINGS — PREMIUM REFINED
    Aesthetics: Systemic, Modular, High-Contrast
    ============================================ */
 
 .container {
     display: flex;
-    height: 100%;
-    min-height: calc(100vh - 64px);
+    height: calc(100vh - 64px);
     background-color: var(--bg-app);
 }
 
@@ -16,6 +15,7 @@
     padding: var(--space-6);
     border-right: 1px solid var(--border-subtle);
     background: var(--sidebar-background);
+    overflow-y: auto;
 }
 
 .title {
@@ -156,7 +156,7 @@
 .input:focus {
     outline: none;
     border-color: var(--color-brand);
-    box-shadow: 0 0 0 2px rgba(224, 123, 0, 0.1);
+    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.1);
 }
 
 .input:disabled {
@@ -250,7 +250,7 @@ input:checked + .slider:before {
 .btnPrimary:hover {
     background: var(--color-brand-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(224, 123, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
 }
 
 .btnSecondary {

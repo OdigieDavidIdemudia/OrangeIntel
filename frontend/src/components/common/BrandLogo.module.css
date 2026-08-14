@@ -33,13 +33,13 @@
     line-height: 1;
 }
 
-.orange {
-    color: #EB4D00;
+.teal {
+    color: #0D9488;
     font-weight: 800;
 }
 
 .white {
-    color: #FFFFFF;
+    color: var(--text-primary);
     font-weight: 800;
 }
 

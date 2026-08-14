@@ -1,5 +1,5 @@
 /* ============================================
-   ORANGEINTEL THREAT DASHBOARD — PREMIUM REFINED
+   TEALHUNT THREAT DASHBOARD — PREMIUM REFINED
    ============================================ */
 
 .container {
@@ -120,7 +120,7 @@
 
 .linkIcon {
     color: var(--color-brand);
-    background: rgba(224, 123, 0, 0.1);
+    background: rgba(13, 148, 136, 0.1);
     width: 36px;
     height: 36px;
     border-radius: 8px;
